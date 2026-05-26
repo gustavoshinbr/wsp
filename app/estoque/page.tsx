@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Barcode, Boxes, Image as ImageIcon, Plus, Search, Trash2 } from "lucide-react";
+import { Barcode, Boxes, Image as ImageIcon, Plus, Search } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { BarcodeInput } from "@/components/BarcodeInput";
 import { Button } from "@/components/Button";
@@ -8,6 +8,7 @@ import { DataTable } from "@/components/DataTable";
 import { PresetImagePicker } from "@/components/PresetImagePicker";
 import { ProductCard } from "@/components/ProductCard";
 import { ProductImageUploader } from "@/components/ProductImageUploader";
+import { ProductStockActions } from "@/components/ProductStockActions";
 import { requirePageUser } from "@/lib/auth";
 import { brl } from "@/lib/currency";
 import { prisma } from "@/lib/prisma";
@@ -34,6 +35,15 @@ export default async function EstoquePage({ searchParams }: { searchParams: { q?
     },
     include: { images: true },
     orderBy: { createdAt: "desc" },
+  });
+  const editableProduct = (product: (typeof products)[number]) => ({
+    id: product.id,
+    name: product.name,
+    buyPrice: Number(product.buyPrice),
+    sellPrice: Number(product.sellPrice),
+    quantity: product.quantity,
+    barcode: product.barcode,
+    qrCode: product.qrCode,
   });
 
   return (
@@ -110,6 +120,11 @@ export default async function EstoquePage({ searchParams }: { searchParams: { q?
                   },
                   { header: "Qtd", render: (product) => product.quantity },
                   { header: "Venda", render: (product) => brl(product.sellPrice) },
+                  {
+                    header: "Acoes",
+                    className: "w-28",
+                    render: (product) => <ProductStockActions product={editableProduct(product)} />,
+                  },
                 ]}
                 mobileRender={(product) => (
                   <Card>
@@ -121,6 +136,9 @@ export default async function EstoquePage({ searchParams }: { searchParams: { q?
                       </div>
                       <strong>{product.quantity}</strong>
                     </div>
+                    <div className="mt-4">
+                      <ProductStockActions product={editableProduct(product)} />
+                    </div>
                   </Card>
                 )}
               />
@@ -129,13 +147,7 @@ export default async function EstoquePage({ searchParams }: { searchParams: { q?
                 {products.map((product) => (
                   <div key={product.id} className="space-y-2">
                     <ProductCard product={product} />
-                    <form action={`/api/produtos/${product.id}`} method="post" className="flex gap-2">
-                      <input type="hidden" name="_method" value="delete" />
-                      <button className="inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-lg border border-racing-line text-sm font-bold text-racing-muted">
-                        <Trash2 size={16} />
-                        Remover
-                      </button>
-                    </form>
+                    <ProductStockActions product={editableProduct(product)} />
                   </div>
                 ))}
                 {!products.length ? <Card className="sm:col-span-2 2xl:col-span-3">Nenhum produto cadastrado.</Card> : null}
