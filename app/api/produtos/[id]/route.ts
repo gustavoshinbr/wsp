@@ -75,12 +75,12 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       });
     }
 
-    return NextResponse.redirect(new URL("/estoque", req.url));
+    return NextResponse.redirect(new URL("/estoque", req.url), { status: 303 });
   } catch (error) {
     const { message } = apiError(error);
     const url = new URL("/estoque", req.url);
     url.searchParams.set("error", message);
-    return NextResponse.redirect(url);
+    return NextResponse.redirect(url, { status: 303 });
   }
 }
 
