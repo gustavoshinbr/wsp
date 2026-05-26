@@ -1,0 +1,40 @@
+import { onlyDigits } from "@/lib/utils";
+
+export function isValidEmail(email: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+export function validatePassword(password: string) {
+  return password.length >= 8;
+}
+
+export function validateCpfCnpj(value: string) {
+  const digits = onlyDigits(value);
+  return digits.length === 11 || digits.length === 14;
+}
+
+export function assertRequired(value: string, label: string) {
+  if (!value.trim()) throw new Error(`${label} é obrigatório.`);
+}
+
+export class ApiError extends Error {
+  status: number;
+
+  constructor(message: string, status = 400) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+  }
+}
+
+export function apiError(error: unknown) {
+  if (error instanceof ApiError) {
+    return { message: error.message, status: error.status };
+  }
+
+  if (error instanceof Error) {
+    return { message: error.message, status: 400 };
+  }
+
+  return { message: "Erro inesperado.", status: 500 };
+}

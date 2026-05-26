@@ -1,0 +1,52 @@
+import { NextResponse } from "next/server";
+import { requireApiUser } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { apiError, ApiError } from "@/lib/validations";
+import { formNumber, formString } from "@/lib/utils";
+
+async function ensureService(id: string, workspaceId: string) {
+  const service = await prisma.service.findFirst({ where: { id, workspaceId } });
+  if (!service) throw new ApiError("Serviço não encontrado.", 404);
+  return service;
+}
+
+export async function POST(req: Request, { params }: { params: { id: string } }) {
+  try {
+    const user = await requireApiUser();
+    await ensureService(params.id, user.workspaceId);
+    const formData = await req.formData();
+    const method = formString(formData, "_method").toLowerCase();
+
+    if (method === "delete") {
+      await prisma.service.delete({ where: { id: params.id } });
+    } else {
+      await prisma.service.update({
+        where: { id: params.id },
+        data: {
+          name: formString(formData, "name"),
+          price: formNumber(formData, "price"),
+          description: formString(formData, "description") || null,
+        },
+      });
+    }
+
+    return NextResponse.redirect(new URL("/servicos", req.url));
+  } catch (error) {
+    const { message } = apiError(error);
+    const url = new URL("/servicos", req.url);
+    url.searchParams.set("error", message);
+    return NextResponse.redirect(url);
+  }
+}
+
+export async function DELETE(_: Request, { params }: { params: { id: string } }) {
+  try {
+    const user = await requireApiUser();
+    await ensureService(params.id, user.workspaceId);
+    await prisma.service.delete({ where: { id: params.id } });
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    const { message, status } = apiError(error);
+    return NextResponse.json({ error: message }, { status });
+  }
+}

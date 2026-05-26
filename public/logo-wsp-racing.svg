@@ -1,0 +1,12 @@
+<svg width="360" height="128" viewBox="0 0 360 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M54 75L69 34H91L81 61L106 34H129L90 75H69L77 50L54 75Z" fill="#111827"/>
+  <path d="M124 75L139 34H177C184 34 189 38 189 46C189 56 181 61 169 62L183 75H160L147 62L142 75H124Z" fill="#111827"/>
+  <path d="M151 53H166C170 53 174 51 174 47C174 45 171 43 168 43H155L151 53Z" fill="white"/>
+  <path d="M190 75L205 34H227L212 75H190Z" fill="#dc2626"/>
+  <path d="M219 75L234 34H258C283 34 295 45 291 59C287 72 272 81 249 81H235L237 75H219Z" fill="#111827"/>
+  <path d="M244 66H252C263 66 270 63 272 58C274 51 268 48 256 48H249L244 66Z" fill="white"/>
+  <path d="M227 91C258 55 288 34 326 40" stroke="#111827" stroke-width="6" stroke-linecap="round"/>
+  <path d="M312 39L327 46L319 61" stroke="#dc2626" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="283" cy="53" r="6" fill="#dc2626"/>
+  <text x="88" y="101" font-family="Arial, Helvetica, sans-serif" font-size="27" font-weight="900" font-style="italic" fill="#dc2626">RACING</text>
+</svg>

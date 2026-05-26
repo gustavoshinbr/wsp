@@ -1,0 +1,20 @@
+
+> wsp-racing@2.0.0 dev
+> next dev -p 3000
+
+  ▲ Next.js 14.2.35
+  - Local:        http://localhost:3000
+  - Environments: .env
+
+ ✓ Starting...
+ ✓ Ready in 5.1s
+ ○ Compiling /middleware ...
+ ✓ Compiled /middleware in 892ms (72 modules)
+ ○ Compiling / ...
+ ✓ Compiled / in 17.4s (599 modules)
+ GET / 200 in 18013ms
+ GET /register 200 in 18041ms
+ GET / 200 in 3623ms
+ ○ Compiling /login ...
+ ✓ Compiled /login in 2s (604 modules)
+ ✓ Compiled in 625ms (288 modules)

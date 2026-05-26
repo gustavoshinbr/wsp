@@ -1,0 +1,13 @@
+<svg width="360" height="260" viewBox="0 0 360 260" xmlns="http://www.w3.org/2000/svg">
+  <rect width="360" height="260" rx="18" fill="#f5f7fb"/>
+  <ellipse cx="180" cy="215" rx="93" ry="15" fill="#d4d4d8"/>
+  <circle cx="180" cy="130" r="80" fill="#111827"/>
+  <circle cx="180" cy="130" r="48" fill="#f5f7fb"/>
+  <circle cx="180" cy="130" r="33" fill="#27272a"/>
+  <g stroke="#3f3f46" stroke-width="8" stroke-linecap="round">
+    <path d="M122 76l116 108"/>
+    <path d="M237 76L122 184"/>
+    <path d="M101 130h158"/>
+  </g>
+  <text x="180" y="45" text-anchor="middle" font-family="Arial" font-size="18" font-weight="900" fill="#111827">PNEU ESPORTIVO</text>
+</svg>

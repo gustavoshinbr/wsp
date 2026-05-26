@@ -1,0 +1,13 @@
+<svg width="360" height="260" viewBox="0 0 360 260" xmlns="http://www.w3.org/2000/svg">
+  <rect width="360" height="260" rx="18" fill="#f5f7fb"/>
+  <ellipse cx="180" cy="212" rx="96" ry="15" fill="#d4d4d8"/>
+  <g transform="translate(92 59)">
+    <rect x="0" y="26" width="76" height="114" rx="22" fill="#1f2937"/>
+    <rect x="100" y="26" width="76" height="114" rx="22" fill="#1f2937"/>
+    <rect x="14" y="45" width="48" height="70" rx="12" fill="#3f3f46"/>
+    <rect x="114" y="45" width="48" height="70" rx="12" fill="#3f3f46"/>
+    <circle cx="38" cy="26" r="14" fill="#dc2626"/>
+    <circle cx="138" cy="26" r="14" fill="#dc2626"/>
+  </g>
+  <text x="180" y="48" text-anchor="middle" font-family="Arial" font-size="18" font-weight="900" fill="#111827">PASTILHA DE FREIO</text>
+</svg>
