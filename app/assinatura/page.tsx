@@ -1,17 +1,20 @@
 import { CheckCircle2, CreditCard, ShieldCheck } from "lucide-react";
+import Link from "next/link";
+import { redirect } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
+import { getFirstSubscriptionPayment } from "@/lib/asaas";
 import { requirePageUser } from "@/lib/auth";
 import { brl } from "@/lib/currency";
-import { subscriptionMessage } from "@/lib/subscription";
+import { isSubscriptionActive, subscriptionMessage } from "@/lib/subscription";
 
 const benefits = [
   "Clientes ilimitados",
   "Produtos e estoque com fotos",
-  "Orçamentos",
+  "Orcamentos",
   "Agendamentos",
-  "Relatórios",
+  "Relatorios",
   "Modo claro/escuro",
   "Suporte para celular e PC",
 ];
@@ -19,6 +22,14 @@ const benefits = [
 export default async function SubscriptionPage({ searchParams }: { searchParams: { error?: string } }) {
   const user = await requirePageUser({ allowExpiredSubscription: true });
   const value = Number(process.env.ASAAS_PLAN_VALUE || 50);
+  if (isSubscriptionActive(user.workspace)) redirect("/dashboard");
+
+  const existingSubscriptionId =
+    user.workspace.subscriptionStatus !== "CANCELED" ? user.workspace.asaasSubscriptionId : null;
+  const existingPayment = existingSubscriptionId
+    ? await getFirstSubscriptionPayment(existingSubscriptionId).catch(() => null)
+    : null;
+  const existingPaymentLink = existingPayment?.invoiceUrl || null;
 
   return (
     <AppShell allowExpiredSubscription>
@@ -38,22 +49,34 @@ export default async function SubscriptionPage({ searchParams }: { searchParams:
               </span>
               <h1 className="mt-5 text-3xl font-black sm:text-4xl">WSP Racing Pro</h1>
               <p className="mt-3 text-racing-muted">
-                Seu teste grátis acabou ou está perto de acabar. Ative a assinatura para continuar usando todos os módulos.
+                {existingSubscriptionId
+                  ? "Ja existe um pagamento gerado para esta assinatura. Use o mesmo link para concluir, sem criar outra cobranca."
+                  : "Ative a assinatura para continuar usando todos os modulos depois do periodo de teste."}
               </p>
               <div className="mt-6 flex items-end gap-2">
                 <strong className="text-5xl font-black">{brl(value)}</strong>
-                <span className="pb-2 text-racing-muted">/mês</span>
+                <span className="pb-2 text-racing-muted">/mes</span>
               </div>
-              <form action="/api/asaas/create-subscription" method="post" className="mt-8">
-                <Button type="submit" className="w-full sm:w-auto">
+              {existingPaymentLink ? (
+                <Link
+                  href={existingPaymentLink}
+                  className="mt-8 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-racing-red px-4 py-2 text-sm font-bold text-white hover:bg-red-700 sm:w-auto"
+                >
                   <CreditCard size={18} />
-                  Ativar assinatura
-                </Button>
-              </form>
+                  Abrir pagamento pendente
+                </Link>
+              ) : (
+                <form action="/api/asaas/create-subscription" method="post" className="mt-8">
+                  <Button type="submit" className="w-full sm:w-auto">
+                    <CreditCard size={18} />
+                    {existingSubscriptionId ? "Abrir pagamento pendente" : "Ativar assinatura"}
+                  </Button>
+                </form>
+              )}
             </div>
 
             <div className="border-t border-racing-line bg-racing-soft p-6 lg:border-l lg:border-t-0 lg:p-8">
-              <h2 className="text-lg font-black">Benefícios incluídos</h2>
+              <h2 className="text-lg font-black">Beneficios incluidos</h2>
               <ul className="mt-5 space-y-3">
                 {benefits.map((benefit) => (
                   <li key={benefit} className="flex items-center gap-3 text-sm font-semibold">

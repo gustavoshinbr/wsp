@@ -16,6 +16,15 @@ type AsaasSubscriptionInput = {
   nextDueDate?: Date;
 };
 
+export type AsaasPayment = {
+  id: string;
+  status?: string;
+  invoiceUrl?: string;
+  dueDate?: string;
+  paymentDate?: string;
+  clientPaymentDate?: string;
+};
+
 export type AsaasPaymentEvent = {
   id?: string;
   event?: string;
@@ -38,6 +47,7 @@ export type AsaasPaymentEvent = {
 };
 
 const DEFAULT_BASE_URL = "https://sandbox.asaas.com/api/v3";
+const PAID_PAYMENT_STATUSES = new Set(["RECEIVED", "CONFIRMED", "RECEIVED_IN_CASH"]);
 
 export function asaasBaseUrl() {
   return (process.env.ASAAS_BASE_URL || DEFAULT_BASE_URL).replace(/\/$/, "");
@@ -92,6 +102,7 @@ export async function createAsaasSubscription(input: AsaasSubscriptionInput) {
 
   const subscription = await asaasRequest<{
     id: string;
+    status?: string;
     invoiceUrl?: string;
     paymentLink?: string;
   }>("/subscriptions", {
@@ -129,10 +140,14 @@ export async function cancelAsaasSubscription(id: string) {
 
 export async function getFirstSubscriptionPayment(subscriptionId: string) {
   const data = await asaasRequest<{
-    data?: Array<{ id: string; status?: string; invoiceUrl?: string; dueDate?: string }>;
+    data?: AsaasPayment[];
   }>(`/payments?subscription=${encodeURIComponent(subscriptionId)}&limit=1`);
 
   return data.data?.[0] || null;
+}
+
+export function isPaidAsaasPaymentStatus(status?: string | null) {
+  return PAID_PAYMENT_STATUSES.has(String(status || "").toUpperCase());
 }
 
 export function validateAsaasWebhookToken(headers: Headers) {

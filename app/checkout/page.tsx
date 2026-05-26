@@ -1,10 +1,29 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { ArrowRight, CreditCard } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Card } from "@/components/Card";
+import { getFirstSubscriptionPayment } from "@/lib/asaas";
+import { requirePageUser } from "@/lib/auth";
 import { brl } from "@/lib/currency";
+import { isSubscriptionActive } from "@/lib/subscription";
 
-export default function CheckoutPage({ searchParams }: { searchParams: { subscription?: string; paymentLink?: string } }) {
+export default async function CheckoutPage({
+  searchParams,
+}: {
+  searchParams: { subscription?: string; paymentLink?: string };
+}) {
+  const user = await requirePageUser({ allowExpiredSubscription: true });
+  if (isSubscriptionActive(user.workspace)) redirect("/dashboard");
+
+  const existingSubscriptionId =
+    user.workspace.subscriptionStatus !== "CANCELED" ? user.workspace.asaasSubscriptionId : null;
+  const existingPayment =
+    !searchParams.paymentLink && existingSubscriptionId
+      ? await getFirstSubscriptionPayment(existingSubscriptionId).catch(() => null)
+      : null;
+  const paymentLink = searchParams.paymentLink || existingPayment?.invoiceUrl || null;
+
   return (
     <AppShell allowExpiredSubscription>
       <div className="mx-auto max-w-2xl">
@@ -14,16 +33,16 @@ export default function CheckoutPage({ searchParams }: { searchParams: { subscri
           </span>
           <h1 className="mt-5 text-3xl font-black">Checkout Asaas</h1>
           <p className="mt-3 text-racing-muted">
-            Assinatura recorrente WSP Racing Pro no valor de {brl(Number(process.env.ASAAS_PLAN_VALUE || 50))}/mês.
+            Assinatura recorrente WSP Racing Pro no valor de {brl(Number(process.env.ASAAS_PLAN_VALUE || 50))}/mes.
           </p>
-          {searchParams.subscription ? (
+          {existingSubscriptionId ? (
             <p className="mt-4 rounded-lg bg-racing-soft p-3 text-sm font-semibold text-racing-muted">
-              Assinatura criada: {searchParams.subscription}. O webhook do Asaas ativará o acesso quando o pagamento for confirmado.
+              Ja existe uma cobranca gerada para esta assinatura. Use o mesmo pagamento para continuar.
             </p>
           ) : null}
-          {searchParams.paymentLink ? (
+          {paymentLink ? (
             <Link
-              href={searchParams.paymentLink}
+              href={paymentLink}
               className="mt-6 inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-racing-red px-4 py-2 text-sm font-bold text-white"
             >
               Abrir pagamento
@@ -32,7 +51,7 @@ export default function CheckoutPage({ searchParams }: { searchParams: { subscri
           ) : (
             <form action="/api/asaas/create-subscription" method="post" className="mt-6">
               <button className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-racing-red px-4 py-2 text-sm font-bold text-white">
-                Gerar link de pagamento
+                {existingSubscriptionId ? "Abrir pagamento existente" : "Gerar link de pagamento"}
                 <ArrowRight size={17} />
               </button>
             </form>

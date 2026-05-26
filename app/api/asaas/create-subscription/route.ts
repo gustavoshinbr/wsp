@@ -1,13 +1,73 @@
 import { NextResponse } from "next/server";
-import { createAsaasCustomer, createAsaasSubscription } from "@/lib/asaas";
+import {
+  createAsaasCustomer,
+  createAsaasSubscription,
+  getFirstSubscriptionPayment,
+  isPaidAsaasPaymentStatus,
+} from "@/lib/asaas";
 import { requireApiUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { setSessionCookie } from "@/lib/session";
 import { apiError } from "@/lib/validations";
 
+function hasTrialAccess(trialEndsAt: Date) {
+  return trialEndsAt.getTime() >= Date.now();
+}
+
+function redirectToPayment(req: Request, subscriptionId: string, paymentLink?: string | null) {
+  if (paymentLink) return NextResponse.redirect(paymentLink);
+
+  const url = new URL("/checkout", req.url);
+  url.searchParams.set("subscription", subscriptionId);
+  return NextResponse.redirect(url);
+}
+
 export async function POST(req: Request) {
   try {
     const user = await requireApiUser({ allowExpiredSubscription: true });
+    const acceptsJson = req.headers.get("accept")?.includes("application/json");
+
+    if (user.workspace.subscriptionStatus === "ACTIVE") {
+      if (acceptsJson) return NextResponse.json({ active: true });
+      return NextResponse.redirect(new URL("/dashboard", req.url));
+    }
+
+    if (user.workspace.asaasSubscriptionId && user.workspace.subscriptionStatus !== "CANCELED") {
+      const payment = await getFirstSubscriptionPayment(user.workspace.asaasSubscriptionId).catch(() => null);
+      const isPaid = isPaidAsaasPaymentStatus(payment?.status);
+      const workspace = await prisma.workspace.update({
+        where: { id: user.workspaceId },
+        data: {
+          ...(isPaid ? { subscriptionStatus: "ACTIVE" as const } : {}),
+          ...(payment?.status ? { paymentStatus: payment.status } : {}),
+        },
+      });
+
+      setSessionCookie({
+        userId: user.id,
+        workspaceId: workspace.id,
+        email: user.email,
+        remember: true,
+        subscriptionStatus: workspace.subscriptionStatus,
+        trialEndsAt: workspace.trialEndsAt,
+      });
+
+      if (isPaid) {
+        if (acceptsJson) return NextResponse.json({ active: true });
+        return NextResponse.redirect(new URL("/dashboard", req.url));
+      }
+
+      if (acceptsJson) {
+        return NextResponse.json({
+          subscriptionId: user.workspace.asaasSubscriptionId,
+          paymentLink: payment?.invoiceUrl || null,
+          reused: true,
+        });
+      }
+
+      return redirectToPayment(req, user.workspace.asaasSubscriptionId, payment?.invoiceUrl);
+    }
+
     let customerId = user.workspace.asaasCustomerId;
 
     if (!customerId) {
@@ -33,7 +93,11 @@ export async function POST(req: Request) {
       data: {
         asaasCustomerId: customerId,
         asaasSubscriptionId: result.subscription.id,
-        subscriptionStatus: "INACTIVE",
+        subscriptionStatus: isPaidAsaasPaymentStatus(result.payment?.status)
+          ? "ACTIVE"
+          : hasTrialAccess(user.workspace.trialEndsAt)
+            ? "TRIAL"
+            : "INACTIVE",
         paymentStatus: result.payment?.status || "AWAITING_PAYMENT",
         subscriptionCurrentPeriodEnd: result.currentPeriodEnd,
         lastPaymentEvent: "SUBSCRIPTION_CREATED",
@@ -49,7 +113,6 @@ export async function POST(req: Request) {
       trialEndsAt: workspace.trialEndsAt,
     });
 
-    const acceptsJson = req.headers.get("accept")?.includes("application/json");
     if (acceptsJson) {
       return NextResponse.json({
         subscriptionId: result.subscription.id,

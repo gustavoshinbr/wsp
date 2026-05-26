@@ -6,8 +6,6 @@ type SessionPayload = {
   userId: string;
   workspaceId: string;
   email: string;
-  subscriptionStatus?: string;
-  trialEndsAt?: string;
   exp: number;
 };
 
@@ -21,8 +19,6 @@ const PUBLIC_ROUTES = [
   "/api/asaas/webhook",
 ];
 
-const BILLING_ROUTES = ["/assinatura", "/checkout", "/api/asaas/create-subscription", "/api/asaas/checkout"];
-
 function isPublicPath(pathname: string) {
   return (
     PUBLIC_ROUTES.some((route) => pathname === route || pathname.startsWith(`${route}/`)) ||
@@ -31,10 +27,6 @@ function isPublicPath(pathname: string) {
     pathname.startsWith("/logo-wsp-racing.svg") ||
     pathname.includes(".")
   );
-}
-
-function isBillingPath(pathname: string) {
-  return BILLING_ROUTES.some((route) => pathname === route || pathname.startsWith(`${route}/`));
 }
 
 function base64UrlToArrayBuffer(value: string) {
@@ -76,14 +68,6 @@ async function verifySession(token?: string): Promise<SessionPayload | null> {
   return payload;
 }
 
-function sessionHasAccess(session: SessionPayload) {
-  if (session.subscriptionStatus === "ACTIVE") return true;
-  if (session.subscriptionStatus === "TRIAL" && session.trialEndsAt) {
-    return new Date(session.trialEndsAt).getTime() >= Date.now();
-  }
-  return !session.subscriptionStatus;
-}
-
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const session = await verifySession(request.cookies.get(COOKIE_NAME)?.value);
@@ -99,10 +83,6 @@ export async function middleware(request: NextRequest) {
     const url = new URL("/login", request.url);
     url.searchParams.set("next", pathname);
     return NextResponse.redirect(url);
-  }
-
-  if (!isBillingPath(pathname) && !sessionHasAccess(session)) {
-    return NextResponse.redirect(new URL("/assinatura", request.url));
   }
 
   return NextResponse.next();

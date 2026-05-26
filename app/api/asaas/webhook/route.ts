@@ -1,7 +1,7 @@
 import { addDays } from "date-fns";
 import { NextResponse } from "next/server";
 import { type SubscriptionStatus } from "@prisma/client";
-import { validateAsaasWebhookToken, type AsaasPaymentEvent } from "@/lib/asaas";
+import { isPaidAsaasPaymentStatus, validateAsaasWebhookToken, type AsaasPaymentEvent } from "@/lib/asaas";
 import { prisma } from "@/lib/prisma";
 
 const EVENT_TO_STATUS: Record<string, SubscriptionStatus> = {
@@ -23,6 +23,18 @@ const ACCEPTED_EVENTS = new Set([
   "SUBSCRIPTION_DELETED",
   "SUBSCRIPTION_UPDATED",
 ]);
+
+function statusFromEvent(payload: AsaasPaymentEvent): SubscriptionStatus | undefined {
+  const event = payload.event || "";
+  const eventStatus = EVENT_TO_STATUS[event];
+  if (eventStatus) return eventStatus;
+
+  const paymentStatus = payload.payment?.status;
+  if (isPaidAsaasPaymentStatus(paymentStatus)) return "ACTIVE";
+  if (paymentStatus === "OVERDUE") return "OVERDUE";
+
+  return undefined;
+}
 
 function periodEndFromEvent(payload: AsaasPaymentEvent) {
   const date =
@@ -54,11 +66,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true, ignored: "missing-reference" });
   }
 
-  const status = EVENT_TO_STATUS[event];
+  const status = statusFromEvent(payload);
+  const periodEnd = periodEndFromEvent(payload);
   const data = {
     ...(subscriptionId ? { asaasSubscriptionId: subscriptionId } : {}),
     ...(status ? { subscriptionStatus: status } : {}),
-    ...(periodEndFromEvent(payload) ? { subscriptionCurrentPeriodEnd: periodEndFromEvent(payload) } : {}),
+    ...(periodEnd ? { subscriptionCurrentPeriodEnd: periodEnd } : {}),
     paymentStatus: payload.payment?.status || payload.subscription?.status || event,
     lastPaymentEvent: event,
   };
