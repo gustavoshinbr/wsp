@@ -4,6 +4,8 @@ import {
   createAsaasSubscription,
   getFirstSubscriptionPayment,
   isPaidAsaasPaymentStatus,
+  paymentUrlWithAutoRedirect,
+  updateAsaasSubscriptionCallback,
 } from "@/lib/asaas";
 import { requireApiUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -26,6 +28,7 @@ export async function POST(req: Request) {
   try {
     const user = await requireApiUser({ allowExpiredSubscription: true });
     const acceptsJson = req.headers.get("accept")?.includes("application/json");
+    const callbackSuccessUrl = new URL("/api/asaas/return", req.url).toString();
 
     if (user.workspace.subscriptionStatus === "ACTIVE") {
       if (acceptsJson) return NextResponse.json({ active: true });
@@ -33,6 +36,7 @@ export async function POST(req: Request) {
     }
 
     if (user.workspace.asaasSubscriptionId && user.workspace.subscriptionStatus !== "CANCELED") {
+      await updateAsaasSubscriptionCallback(user.workspace.asaasSubscriptionId, callbackSuccessUrl).catch(() => null);
       const payment = await getFirstSubscriptionPayment(user.workspace.asaasSubscriptionId).catch(() => null);
       const isPaid = isPaidAsaasPaymentStatus(payment?.status);
       const workspace = await prisma.workspace.update({
@@ -60,12 +64,16 @@ export async function POST(req: Request) {
       if (acceptsJson) {
         return NextResponse.json({
           subscriptionId: user.workspace.asaasSubscriptionId,
-          paymentLink: payment?.invoiceUrl || null,
+          paymentLink: paymentUrlWithAutoRedirect(payment?.invoiceUrl || null),
           reused: true,
         });
       }
 
-      return redirectToPayment(req, user.workspace.asaasSubscriptionId, payment?.invoiceUrl);
+      return redirectToPayment(
+        req,
+        user.workspace.asaasSubscriptionId,
+        paymentUrlWithAutoRedirect(payment?.invoiceUrl || null),
+      );
     }
 
     let customerId = user.workspace.asaasCustomerId;
@@ -86,6 +94,7 @@ export async function POST(req: Request) {
       value: Number(process.env.ASAAS_PLAN_VALUE || 50),
       externalReference: user.workspace.id,
       description: "Assinatura mensal WSP Racing Pro",
+      callbackSuccessUrl,
     });
 
     const workspace = await prisma.workspace.update({

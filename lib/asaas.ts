@@ -1,4 +1,5 @@
 import { addDays, format } from "date-fns";
+import { absoluteUrl } from "@/lib/utils";
 
 type AsaasCustomerInput = {
   name: string;
@@ -14,6 +15,7 @@ type AsaasSubscriptionInput = {
   description?: string;
   externalReference?: string;
   nextDueDate?: Date;
+  callbackSuccessUrl?: string;
 };
 
 export type AsaasPayment = {
@@ -115,6 +117,10 @@ export async function createAsaasSubscription(input: AsaasSubscriptionInput) {
       cycle: "MONTHLY",
       description: input.description || "Assinatura WSP Racing Pro",
       externalReference: input.externalReference,
+      callback: {
+        successUrl: input.callbackSuccessUrl || absoluteUrl("/api/asaas/return"),
+        autoRedirect: true,
+      },
     }),
   });
 
@@ -123,9 +129,24 @@ export async function createAsaasSubscription(input: AsaasSubscriptionInput) {
   return {
     subscription,
     payment,
-    paymentLink: payment?.invoiceUrl || subscription.paymentLink || subscription.invoiceUrl || null,
+    paymentLink: paymentUrlWithAutoRedirect(
+      payment?.invoiceUrl || subscription.paymentLink || subscription.invoiceUrl || null,
+    ),
     currentPeriodEnd: addDays(nextDueDate, 30),
   };
+}
+
+export async function updateAsaasSubscriptionCallback(id: string, callbackSuccessUrl?: string) {
+  return asaasRequest<{ id: string; status?: string }>(`/subscriptions/${id}`, {
+    method: "PUT",
+    body: JSON.stringify({
+      callback: {
+        successUrl: callbackSuccessUrl || absoluteUrl("/api/asaas/return"),
+        autoRedirect: true,
+      },
+      updatePendingPayments: true,
+    }),
+  });
 }
 
 export async function getAsaasSubscription(id: string) {
@@ -148,6 +169,18 @@ export async function getFirstSubscriptionPayment(subscriptionId: string) {
 
 export function isPaidAsaasPaymentStatus(status?: string | null) {
   return PAID_PAYMENT_STATUSES.has(String(status || "").toUpperCase());
+}
+
+export function paymentUrlWithAutoRedirect(url?: string | null) {
+  if (!url) return null;
+
+  try {
+    const parsed = new URL(url);
+    parsed.searchParams.set("autoRedirect", "true");
+    return parsed.toString();
+  } catch {
+    return url;
+  }
 }
 
 export function validateAsaasWebhookToken(headers: Headers) {

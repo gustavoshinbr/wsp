@@ -3,7 +3,8 @@ import { redirect } from "next/navigation";
 import { ArrowRight, CreditCard } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Card } from "@/components/Card";
-import { getFirstSubscriptionPayment } from "@/lib/asaas";
+import { SubscriptionStatusRedirect } from "@/components/SubscriptionStatusRedirect";
+import { getFirstSubscriptionPayment, paymentUrlWithAutoRedirect } from "@/lib/asaas";
 import { requirePageUser } from "@/lib/auth";
 import { brl } from "@/lib/currency";
 import { isSubscriptionActive } from "@/lib/subscription";
@@ -22,10 +23,11 @@ export default async function CheckoutPage({
     !searchParams.paymentLink && existingSubscriptionId
       ? await getFirstSubscriptionPayment(existingSubscriptionId).catch(() => null)
       : null;
-  const paymentLink = searchParams.paymentLink || existingPayment?.invoiceUrl || null;
+  const paymentLink = searchParams.paymentLink || paymentUrlWithAutoRedirect(existingPayment?.invoiceUrl || null);
 
   return (
     <AppShell allowExpiredSubscription>
+      <SubscriptionStatusRedirect />
       <div className="mx-auto max-w-2xl">
         <Card>
           <span className="grid h-12 w-12 place-items-center rounded-full bg-red-50 text-racing-red dark:bg-red-500/10">

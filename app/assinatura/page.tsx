@@ -4,7 +4,8 @@ import { redirect } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
-import { getFirstSubscriptionPayment } from "@/lib/asaas";
+import { SubscriptionStatusRedirect } from "@/components/SubscriptionStatusRedirect";
+import { getFirstSubscriptionPayment, paymentUrlWithAutoRedirect } from "@/lib/asaas";
 import { requirePageUser } from "@/lib/auth";
 import { brl } from "@/lib/currency";
 import { isSubscriptionActive, subscriptionMessage } from "@/lib/subscription";
@@ -29,10 +30,11 @@ export default async function SubscriptionPage({ searchParams }: { searchParams:
   const existingPayment = existingSubscriptionId
     ? await getFirstSubscriptionPayment(existingSubscriptionId).catch(() => null)
     : null;
-  const existingPaymentLink = existingPayment?.invoiceUrl || null;
+  const existingPaymentLink = paymentUrlWithAutoRedirect(existingPayment?.invoiceUrl || null);
 
   return (
     <AppShell allowExpiredSubscription>
+      <SubscriptionStatusRedirect />
       <div className="mx-auto max-w-4xl">
         {searchParams.error ? (
           <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">

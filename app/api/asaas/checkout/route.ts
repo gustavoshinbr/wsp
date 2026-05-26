@@ -5,7 +5,7 @@ import { requireApiUser } from "@/lib/auth";
 import { absoluteUrl } from "@/lib/utils";
 import { apiError } from "@/lib/validations";
 
-export async function POST() {
+export async function POST(req: Request) {
   try {
     const user = await requireApiUser({ allowExpiredSubscription: true });
     const checkout = await asaasRequest<{ id: string; link?: string; url?: string }>("/checkouts", {
@@ -15,7 +15,7 @@ export async function POST() {
         chargeTypes: ["RECURRENT"],
         minutesToExpire: 60,
         callback: {
-          successUrl: absoluteUrl("/dashboard"),
+          successUrl: new URL("/api/asaas/return", req.url).toString(),
           cancelUrl: absoluteUrl("/assinatura"),
           expiredUrl: absoluteUrl("/assinatura"),
         },
