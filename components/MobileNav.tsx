@@ -2,25 +2,19 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BarChart3, Gauge, MoreHorizontal, ShoppingCart, Users, Wrench } from "lucide-react";
+import { mobileNavItems } from "@/components/navigation";
 import { cn } from "@/lib/utils";
-
-const mobileItems = [
-  { href: "/dashboard", label: "Início", icon: Gauge },
-  { href: "/clientes", label: "Clientes", icon: Users },
-  { href: "/vendas", label: "Vendas", icon: ShoppingCart },
-  { href: "/producao", label: "Produção", icon: Wrench },
-  { href: "/financeiro", label: "Financeiro", icon: BarChart3 },
-  { href: "/configuracoes", label: "Mais", icon: MoreHorizontal },
-];
 
 export function MobileNav() {
   const pathname = usePathname();
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-40 grid grid-cols-6 border-t border-racing-line bg-racing-panel/95 px-1 py-2 shadow-2xl backdrop-blur lg:hidden">
-      {mobileItems.map(({ href, label, icon: Icon }) => {
+      {mobileNavItems.map(({ href, label, icon: Icon }) => {
         const active = pathname === href;
+        const shortLabel =
+          href === "/dashboard" ? "Inicio" : href === "/configuracoes" ? "Mais" : label;
+
         return (
           <Link
             key={href}
@@ -31,7 +25,7 @@ export function MobileNav() {
             )}
           >
             <Icon size={18} />
-            <span className="max-w-full truncate">{label}</span>
+            <span className="max-w-full truncate">{shortLabel}</span>
           </Link>
         );
       })}

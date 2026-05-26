@@ -1,53 +1,8 @@
 import Link from "next/link";
-import {
-  BarChart3,
-  CalendarDays,
-  Clock3,
-  FileCog,
-  FileText,
-  Gauge,
-  Package,
-  ReceiptText,
-  Settings,
-  ShoppingCart,
-  UserCog,
-  Users,
-  Wrench,
-} from "lucide-react";
+import { FileCog } from "lucide-react";
 import { Logo } from "@/components/Logo";
+import { navGroups } from "@/components/navigation";
 import { cn } from "@/lib/utils";
-
-export const navGroups = [
-  {
-    title: "Operação",
-    items: [
-      { href: "/dashboard", label: "Visão geral", icon: Gauge },
-      { href: "/producao", label: "Produção", icon: Wrench },
-      { href: "/clientes", label: "Clientes", icon: Users },
-      { href: "/agendamentos", label: "Agenda", icon: CalendarDays },
-    ],
-  },
-  {
-    title: "Comercial",
-    items: [
-      { href: "/vendas", label: "Vendas", icon: ShoppingCart },
-      { href: "/vendas-a-prazo", label: "Vendas a prazo", icon: Clock3 },
-      { href: "/orcamentos", label: "Orçamentos", icon: FileText },
-      { href: "/estoque", label: "Estoque", icon: Package },
-      { href: "/servicos", label: "Serviços", icon: Wrench },
-    ],
-  },
-  {
-    title: "Gestão",
-    items: [
-      { href: "/financeiro", label: "Financeiro", icon: BarChart3 },
-      { href: "/relatorios", label: "Relatórios", icon: BarChart3 },
-      { href: "/funcionarios", label: "Funcionários", icon: UserCog },
-      { href: "/fiscal", label: "Fiscal", icon: ReceiptText },
-      { href: "/configuracoes", label: "Configurações", icon: Settings },
-    ],
-  },
-] as const;
 
 export function BrandMark({ compact = false }: { compact?: boolean }) {
   return <Logo compact={compact} />;
@@ -87,7 +42,9 @@ export function Sidebar({ pathname }: { pathname?: string }) {
           <FileCog size={17} className="text-racing-red" />
           Oficina isolada por workspace
         </div>
-        <p className="mt-1 text-xs leading-5 text-racing-muted">Cada equipe acessa somente os dados da própria oficina.</p>
+        <p className="mt-1 text-xs leading-5 text-racing-muted">
+          Cada equipe acessa somente os dados da propria oficina.
+        </p>
       </div>
     </aside>
   );
