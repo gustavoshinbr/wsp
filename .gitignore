@@ -17,9 +17,6 @@ dist/
 .env.production.local
 .env.production
 
-# Prisma
-prisma/migrations/
-
 # Uploads (user-generated content — store in S3/R2 in production)
 public/uploads/
 
