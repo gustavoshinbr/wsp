@@ -3,6 +3,7 @@ import { Boxes, Building2, CreditCard, Image as ImageIcon, KeyRound, LogOut, Moo
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
+import { PwaInstallButton } from "@/components/PwaInstall";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { requirePageUser } from "@/lib/auth";
 import { subscriptionMessage } from "@/lib/subscription";
@@ -109,6 +110,9 @@ export default async function ConfiguracoesPage({ searchParams }: { searchParams
             </h2>
             <div className="mt-4">
               <ThemeToggle />
+            </div>
+            <div className="mt-4">
+              <PwaInstallButton />
             </div>
             <Link href="/fiscal" className="mt-6 flex items-center gap-2 text-sm font-black text-racing-red">
               <ReceiptText size={16} />

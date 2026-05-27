@@ -17,6 +17,7 @@ const PUBLIC_ROUTES = [
   "/api/auth/login",
   "/api/auth/register",
   "/api/asaas/webhook",
+  "/api/pwa/icon",
 ];
 
 function isPublicPath(pathname: string) {
