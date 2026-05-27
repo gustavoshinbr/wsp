@@ -115,7 +115,7 @@ export function CartBuilder({ products, services }: { products: ProductOption[];
   );
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       <div className="rounded-lg border border-racing-line bg-racing-soft p-3">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -123,7 +123,6 @@ export function CartBuilder({ products, services }: { products: ProductOption[];
               <Boxes size={16} className="text-racing-red" />
               Carrinho
             </p>
-            <p className="mt-1 text-xs font-semibold text-racing-muted">Escolha estoque, servico ou crie um produto na hora.</p>
           </div>
           <button
             type="button"
@@ -131,11 +130,11 @@ export function CartBuilder({ products, services }: { products: ProductOption[];
             onClick={addRow}
           >
             <Plus size={16} />
-            Novo produto
+            Adicionar item
           </button>
         </div>
 
-        <div className="mt-4 space-y-3">
+        <div className="mt-3 space-y-2">
           {rows.map((row, index) => {
             const selectedProduct = products.find((product) => product.id === row.productId);
             const selectedService = services.find((service) => service.id === row.serviceId);
@@ -148,7 +147,7 @@ export function CartBuilder({ products, services }: { products: ProductOption[];
                   : moneyValue(row.quickProductUnitPrice);
 
             return (
-              <div key={row.id} className="rounded-lg border border-racing-line bg-racing-panel p-3">
+              <div key={row.id} className="rounded-lg border border-racing-line bg-racing-panel p-2 sm:p-3">
                 <div className="flex items-center justify-between gap-3">
                   <span className="text-xs font-black uppercase text-racing-muted">Item {index + 1}</span>
                   <button
@@ -179,26 +178,15 @@ export function CartBuilder({ products, services }: { products: ProductOption[];
                   </div>
 
                   {row.type === "product" ? (
-                    <>
-                      <div className="grid gap-2 sm:grid-cols-[1fr_92px]">
-                        <div className="relative">
-                          <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-racing-muted" size={16} />
-                          <input
-                            value={row.barcode}
-                            onChange={(event) => searchBarcode(row, event.target.value)}
-                            className="h-11 rounded-lg pl-9 pr-3"
-                            placeholder="Bipe ou digite codigo"
-                            inputMode="numeric"
-                          />
-                        </div>
+                    <div className="grid gap-2 lg:grid-cols-[minmax(0,1fr)_minmax(220px,1fr)_86px]">
+                      <div className="relative">
+                        <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-racing-muted" size={16} />
                         <input
-                          name="productQuantity"
-                          type="number"
-                          min={1}
-                          value={row.quantity}
-                          onChange={(event) => updateRow(row.id, { quantity: event.target.value })}
-                          className="h-11 rounded-lg px-3"
-                          placeholder="Qtd"
+                          value={row.barcode}
+                          onChange={(event) => searchBarcode(row, event.target.value)}
+                          className="h-11 rounded-lg pl-9 pr-3"
+                          placeholder="Bipe ou digite codigo"
+                          inputMode="numeric"
                         />
                       </div>
                       <select
@@ -214,7 +202,16 @@ export function CartBuilder({ products, services }: { products: ProductOption[];
                           </option>
                         ))}
                       </select>
-                    </>
+                      <input
+                        name="productQuantity"
+                        type="number"
+                        min={1}
+                        value={row.quantity}
+                        onChange={(event) => updateRow(row.id, { quantity: event.target.value })}
+                        className="h-11 rounded-lg px-3"
+                        placeholder="Qtd"
+                      />
+                    </div>
                   ) : null}
 
                   {row.type === "service" ? (

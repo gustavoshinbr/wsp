@@ -1,11 +1,16 @@
-import { CheckCircle2, FileText, Plus, Trash2 } from "lucide-react";
+import { CalendarDays, FileText, Plus } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/Button";
 import { CartBuilder } from "@/components/CartBuilder";
 import { Card } from "@/components/Card";
-import { QuotePreview } from "@/components/QuotePreview";
 import { requirePageUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+
+const quoteDateFormatter = new Intl.DateTimeFormat("pt-BR", {
+  day: "2-digit",
+  month: "2-digit",
+  year: "numeric",
+});
 
 export default async function OrcamentosPage({ searchParams }: { searchParams: { error?: string } }) {
   const user = await requirePageUser();
@@ -16,9 +21,13 @@ export default async function OrcamentosPage({ searchParams }: { searchParams: {
     prisma.service.findMany({ where: { workspaceId: user.workspaceId }, orderBy: { name: "asc" } }),
     prisma.quote.findMany({
       where: { workspaceId: user.workspaceId },
-      include: { client: true, motorcycle: true, items: true },
+      select: {
+        id: true,
+        createdAt: true,
+        client: { select: { name: true } },
+      },
       orderBy: { createdAt: "desc" },
-      take: 6,
+      take: 12,
     }),
   ]);
   const quoteProducts = products.map((product) => ({
@@ -39,32 +48,34 @@ export default async function OrcamentosPage({ searchParams }: { searchParams: {
       <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-black">Orçamentos</h1>
-          <p className="text-sm text-racing-muted">Monte orçamento com cliente, moto, produtos, serviços, item manual e envio por WhatsApp.</p>
+          <p className="text-sm text-racing-muted">Crie o orçamento e acompanhe apenas os registros salvos.</p>
         </div>
         {searchParams.error ? <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-700">{searchParams.error}</div> : null}
 
-        <div className="grid gap-6 xl:grid-cols-[430px_1fr]">
-          <Card>
+        <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_340px]">
+          <Card className="p-4 sm:p-5">
             <h2 className="flex items-center gap-2 text-lg font-black">
               <FileText size={19} />
               Novo orçamento
             </h2>
-            <form action="/api/orcamentos" method="post" className="mt-4 space-y-4">
-              <select name="clientId" required className="h-11 rounded-lg px-3">
-                <option value="">Selecione o cliente</option>
-                {clients.map((client) => <option key={client.id} value={client.id}>{client.name}</option>)}
-              </select>
-              <select name="motorcycleId" className="h-11 rounded-lg px-3">
-                <option value="">Moto opcional</option>
-                {motorcycles.map((motorcycle) => (
-                  <option key={motorcycle.id} value={motorcycle.id}>
-                    {motorcycle.plate} - {motorcycle.client.name}
-                  </option>
-                ))}
-              </select>
+            <form action="/api/orcamentos" method="post" className="mt-4 space-y-3">
+              <div className="grid gap-3 md:grid-cols-2">
+                <select name="clientId" required className="h-11 rounded-lg px-3">
+                  <option value="">Selecione o cliente</option>
+                  {clients.map((client) => <option key={client.id} value={client.id}>{client.name}</option>)}
+                </select>
+                <select name="motorcycleId" className="h-11 rounded-lg px-3">
+                  <option value="">Moto opcional</option>
+                  {motorcycles.map((motorcycle) => (
+                    <option key={motorcycle.id} value={motorcycle.id}>
+                      {motorcycle.plate} - {motorcycle.client.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
               <CartBuilder products={quoteProducts} services={quoteServices} />
-              <textarea name="notes" rows={3} className="rounded-lg px-3 py-2" placeholder="Observações e validade do orçamento" />
+              <textarea name="notes" rows={2} className="rounded-lg px-3 py-2" placeholder="Observações e validade do orçamento" />
               <Button type="submit" className="w-full">
                 <Plus size={17} />
                 Gerar orçamento
@@ -72,53 +83,28 @@ export default async function OrcamentosPage({ searchParams }: { searchParams: {
             </form>
           </Card>
 
-          <section className="space-y-4">
-            {quotes.map((quote) => (
-              <div key={quote.id} className="space-y-2">
-                <QuotePreview
-                  quote={quote}
-                  workshopName={user.workspace.workshopName}
-                  workshopPhone={user.workspace.phone}
-                  workshopEmail={user.workspace.email}
-                />
-                <div className="no-print flex flex-wrap gap-2">
-                  {quote.status !== "APPROVED" && quote.status !== "PAID" ? (
-                    <form action={`/api/orcamentos/${quote.id}`} method="post">
-                      <input type="hidden" name="status" value="APPROVED" />
-                      <button className="rounded-lg border border-racing-line px-3 py-2 text-sm font-bold">Aprovar</button>
-                    </form>
-                  ) : null}
-                  {quote.status === "APPROVED" ? (
-                    <form action={`/api/orcamentos/${quote.id}/finalizar`} method="post" className="flex flex-wrap gap-2">
-                      <select name="paymentMethod" className="h-10 rounded-lg px-3 text-sm">
-                        <option>Pix</option>
-                        <option>Dinheiro</option>
-                        <option>Cartao de credito</option>
-                        <option>Cartao de debito</option>
-                      </select>
-                      <button className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-racing-red px-3 py-2 text-sm font-bold text-white">
-                        <CheckCircle2 size={16} />
-                        FINALIZAR
-                      </button>
-                    </form>
-                  ) : null}
-                  {quote.status === "PAID" ? (
-                    <span className="inline-flex min-h-10 items-center rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-bold text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-300">
-                      Finalizado
-                    </span>
-                  ) : null}
-                  <form action={`/api/orcamentos/${quote.id}`} method="post">
-                    <input type="hidden" name="_method" value="delete" />
-                    <button className="inline-flex items-center gap-2 rounded-lg border border-racing-line px-3 py-2 text-sm font-bold text-racing-muted">
-                      <Trash2 size={16} />
-                      Excluir
-                    </button>
-                  </form>
-                </div>
+          <Card className="h-fit p-4 sm:p-5 xl:sticky xl:top-6">
+            <h2 className="flex items-center gap-2 text-lg font-black">
+              <CalendarDays size={19} />
+              Registros
+            </h2>
+            {quotes.length ? (
+              <div className="mt-4 overflow-hidden rounded-lg border border-racing-line">
+                {quotes.map((quote) => (
+                  <div key={quote.id} className="flex items-center justify-between gap-3 border-b border-racing-line px-3 py-3 last:border-b-0">
+                    <span className="min-w-0 truncate text-sm font-black">{quote.client.name}</span>
+                    <time className="shrink-0 text-sm font-semibold text-racing-muted" dateTime={quote.createdAt.toISOString()}>
+                      {quoteDateFormatter.format(quote.createdAt)}
+                    </time>
+                  </div>
+                ))}
               </div>
-            ))}
-            {!quotes.length ? <Card>Nenhum orçamento criado ainda.</Card> : null}
-          </section>
+            ) : (
+              <p className="mt-4 rounded-lg border border-dashed border-racing-line p-4 text-sm font-semibold text-racing-muted">
+                Nenhum orçamento criado ainda.
+              </p>
+            )}
+          </Card>
         </div>
       </div>
     </AppShell>
