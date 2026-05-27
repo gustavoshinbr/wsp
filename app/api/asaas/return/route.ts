@@ -27,7 +27,7 @@ export async function GET(req: Request) {
     });
 
     if (workspace.subscriptionStatus === "ACTIVE") return redirectTo("/dashboard", req);
-    return redirectTo("/assinatura?error=Pagamento ainda nao confirmado. Aguarde alguns segundos.", req);
+    return redirectTo("/assinatura?error=Pagamento ainda não confirmado. Aguarde alguns segundos.", req);
   } catch {
     return redirectTo("/login", req);
   }

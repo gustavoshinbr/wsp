@@ -15,10 +15,10 @@ import {
 
 export const navGroups = [
   {
-    title: "Operacao",
+    title: "Operação",
     items: [
-      { href: "/dashboard", label: "Inicio", icon: Gauge },
-      { href: "/producao", label: "Producao", icon: Wrench },
+      { href: "/dashboard", label: "Início", icon: Gauge },
+      { href: "/producao", label: "Produção", icon: Wrench },
       { href: "/clientes", label: "Clientes", icon: Users },
       { href: "/agendamentos", label: "Agenda", icon: CalendarDays },
     ],
@@ -28,19 +28,19 @@ export const navGroups = [
     items: [
       { href: "/vendas", label: "Vendas", icon: ShoppingCart },
       { href: "/vendas-a-prazo", label: "Vendas a prazo", icon: Clock3 },
-      { href: "/orcamentos", label: "Orcamentos", icon: FileText },
+      { href: "/orcamentos", label: "Orçamentos", icon: FileText },
       { href: "/estoque", label: "Estoque", icon: Package },
-      { href: "/servicos", label: "Servicos", icon: Wrench },
+      { href: "/servicos", label: "Serviços", icon: Wrench },
     ],
   },
   {
-    title: "Gestao",
+    title: "Gestão",
     items: [
       { href: "/financeiro", label: "Financeiro", icon: BarChart3 },
-      { href: "/relatorios", label: "Relatorios", icon: BarChart3 },
-      { href: "/funcionarios", label: "Funcionarios", icon: UserCog },
+      { href: "/relatorios", label: "Relatórios", icon: BarChart3 },
+      { href: "/funcionarios", label: "Funcionários", icon: UserCog },
       { href: "/fiscal", label: "Fiscal", icon: ReceiptText },
-      { href: "/configuracoes", label: "Configuracoes", icon: Settings },
+      { href: "/configuracoes", label: "Configurações", icon: Settings },
     ],
   },
 ] as const;

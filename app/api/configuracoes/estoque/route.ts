@@ -11,7 +11,7 @@ export async function POST(req: Request) {
     const stockViewMode = formString(formData, "stockViewMode");
 
     if (stockViewMode !== "simples" && stockViewMode !== "completo") {
-      throw new ApiError("Modo de estoque invalido.");
+      throw new ApiError("Modo de estoque inválido.");
     }
 
     await prisma.workspace.update({

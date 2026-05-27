@@ -9,11 +9,11 @@ import type { Workspace } from "@prisma/client";
 
 export function Header({
   workshopName,
-  ownerName,
+  userName,
   workspace,
 }: {
   workshopName: string;
-  ownerName: string;
+  userName: string;
   workspace: Pick<Workspace, "trialEndsAt" | "subscriptionStatus">;
 }) {
   const active = workspace.subscriptionStatus === "ACTIVE";
@@ -23,7 +23,7 @@ export function Header({
       <div className="flex min-w-0 items-center gap-3">
         <MobileMenuButton />
         <div className="min-w-0">
-          <p className="truncate text-sm font-semibold text-racing-muted">Olá, {ownerName}</p>
+          <p className="truncate text-sm font-semibold text-racing-muted">Olá, {userName}</p>
           <h1 className="truncate text-xl font-black">{workshopName}</h1>
         </div>
       </div>

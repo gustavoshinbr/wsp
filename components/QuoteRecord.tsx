@@ -72,7 +72,7 @@ export function QuoteRecord({ quote, workshopName, workshopPhone, workshopEmail 
 
         {canFinalize ? (
           <form action={`/api/orcamentos/${quote.id}/finalizar`} method="post">
-            <input type="hidden" name="paymentMethod" value="A vista" />
+            <input type="hidden" name="paymentMethod" value="À vista" />
             <button className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-racing-red px-3 py-2 text-sm font-black text-white hover:bg-red-700">
               <CheckCircle2 size={16} />
               Aprovar e finalizar
@@ -106,7 +106,7 @@ export function QuoteRecord({ quote, workshopName, workshopPhone, workshopEmail 
         <header className="border-b-4 border-rose-600 bg-slate-950 px-6 py-6 text-white print:px-8">
           <div className="flex items-start justify-between gap-5">
             <div>
-              <p className="text-xs font-black uppercase tracking-[0.18em] text-rose-300">Orcamento tecnico</p>
+              <p className="text-xs font-black uppercase tracking-[0.18em] text-rose-300">Orçamento técnico</p>
               <h2 className="mt-1 text-2xl font-black">{workshopName}</h2>
               <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs font-semibold text-slate-300">
                 {workshopPhone ? <span>{workshopPhone}</span> : null}
@@ -130,22 +130,22 @@ export function QuoteRecord({ quote, workshopName, workshopPhone, workshopEmail 
             </section>
             <section className="rounded-lg border border-slate-200 bg-slate-50 p-4">
               <p className="text-xs font-black uppercase text-slate-500">Moto</p>
-              <p className="mt-2 text-lg font-black">{motorcycle || "Nao informada"}</p>
+              <p className="mt-2 text-lg font-black">{motorcycle || "Não informada"}</p>
             </section>
           </div>
 
           <section>
             <div className="mb-3 flex items-end justify-between gap-4">
               <div>
-                <p className="text-xs font-black uppercase text-rose-600">Itens do orcamento</p>
-                <h3 className="text-xl font-black">Produtos e servicos</h3>
+                <p className="text-xs font-black uppercase text-rose-600">Itens do orçamento</p>
+                <h3 className="text-xl font-black">Produtos e serviços</h3>
               </div>
               <span className="text-xs font-bold text-slate-500">{quote.items.length} item(ns)</span>
             </div>
             <table className="w-full border-collapse text-sm">
               <thead className="bg-slate-950 text-white">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-black uppercase">Descricao</th>
+                  <th className="px-4 py-3 text-left text-xs font-black uppercase">Descrição</th>
                   <th className="w-20 px-4 py-3 text-center text-xs font-black uppercase">Qtd</th>
                   <th className="w-32 px-4 py-3 text-right text-xs font-black uppercase">Unitario</th>
                   <th className="w-32 px-4 py-3 text-right text-xs font-black uppercase">Total</th>
@@ -166,9 +166,9 @@ export function QuoteRecord({ quote, workshopName, workshopPhone, workshopEmail 
 
           <div className="grid gap-4 md:grid-cols-[1fr_220px]">
             <section className="rounded-lg border border-slate-200 p-4">
-              <p className="text-xs font-black uppercase text-slate-500">Observacoes</p>
+              <p className="text-xs font-black uppercase text-slate-500">Observações</p>
               <p className="mt-2 min-h-16 text-sm font-medium leading-6 text-slate-700">
-                {quote.notes || "Sem observacoes adicionais."}
+                {quote.notes || "Sem observações adicionais."}
               </p>
             </section>
             <section className="rounded-lg bg-slate-950 p-5 text-white">

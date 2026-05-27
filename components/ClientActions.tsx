@@ -44,11 +44,11 @@ export function ClientActions({ client }: { client: EditableClient }) {
             <div className="flex items-start justify-between gap-4">
               <div>
                 <h2 className="text-xl font-black">Editar cliente</h2>
-                <p className="text-sm text-racing-muted">Atualize nome, telefone e endereco.</p>
+                <p className="text-sm text-racing-muted">Atualize nome, telefone e endereço.</p>
               </div>
               <button
                 type="button"
-                aria-label="Fechar edicao"
+                aria-label="Fechar edição"
                 onClick={() => setEditing(false)}
                 className="grid h-10 w-10 place-items-center rounded-lg border border-racing-line text-racing-muted"
               >
@@ -67,7 +67,7 @@ export function ClientActions({ client }: { client: EditableClient }) {
                 <input name="phone" required defaultValue={client.phone} className="h-11 rounded-lg px-3" />
               </label>
               <label className="block space-y-1.5 text-sm font-semibold">
-                <span>Endereco</span>
+                <span>Endereço</span>
                 <input name="address" defaultValue={client.address || ""} className="h-11 rounded-lg px-3" />
               </label>
 
@@ -83,7 +83,7 @@ export function ClientActions({ client }: { client: EditableClient }) {
                   type="submit"
                   className="inline-flex min-h-11 items-center justify-center rounded-lg bg-racing-red px-4 py-2 text-sm font-bold text-white hover:bg-red-700"
                 >
-                  Salvar alteracoes
+                  Salvar alterações
                 </button>
               </div>
             </form>

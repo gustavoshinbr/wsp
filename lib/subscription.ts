@@ -20,7 +20,7 @@ export function hasWorkspaceAccess(workspace: Pick<Workspace, "trialEndsAt" | "s
 
 export function subscriptionMessage(workspace: Pick<Workspace, "trialEndsAt" | "subscriptionStatus"> & Partial<Pick<Workspace, "paymentStatus">>) {
   if (isSubscriptionActive(workspace)) return "Assinatura ativa.";
-  if (isTrialActive(workspace)) return `Teste gratis: restam ${daysUntil(workspace.trialEndsAt)} dias.`;
+  if (isTrialActive(workspace)) return `Teste grátis: restam ${daysUntil(workspace.trialEndsAt)} dias.`;
   if (workspace.subscriptionStatus === "OVERDUE") return "Pagamento em atraso. Regularize sua assinatura.";
   if (workspace.subscriptionStatus === "CANCELED") return "Assinatura cancelada. Gere uma nova assinatura para continuar.";
   if (workspace.subscriptionStatus === "INACTIVE") return "Assinatura pendente. Conclua o pagamento para liberar o acesso.";
@@ -33,6 +33,6 @@ export function requireWorkspaceAccess(workspace: Pick<Workspace, "trialEndsAt" 
 
 export function requireApiWorkspaceAccess(workspace: Pick<Workspace, "trialEndsAt" | "subscriptionStatus"> & Partial<Pick<Workspace, "paymentStatus">>) {
   if (!hasWorkspaceAccess(workspace)) {
-    throw new ApiError("Assinatura obrigatoria para continuar.", 402);
+    throw new ApiError("Assinatura obrigatória para continuar.", 402);
   }
 }

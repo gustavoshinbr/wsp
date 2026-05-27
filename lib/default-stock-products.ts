@@ -1,12 +1,12 @@
 import { prisma } from "@/lib/prisma";
 
 export const defaultStockProducts = [
-  { name: "Oleo 10W30", buyPrice: 0, sellPrice: 0, quantity: 0, mainImageUrl: "/product-presets/oleo-10w30.svg" },
-  { name: "Oleo 20W50", buyPrice: 0, sellPrice: 0, quantity: 0, mainImageUrl: "/product-presets/oleo-20w50.svg" },
-  { name: "Oleo 15W40", buyPrice: 0, sellPrice: 0, quantity: 0, mainImageUrl: "/product-presets/oleo-15w40.svg" },
-  { name: "Oleo 5W30", buyPrice: 0, sellPrice: 0, quantity: 0, mainImageUrl: "/product-presets/oleo-5w30.svg" },
+  { name: "Óleo 10W30", buyPrice: 0, sellPrice: 0, quantity: 0, mainImageUrl: "/product-presets/oleo-10w30.svg" },
+  { name: "Óleo 20W50", buyPrice: 0, sellPrice: 0, quantity: 0, mainImageUrl: "/product-presets/oleo-20w50.svg" },
+  { name: "Óleo 15W40", buyPrice: 0, sellPrice: 0, quantity: 0, mainImageUrl: "/product-presets/oleo-15w40.svg" },
+  { name: "Óleo 5W30", buyPrice: 0, sellPrice: 0, quantity: 0, mainImageUrl: "/product-presets/oleo-5w30.svg" },
   {
-    name: "Relacao (corrente de moto)",
+    name: "Relação (corrente de moto)",
     buyPrice: 0,
     sellPrice: 0,
     quantity: 0,

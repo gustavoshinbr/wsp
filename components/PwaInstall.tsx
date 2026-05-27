@@ -112,9 +112,9 @@ export function PwaInstallButton() {
             {installed
               ? "Aplicativo instalado neste aparelho."
               : ready
-                ? "Disponivel para instalar neste navegador."
+                ? "Disponível para instalar neste navegador."
                 : ios
-                  ? "No iPhone, use Compartilhar e Adicionar a Tela de Inicio."
+                  ? "No iPhone, use Compartilhar e Adicionar à Tela de Início."
                   : "Abra no celular pelo Chrome ou Edge para instalar."}
           </p>
         </div>
@@ -122,7 +122,7 @@ export function PwaInstallButton() {
 
       <Button type="button" className="mt-4 w-full" onClick={handleInstall} disabled={!ready || isInstalling}>
         <Download size={18} />
-        {installed ? "Aplicativo instalado" : isInstalling ? "Abrindo instalacao..." : "Instalar aplicativo"}
+        {installed ? "Aplicativo instalado" : isInstalling ? "Abrindo instalação..." : "Instalar aplicativo"}
       </Button>
     </div>
   );

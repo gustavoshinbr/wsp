@@ -60,7 +60,7 @@ export function DynamicQuoteItems({ products, services }: { products: QuoteOptio
   return (
     <>
       <DynamicRows title="Produtos" selectLabel="Produto" selectName="productId" quantityName="productQuantity" options={products} />
-      <DynamicRows title="Servicos" selectLabel="Servico" selectName="serviceId" quantityName="serviceQuantity" options={services} />
+      <DynamicRows title="Serviços" selectLabel="Serviço" selectName="serviceId" quantityName="serviceQuantity" options={services} />
     </>
   );
 }

@@ -12,9 +12,9 @@ import { syncWorkspaceSubscription } from "@/lib/subscription-sync";
 const benefits = [
   "Clientes ilimitados",
   "Produtos e estoque com fotos",
-  "Orcamentos",
+  "Orçamentos",
   "Agendamentos",
-  "Relatorios",
+  "Relatórios",
   "Modo claro/escuro",
   "Suporte para celular e PC",
 ];
@@ -26,7 +26,7 @@ function formatDate(date?: Date | null) {
 
 function statusLabel(status: string) {
   const labels: Record<string, string> = {
-    TRIAL: "Teste gratis",
+    TRIAL: "Teste grátis",
     ACTIVE: "Ativa",
     OVERDUE: "Em atraso",
     CANCELED: "Cancelada",
@@ -89,10 +89,10 @@ export default async function SubscriptionPage({ searchParams }: { searchParams:
               <h1 className="mt-5 text-3xl font-black sm:text-4xl">Gerenciar assinatura</h1>
               <p className="mt-3 text-racing-muted">
                 {active
-                  ? "Sua assinatura esta ativa. Acompanhe abaixo a data de ativacao e o vencimento do periodo atual."
+                  ? "Sua assinatura está ativa. Acompanhe abaixo a data de ativação e o vencimento do período atual."
                   : existingSubscriptionId
-                  ? "Ja existe um pagamento gerado para esta assinatura. Use o mesmo link para concluir, sem criar outra cobranca."
-                  : "Ative a assinatura para continuar usando todos os modulos depois do periodo de teste."}
+                  ? "Já existe um pagamento gerado para esta assinatura. Use o mesmo link para concluir, sem criar outra cobrança."
+                  : "Ative a assinatura para continuar usando todos os módulos depois do período de teste."}
               </p>
 
               <div className="mt-6 grid gap-3 sm:grid-cols-3">
@@ -113,7 +113,7 @@ export default async function SubscriptionPage({ searchParams }: { searchParams:
               <div className="mt-6 flex flex-wrap items-center gap-3">
                 <div className="flex items-end gap-2">
                   <strong className="text-4xl font-black">{brl(value)}</strong>
-                  <span className="pb-2 text-racing-muted">/mes</span>
+                  <span className="pb-2 text-racing-muted">/mês</span>
                 </div>
                 {workspace.paymentStatus ? (
                   <span className="inline-flex items-center gap-2 rounded-lg border border-racing-line px-3 py-2 text-xs font-bold text-racing-muted">
@@ -135,7 +135,7 @@ export default async function SubscriptionPage({ searchParams }: { searchParams:
                     href="/dashboard"
                     className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-racing-red px-4 py-2 text-sm font-bold text-white hover:bg-red-700 sm:w-auto"
                   >
-                    Voltar ao Inicio
+                    Voltar ao Início
                   </Link>
                 ) : existingPaymentLink ? (
                   <Link
@@ -157,7 +157,7 @@ export default async function SubscriptionPage({ searchParams }: { searchParams:
             </div>
 
             <div className="border-t border-racing-line bg-racing-soft p-6 lg:border-l lg:border-t-0 lg:p-8">
-              <h2 className="text-lg font-black">Beneficios incluidos</h2>
+              <h2 className="text-lg font-black">Benefícios incluídos</h2>
               <ul className="mt-5 space-y-3">
                 {benefits.map((benefit) => (
                   <li key={benefit} className="flex items-center gap-3 text-sm font-semibold">

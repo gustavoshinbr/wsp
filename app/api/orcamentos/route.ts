@@ -129,7 +129,7 @@ export async function POST(req: Request) {
       if (description && value > 0) {
         items.push({
           type: "SERVICE",
-          description: `Mao de obra: ${description}`,
+          description: `Mão de obra: ${description}`,
           quantity: 1,
           unitPrice: value,
           total: value,

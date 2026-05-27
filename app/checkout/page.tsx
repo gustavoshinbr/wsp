@@ -35,11 +35,11 @@ export default async function CheckoutPage({
           </span>
           <h1 className="mt-5 text-3xl font-black">Checkout Asaas</h1>
           <p className="mt-3 text-racing-muted">
-            Assinatura recorrente WSP Racing Pro no valor de {brl(Number(process.env.ASAAS_PLAN_VALUE || 50))}/mes.
+            Assinatura recorrente WSP Racing Pro no valor de {brl(Number(process.env.ASAAS_PLAN_VALUE || 50))}/mês.
           </p>
           {existingSubscriptionId ? (
             <p className="mt-4 rounded-lg bg-racing-soft p-3 text-sm font-semibold text-racing-muted">
-              Ja existe uma cobranca gerada para esta assinatura. Use o mesmo pagamento para continuar.
+              Já existe uma cobrança gerada para esta assinatura. Use o mesmo pagamento para continuar.
             </p>
           ) : null}
           {paymentLink ? (

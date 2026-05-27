@@ -44,9 +44,9 @@ function AnimatedNumber({ value, suffix = "" }: { value: number; suffix?: string
 
 function DashboardMockup() {
   const rows = [
-    ["OS #2481", "Honda CB 500", "Revisao completa", "14:30"],
+    ["OS #2481", "Honda CB 500", "Revisão completa", "14:30"],
     ["OS #2482", "Yamaha Fazer", "Freio dianteiro", "15:10"],
-    ["OS #2483", "BMW GS 850", "Troca de oleo", "16:00"],
+    ["OS #2483", "BMW GS 850", "Troca de óleo", "16:00"],
   ];
 
   return (
@@ -59,7 +59,7 @@ function DashboardMockup() {
           </span>
           <div>
             <p className="text-2xl font-black text-slate-900">18</p>
-            <p className="text-xs font-bold text-slate-500">servicos hoje</p>
+            <p className="text-xs font-bold text-slate-500">serviços hoje</p>
           </div>
         </div>
       </div>
@@ -96,7 +96,7 @@ function DashboardMockup() {
 
         <div className="grid gap-0 lg:grid-cols-[220px_1fr]">
           <aside className="hidden border-r border-slate-100 bg-slate-50/70 p-4 lg:block">
-            {["Inicio", "OS", "Agenda", "Estoque", "Financeiro"].map((item, index) => (
+            {["Início", "OS", "Agenda", "Estoque", "Financeiro"].map((item, index) => (
               <div
                 key={item}
                 className={`mb-2 flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-black ${
@@ -112,9 +112,9 @@ function DashboardMockup() {
           <div className="bg-[#f9fafb] p-4 sm:p-6">
             <div className="grid gap-3 sm:grid-cols-3">
               {[
-                ["Faturamento", "R$ 18.420", "mes atual"],
-                ["OS abertas", "42", "em producao"],
-                ["Estoque baixo", "7", "pecas criticas"],
+                ["Faturamento", "R$ 18.420", "mês atual"],
+                ["OS abertas", "42", "em produção"],
+                ["Estoque baixo", "7", "peças críticas"],
               ].map(([title, value, helper]) => (
                 <div key={title} className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
                   <p className="text-xs font-black uppercase text-slate-400">{title}</p>

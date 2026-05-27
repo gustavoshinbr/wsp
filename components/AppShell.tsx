@@ -18,7 +18,7 @@ export async function AppShell({
       <main className="min-w-0 flex-1 px-4 py-4 pb-24 sm:px-6 lg:px-8 lg:py-6">
         <Header
           workshopName={user.workspace.workshopName}
-          ownerName={user.workspace.ownerName}
+          userName={user.name}
           workspace={user.workspace}
         />
         {children}

@@ -8,7 +8,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   try {
     const user = await requireApiUser();
     const formData = await req.formData().catch(() => new FormData());
-    const paymentMethod = formString(formData, "paymentMethod") || "A vista";
+    const paymentMethod = formString(formData, "paymentMethod") || "À vista";
 
     const appointment = await prisma.appointment.findFirst({
       where: { id: params.id, workspaceId: user.workspaceId },

@@ -43,7 +43,7 @@ export function Sidebar({ pathname }: { pathname?: string }) {
           Oficina isolada por workspace
         </div>
         <p className="mt-1 text-xs leading-5 text-racing-muted">
-          Cada equipe acessa somente os dados da propria oficina.
+          Cada equipe acessa somente os dados da própria oficina.
         </p>
       </div>
     </aside>

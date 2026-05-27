@@ -34,7 +34,7 @@ type CartRow = {
 
 const typeLabels: Record<RowType, string> = {
   product: "Estoque",
-  service: "Servico",
+  service: "Serviço",
   quickProduct: "Criar produto",
 };
 
@@ -185,7 +185,7 @@ export function CartBuilder({ products, services }: { products: ProductOption[];
                           value={row.barcode}
                           onChange={(event) => searchBarcode(row, event.target.value)}
                           className="h-11 rounded-lg pl-9 pr-3"
-                          placeholder="Bipe ou digite codigo"
+                          placeholder="Bipe ou digite código"
                           inputMode="numeric"
                         />
                       </div>
@@ -222,7 +222,7 @@ export function CartBuilder({ products, services }: { products: ProductOption[];
                         onChange={(event) => updateRow(row.id, { serviceId: event.target.value })}
                         className="h-11 rounded-lg px-3"
                       >
-                        <option value="">Servico cadastrado</option>
+                        <option value="">Serviço cadastrado</option>
                         {services.map((service) => (
                           <option key={service.id} value={service.id}>
                             {service.name} - {brl(service.price)}
@@ -287,10 +287,10 @@ export function CartBuilder({ products, services }: { products: ProductOption[];
       <div className="rounded-lg border border-racing-line bg-racing-soft p-3">
         <p className="flex items-center gap-2 text-sm font-black">
           <Wrench size={16} className="text-racing-red" />
-          Mao de obra manual
+          Mão de obra manual
         </p>
         <div className="mt-3 grid gap-2 sm:grid-cols-[1fr_130px]">
-          <input name="laborDescription" className="h-11 rounded-lg px-3" placeholder="Descricao da mao de obra" />
+          <input name="laborDescription" className="h-11 rounded-lg px-3" placeholder="Descrição da mão de obra" />
           <input name="laborValue" type="number" step="0.01" min="0" className="h-11 rounded-lg px-3" placeholder="Valor" />
         </div>
       </div>

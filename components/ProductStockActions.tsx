@@ -51,7 +51,7 @@ export function ProductStockActions({ product }: { product: EditableProduct }) {
               </div>
               <button
                 type="button"
-                aria-label="Fechar edicao"
+                aria-label="Fechar edição"
                 onClick={() => setEditing(false)}
                 className="grid h-10 w-10 place-items-center rounded-lg border border-racing-line text-racing-muted"
               >
@@ -100,7 +100,7 @@ export function ProductStockActions({ product }: { product: EditableProduct }) {
                 />
               </label>
               <label className="block space-y-1.5 text-sm font-semibold">
-                <span>Codigo de barras</span>
+                <span>Código de barras</span>
                 <input name="barcode" defaultValue={product.barcode || ""} className="h-11 rounded-lg px-3" />
               </label>
               <label className="block space-y-1.5 text-sm font-semibold">
@@ -120,7 +120,7 @@ export function ProductStockActions({ product }: { product: EditableProduct }) {
                   type="submit"
                   className="inline-flex min-h-11 items-center justify-center rounded-lg bg-racing-red px-4 py-2 text-sm font-bold text-white hover:bg-red-700"
                 >
-                  Salvar alteracoes
+                  Salvar alterações
                 </button>
               </div>
             </form>

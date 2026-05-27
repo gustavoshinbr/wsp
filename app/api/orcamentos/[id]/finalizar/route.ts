@@ -8,21 +8,21 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   try {
     const user = await requireApiUser();
     const formData = await req.formData().catch(() => new FormData());
-    const paymentMethod = formString(formData, "paymentMethod") || "A vista";
+    const paymentMethod = formString(formData, "paymentMethod") || "À vista";
 
     const quote = await prisma.quote.findFirst({
       where: { id: params.id, workspaceId: user.workspaceId },
       include: { items: true },
     });
-    if (!quote) throw new ApiError("Orcamento nao encontrado.", 404);
-    if (quote.status === "PAID") throw new ApiError("Orcamento ja finalizado.");
-    if (quote.status === "CANCELLED") throw new ApiError("Orcamento cancelado nao pode ser finalizado.");
+    if (!quote) throw new ApiError("Orçamento não encontrado.", 404);
+    if (quote.status === "PAID") throw new ApiError("Orçamento já finalizado.");
+    if (quote.status === "CANCELLED") throw new ApiError("Orçamento cancelado não pode ser finalizado.");
 
     await prisma.$transaction(async (tx) => {
       const existingSale = await tx.sale.findFirst({
         where: { workspaceId: user.workspaceId, quoteId: quote.id },
       });
-      if (existingSale) throw new ApiError("Orcamento ja gerou uma venda.");
+      if (existingSale) throw new ApiError("Orçamento já gerou uma venda.");
 
       for (const item of quote.items) {
         if (!item.productId) continue;
