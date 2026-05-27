@@ -27,6 +27,13 @@ export type AsaasPayment = {
   clientPaymentDate?: string;
 };
 
+export type AsaasSubscription = {
+  id: string;
+  status?: string;
+  nextDueDate?: string;
+  dateCreated?: string;
+};
+
 export type AsaasPaymentEvent = {
   id?: string;
   event?: string;
@@ -124,7 +131,7 @@ export async function createAsaasSubscription(input: AsaasSubscriptionInput) {
     }),
   });
 
-  const payment = await getFirstSubscriptionPayment(subscription.id).catch(() => null);
+  const payment = await getCurrentSubscriptionPayment(subscription.id).catch(() => null);
 
   return {
     subscription,
@@ -150,7 +157,7 @@ export async function updateAsaasSubscriptionCallback(id: string, callbackSucces
 }
 
 export async function getAsaasSubscription(id: string) {
-  return asaasRequest<{ id: string; status?: string; nextDueDate?: string }>(`/subscriptions/${id}`);
+  return asaasRequest<AsaasSubscription>(`/subscriptions/${id}`);
 }
 
 export async function cancelAsaasSubscription(id: string) {
@@ -159,12 +166,48 @@ export async function cancelAsaasSubscription(id: string) {
   });
 }
 
-export async function getFirstSubscriptionPayment(subscriptionId: string) {
+export async function getSubscriptionPayments(subscriptionId: string, limit = 20) {
   const data = await asaasRequest<{
     data?: AsaasPayment[];
-  }>(`/payments?subscription=${encodeURIComponent(subscriptionId)}&limit=1`);
+  }>(`/payments?subscription=${encodeURIComponent(subscriptionId)}&limit=${limit}`);
 
-  return data.data?.[0] || null;
+  return data.data || [];
+}
+
+function paymentTime(payment: AsaasPayment) {
+  const date = payment.clientPaymentDate || payment.paymentDate || payment.dueDate;
+  return date ? new Date(date).getTime() : 0;
+}
+
+function isFutureOrToday(date?: string | null) {
+  if (!date) return false;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return new Date(date).getTime() >= today.getTime();
+}
+
+export function getPreferredSubscriptionPayment(payments: AsaasPayment[]) {
+  const paidPayment = payments
+    .filter((payment) => isPaidAsaasPaymentStatus(payment.status))
+    .sort((a, b) => paymentTime(b) - paymentTime(a))[0];
+
+  if (paidPayment) return paidPayment;
+
+  const pendingPayment = payments
+    .filter((payment) => payment.status === "PENDING" && isFutureOrToday(payment.dueDate))
+    .sort((a, b) => paymentTime(a) - paymentTime(b))[0];
+
+  if (pendingPayment) return pendingPayment;
+
+  return payments.sort((a, b) => paymentTime(b) - paymentTime(a))[0] || null;
+}
+
+export async function getCurrentSubscriptionPayment(subscriptionId: string) {
+  return getPreferredSubscriptionPayment(await getSubscriptionPayments(subscriptionId));
+}
+
+export async function getFirstSubscriptionPayment(subscriptionId: string) {
+  return getCurrentSubscriptionPayment(subscriptionId);
 }
 
 export function isPaidAsaasPaymentStatus(status?: string | null) {

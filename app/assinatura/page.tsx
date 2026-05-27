@@ -3,7 +3,7 @@ import Link from "next/link";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
-import { getFirstSubscriptionPayment, paymentUrlWithAutoRedirect } from "@/lib/asaas";
+import { getCurrentSubscriptionPayment, paymentUrlWithAutoRedirect } from "@/lib/asaas";
 import { requirePageUser } from "@/lib/auth";
 import { brl } from "@/lib/currency";
 import { isSubscriptionActive, subscriptionMessage } from "@/lib/subscription";
@@ -36,6 +36,20 @@ function statusLabel(status: string) {
   return labels[status] || status;
 }
 
+function paymentStatusLabel(status?: string | null) {
+  const labels: Record<string, string> = {
+    ACTIVE: "Ativa",
+    AWAITING_PAYMENT: "Aguardando pagamento",
+    CONFIRMED: "Confirmado",
+    OVERDUE: "Em atraso",
+    PENDING: "Pendente",
+    RECEIVED: "Recebido",
+    RECEIVED_IN_CASH: "Recebido em dinheiro",
+  };
+
+  return labels[String(status || "").toUpperCase()] || status || "-";
+}
+
 export default async function SubscriptionPage({ searchParams }: { searchParams: { error?: string; synced?: string } }) {
   const user = await requirePageUser({ allowExpiredSubscription: true });
   const value = Number(process.env.ASAAS_PLAN_VALUE || 50);
@@ -47,7 +61,7 @@ export default async function SubscriptionPage({ searchParams }: { searchParams:
   const existingSubscriptionId =
     workspace.subscriptionStatus !== "CANCELED" ? workspace.asaasSubscriptionId : null;
   const existingPayment = existingSubscriptionId && !active
-    ? await getFirstSubscriptionPayment(existingSubscriptionId).catch(() => null)
+    ? await getCurrentSubscriptionPayment(existingSubscriptionId).catch(() => null)
     : null;
   const existingPaymentLink = paymentUrlWithAutoRedirect(existingPayment?.invoiceUrl || null);
 
@@ -104,7 +118,7 @@ export default async function SubscriptionPage({ searchParams }: { searchParams:
                 {workspace.paymentStatus ? (
                   <span className="inline-flex items-center gap-2 rounded-lg border border-racing-line px-3 py-2 text-xs font-bold text-racing-muted">
                     <CalendarDays size={15} />
-                    Pagamento: {workspace.paymentStatus}
+                    Pagamento: {paymentStatusLabel(workspace.paymentStatus)}
                   </span>
                 ) : null}
               </div>

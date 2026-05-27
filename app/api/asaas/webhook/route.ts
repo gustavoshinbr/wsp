@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { type SubscriptionStatus } from "@prisma/client";
 import { isPaidAsaasPaymentStatus, validateAsaasWebhookToken, type AsaasPaymentEvent } from "@/lib/asaas";
 import { prisma } from "@/lib/prisma";
+import { syncWorkspaceSubscription } from "@/lib/subscription-sync";
 
 const EVENT_TO_STATUS: Record<string, SubscriptionStatus> = {
   PAYMENT_RECEIVED: "ACTIVE",
@@ -97,6 +98,7 @@ export async function POST(req: Request) {
         ...(status === "ACTIVE" && !workspace.subscriptionActivatedAt ? { subscriptionActivatedAt: activatedAtFromEvent(payload) } : {}),
       },
     });
+    await syncWorkspaceSubscription(workspace.id).catch(() => null);
   }
 
   return NextResponse.json({ ok: true });

@@ -4,7 +4,7 @@ import { ArrowRight, CreditCard } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Card } from "@/components/Card";
 import { SubscriptionStatusRedirect } from "@/components/SubscriptionStatusRedirect";
-import { getFirstSubscriptionPayment, paymentUrlWithAutoRedirect } from "@/lib/asaas";
+import { getCurrentSubscriptionPayment, paymentUrlWithAutoRedirect } from "@/lib/asaas";
 import { requirePageUser } from "@/lib/auth";
 import { brl } from "@/lib/currency";
 import { isSubscriptionActive } from "@/lib/subscription";
@@ -21,7 +21,7 @@ export default async function CheckoutPage({
     user.workspace.subscriptionStatus !== "CANCELED" ? user.workspace.asaasSubscriptionId : null;
   const existingPayment =
     !searchParams.paymentLink && existingSubscriptionId
-      ? await getFirstSubscriptionPayment(existingSubscriptionId).catch(() => null)
+      ? await getCurrentSubscriptionPayment(existingSubscriptionId).catch(() => null)
       : null;
   const paymentLink = searchParams.paymentLink || paymentUrlWithAutoRedirect(existingPayment?.invoiceUrl || null);
 

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import {
   createAsaasCustomer,
   createAsaasSubscription,
-  getFirstSubscriptionPayment,
+  getCurrentSubscriptionPayment,
   isPaidAsaasPaymentStatus,
   paymentUrlWithAutoRedirect,
   updateAsaasSubscriptionCallback,
@@ -38,9 +38,9 @@ export async function POST(req: Request) {
 
     if (user.workspace.asaasSubscriptionId && user.workspace.subscriptionStatus !== "CANCELED") {
       await updateAsaasSubscriptionCallback(user.workspace.asaasSubscriptionId, callbackSuccessUrl).catch(() => null);
-      const payment = await getFirstSubscriptionPayment(user.workspace.asaasSubscriptionId).catch(() => null);
+      const payment = await getCurrentSubscriptionPayment(user.workspace.asaasSubscriptionId).catch(() => null);
       const workspace = (await syncWorkspaceSubscription(user.workspaceId)) || user.workspace;
-      const isPaid = isPaidAsaasPaymentStatus(workspace.paymentStatus);
+      const isActive = workspace.subscriptionStatus === "ACTIVE" || isPaidAsaasPaymentStatus(workspace.paymentStatus);
 
       setSessionCookie({
         userId: user.id,
@@ -51,7 +51,7 @@ export async function POST(req: Request) {
         trialEndsAt: workspace.trialEndsAt,
       });
 
-      if (isPaid) {
+      if (isActive) {
         if (acceptsJson) return NextResponse.json({ active: true });
         return NextResponse.redirect(new URL("/dashboard", req.url));
       }
