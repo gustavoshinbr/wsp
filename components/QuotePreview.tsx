@@ -45,6 +45,8 @@ export function QuotePreview({
     })),
     total: toNumber(quote.total as never),
   });
+  const statusTone = quote.status === "PAID" || quote.status === "APPROVED" ? "green" : quote.status === "CANCELLED" ? "red" : "amber";
+  const statusLabel = quote.status === "PAID" ? "FINALIZADO" : quote.status;
 
   return (
     <Card className="print:shadow-none">
@@ -56,7 +58,7 @@ export function QuotePreview({
             {format(quote.createdAt, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
           </p>
         </div>
-        <Badge tone={quote.status === "APPROVED" ? "green" : "amber"}>{quote.status}</Badge>
+        <Badge tone={statusTone}>{statusLabel}</Badge>
       </div>
       <div className="grid gap-4 border-b border-racing-line py-4 sm:grid-cols-2">
         <div>

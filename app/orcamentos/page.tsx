@@ -1,4 +1,4 @@
-import { FileText, Plus, Trash2 } from "lucide-react";
+import { CheckCircle2, FileText, Plus, Trash2 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
@@ -102,10 +102,31 @@ export default async function OrcamentosPage({ searchParams }: { searchParams: {
               <div key={quote.id} className="space-y-2">
                 <QuotePreview quote={quote} workshopName={user.workspace.workshopName} />
                 <div className="no-print flex flex-wrap gap-2">
-                  <form action={`/api/orcamentos/${quote.id}`} method="post">
-                    <input type="hidden" name="status" value="APPROVED" />
-                    <button className="rounded-lg border border-racing-line px-3 py-2 text-sm font-bold">Aprovar</button>
-                  </form>
+                  {quote.status !== "APPROVED" && quote.status !== "PAID" ? (
+                    <form action={`/api/orcamentos/${quote.id}`} method="post">
+                      <input type="hidden" name="status" value="APPROVED" />
+                      <button className="rounded-lg border border-racing-line px-3 py-2 text-sm font-bold">Aprovar</button>
+                    </form>
+                  ) : null}
+                  {quote.status === "APPROVED" ? (
+                    <form action={`/api/orcamentos/${quote.id}/finalizar`} method="post" className="flex flex-wrap gap-2">
+                      <select name="paymentMethod" className="h-10 rounded-lg px-3 text-sm">
+                        <option>Pix</option>
+                        <option>Dinheiro</option>
+                        <option>Cartao de credito</option>
+                        <option>Cartao de debito</option>
+                      </select>
+                      <button className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-racing-red px-3 py-2 text-sm font-bold text-white">
+                        <CheckCircle2 size={16} />
+                        FINALIZAR
+                      </button>
+                    </form>
+                  ) : null}
+                  {quote.status === "PAID" ? (
+                    <span className="inline-flex min-h-10 items-center rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-bold text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-300">
+                      Finalizado
+                    </span>
+                  ) : null}
                   <form action={`/api/orcamentos/${quote.id}`} method="post">
                     <input type="hidden" name="_method" value="delete" />
                     <button className="inline-flex items-center gap-2 rounded-lg border border-racing-line px-3 py-2 text-sm font-bold text-racing-muted">

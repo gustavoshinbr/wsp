@@ -116,11 +116,11 @@ export async function POST(req: Request) {
       },
     });
 
-    return NextResponse.redirect(new URL("/orcamentos", req.url));
+    return NextResponse.redirect(new URL("/orcamentos", req.url), { status: 303 });
   } catch (error) {
     const { message } = apiError(error);
     const url = new URL("/orcamentos", req.url);
     url.searchParams.set("error", message);
-    return NextResponse.redirect(url);
+    return NextResponse.redirect(url, { status: 303 });
   }
 }

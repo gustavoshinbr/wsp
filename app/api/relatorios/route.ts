@@ -32,7 +32,10 @@ export async function GET(req: Request) {
       total,
       profit,
       salesCount: sales.length,
-      servicesCount: sales.reduce((sum, sale) => sum + sale.items.filter((item) => item.serviceId).length, 0),
+      servicesCount: sales.reduce(
+        (sum, sale) => sum + sale.items.filter((item) => item.serviceId || item.type === "SERVICE").length,
+        0,
+      ),
       clientsCount: new Set(sales.map((sale) => sale.clientId).filter(Boolean)).size,
     });
   } catch (error) {

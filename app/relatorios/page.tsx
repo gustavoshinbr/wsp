@@ -28,7 +28,10 @@ export default async function RelatoriosPage({ searchParams }: { searchParams: {
   });
 
   const total = sales.reduce((sum, sale) => sum + Number(sale.total), 0);
-  const servicesCount = sales.reduce((sum, sale) => sum + sale.items.filter((item) => item.serviceId).length, 0);
+  const servicesCount = sales.reduce(
+    (sum, sale) => sum + sale.items.filter((item) => item.serviceId || item.type === "SERVICE").length,
+    0,
+  );
   const clientsCount = new Set(sales.map((sale) => sale.clientId).filter(Boolean)).size;
   const profit = sales.reduce(
     (sum, sale) =>

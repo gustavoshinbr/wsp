@@ -30,7 +30,10 @@ export default async function DashboardPage() {
   ]);
 
   const totalToday = salesToday.reduce((sum, sale) => sum + Number(sale.total), 0);
-  const servicesToday = salesToday.reduce((sum, sale) => sum + sale.items.filter((item) => item.serviceId).length, 0);
+  const servicesToday = salesToday.reduce(
+    (sum, sale) => sum + sale.items.filter((item) => item.serviceId || item.type === "SERVICE").length,
+    0,
+  );
 
   return (
     <AppShell>
