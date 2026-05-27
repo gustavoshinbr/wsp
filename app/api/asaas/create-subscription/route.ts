@@ -10,6 +10,7 @@ import {
 import { requireApiUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { setSessionCookie } from "@/lib/session";
+import { syncWorkspaceSubscription } from "@/lib/subscription-sync";
 import { apiError } from "@/lib/validations";
 
 function hasTrialAccess(trialEndsAt: Date) {
@@ -38,14 +39,8 @@ export async function POST(req: Request) {
     if (user.workspace.asaasSubscriptionId && user.workspace.subscriptionStatus !== "CANCELED") {
       await updateAsaasSubscriptionCallback(user.workspace.asaasSubscriptionId, callbackSuccessUrl).catch(() => null);
       const payment = await getFirstSubscriptionPayment(user.workspace.asaasSubscriptionId).catch(() => null);
-      const isPaid = isPaidAsaasPaymentStatus(payment?.status);
-      const workspace = await prisma.workspace.update({
-        where: { id: user.workspaceId },
-        data: {
-          ...(isPaid ? { subscriptionStatus: "ACTIVE" as const } : {}),
-          ...(payment?.status ? { paymentStatus: payment.status } : {}),
-        },
-      });
+      const workspace = (await syncWorkspaceSubscription(user.workspaceId)) || user.workspace;
+      const isPaid = isPaidAsaasPaymentStatus(workspace.paymentStatus);
 
       setSessionCookie({
         userId: user.id,
@@ -109,6 +104,7 @@ export async function POST(req: Request) {
             : "INACTIVE",
         paymentStatus: result.payment?.status || "AWAITING_PAYMENT",
         subscriptionCurrentPeriodEnd: result.currentPeriodEnd,
+        ...(isPaidAsaasPaymentStatus(result.payment?.status) ? { subscriptionActivatedAt: new Date() } : {}),
         lastPaymentEvent: "SUBSCRIPTION_CREATED",
       },
     });

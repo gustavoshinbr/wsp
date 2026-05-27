@@ -17,6 +17,9 @@ export async function GET() {
         id: user.workspace.id,
         workshopName: user.workspace.workshopName,
         subscriptionStatus: user.workspace.subscriptionStatus,
+        subscriptionActivatedAt: user.workspace.subscriptionActivatedAt,
+        subscriptionCurrentPeriodEnd: user.workspace.subscriptionCurrentPeriodEnd,
+        paymentStatus: user.workspace.paymentStatus,
         trialDaysRemaining: daysUntil(user.workspace.trialEndsAt),
       },
     });

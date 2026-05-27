@@ -37,14 +37,17 @@ function statusFromEvent(payload: AsaasPaymentEvent): SubscriptionStatus | undef
 }
 
 function periodEndFromEvent(payload: AsaasPaymentEvent) {
-  const date =
-    payload.subscription?.nextDueDate ||
-    payload.payment?.clientPaymentDate ||
-    payload.payment?.paymentDate ||
-    payload.payment?.dueDate;
+  if (payload.subscription?.nextDueDate) return new Date(payload.subscription.nextDueDate);
+
+  const date = payload.payment?.clientPaymentDate || payload.payment?.paymentDate || payload.payment?.dueDate;
 
   if (!date) return undefined;
   return addDays(new Date(date), 30);
+}
+
+function activatedAtFromEvent(payload: AsaasPaymentEvent) {
+  const date = payload.payment?.clientPaymentDate || payload.payment?.paymentDate || payload.payment?.dueDate;
+  return date ? new Date(date) : new Date();
 }
 
 export async function POST(req: Request) {
@@ -83,11 +86,17 @@ export async function POST(req: Request) {
         customerId ? { asaasCustomerId: customerId } : undefined,
       ].filter(Boolean) as Array<{ asaasSubscriptionId?: string; asaasCustomerId?: string }>,
     },
-    select: { id: true },
+    select: { id: true, subscriptionActivatedAt: true },
   });
 
   if (workspace) {
-    await prisma.workspace.update({ where: { id: workspace.id }, data });
+    await prisma.workspace.update({
+      where: { id: workspace.id },
+      data: {
+        ...data,
+        ...(status === "ACTIVE" && !workspace.subscriptionActivatedAt ? { subscriptionActivatedAt: activatedAtFromEvent(payload) } : {}),
+      },
+    });
   }
 
   return NextResponse.json({ ok: true });

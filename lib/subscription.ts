@@ -1,5 +1,6 @@
 import type { Workspace } from "@prisma/client";
 import { redirect } from "next/navigation";
+import { isPaidAsaasPaymentStatus } from "@/lib/asaas";
 import { ApiError } from "@/lib/validations";
 import { daysUntil } from "@/lib/utils";
 
@@ -9,15 +10,15 @@ export function isTrialActive(workspace: Pick<Workspace, "trialEndsAt" | "subscr
   return workspace.trialEndsAt.getTime() >= Date.now();
 }
 
-export function isSubscriptionActive(workspace: Pick<Workspace, "subscriptionStatus">) {
-  return ACTIVE_SUBSCRIPTION_STATUSES.includes(workspace.subscriptionStatus as "ACTIVE");
+export function isSubscriptionActive(workspace: Pick<Workspace, "subscriptionStatus"> & Partial<Pick<Workspace, "paymentStatus">>) {
+  return ACTIVE_SUBSCRIPTION_STATUSES.includes(workspace.subscriptionStatus as "ACTIVE") || isPaidAsaasPaymentStatus(workspace.paymentStatus);
 }
 
-export function hasWorkspaceAccess(workspace: Pick<Workspace, "trialEndsAt" | "subscriptionStatus">) {
+export function hasWorkspaceAccess(workspace: Pick<Workspace, "trialEndsAt" | "subscriptionStatus"> & Partial<Pick<Workspace, "paymentStatus">>) {
   return isTrialActive(workspace) || isSubscriptionActive(workspace);
 }
 
-export function subscriptionMessage(workspace: Pick<Workspace, "trialEndsAt" | "subscriptionStatus">) {
+export function subscriptionMessage(workspace: Pick<Workspace, "trialEndsAt" | "subscriptionStatus"> & Partial<Pick<Workspace, "paymentStatus">>) {
   if (isSubscriptionActive(workspace)) return "Assinatura ativa.";
   if (isTrialActive(workspace)) return `Teste gratis: restam ${daysUntil(workspace.trialEndsAt)} dias.`;
   if (workspace.subscriptionStatus === "OVERDUE") return "Pagamento em atraso. Regularize sua assinatura.";
@@ -26,11 +27,11 @@ export function subscriptionMessage(workspace: Pick<Workspace, "trialEndsAt" | "
   return "Ative sua assinatura para continuar usando o WSP Racing.";
 }
 
-export function requireWorkspaceAccess(workspace: Pick<Workspace, "trialEndsAt" | "subscriptionStatus">) {
+export function requireWorkspaceAccess(workspace: Pick<Workspace, "trialEndsAt" | "subscriptionStatus"> & Partial<Pick<Workspace, "paymentStatus">>) {
   if (!hasWorkspaceAccess(workspace)) redirect("/assinatura");
 }
 
-export function requireApiWorkspaceAccess(workspace: Pick<Workspace, "trialEndsAt" | "subscriptionStatus">) {
+export function requireApiWorkspaceAccess(workspace: Pick<Workspace, "trialEndsAt" | "subscriptionStatus"> & Partial<Pick<Workspace, "paymentStatus">>) {
   if (!hasWorkspaceAccess(workspace)) {
     throw new ApiError("Assinatura obrigatoria para continuar.", 402);
   }

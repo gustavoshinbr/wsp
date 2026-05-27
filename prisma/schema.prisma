@@ -81,9 +81,11 @@ model Workspace {
   subscriptionStatus           SubscriptionStatus @default(TRIAL)
   asaasCustomerId              String?
   asaasSubscriptionId          String?
+  subscriptionActivatedAt      DateTime?
   subscriptionCurrentPeriodEnd DateTime?
   paymentStatus                String?
   lastPaymentEvent             String?
+  stockViewMode                String             @default("completo")
   createdAt                    DateTime           @default(now())
   updatedAt                    DateTime           @updatedAt
   users                        User[]

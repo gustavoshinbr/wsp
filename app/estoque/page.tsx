@@ -18,7 +18,8 @@ import { cn } from "@/lib/utils";
 export default async function EstoquePage({ searchParams }: { searchParams: { q?: string; error?: string; view?: string } }) {
   const user = await requirePageUser();
   const q = searchParams.q?.trim();
-  const view = searchParams.view === "simples" ? "simples" : "completo";
+  const preferredView = user.workspace.stockViewMode === "simples" ? "simples" : "completo";
+  const view = searchParams.view === "simples" || searchParams.view === "completo" ? searchParams.view : preferredView;
   const products = await prisma.product.findMany({
     where: {
       workspaceId: user.workspaceId,

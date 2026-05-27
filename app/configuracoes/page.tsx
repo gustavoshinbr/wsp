@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Building2, CreditCard, KeyRound, LogOut, Moon, ReceiptText, ShieldCheck } from "lucide-react";
+import { Boxes, Building2, CreditCard, Image as ImageIcon, KeyRound, LogOut, Moon, ReceiptText, ShieldCheck } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
@@ -9,6 +9,12 @@ import { subscriptionMessage } from "@/lib/subscription";
 
 export default async function ConfiguracoesPage({ searchParams }: { searchParams: { error?: string; success?: string } }) {
   const user = await requirePageUser({ allowExpiredSubscription: true });
+  const successMessage =
+    searchParams.success === "stock-view"
+      ? "Modo de exibicao do estoque atualizado."
+      : searchParams.success
+        ? "Senha atualizada."
+        : null;
 
   return (
     <AppShell allowExpiredSubscription>
@@ -18,7 +24,7 @@ export default async function ConfiguracoesPage({ searchParams }: { searchParams
           <p className="text-sm text-racing-muted">Perfil da oficina, assinatura, tema e segurança.</p>
         </div>
         {searchParams.error ? <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-700">{searchParams.error}</div> : null}
-        {searchParams.success ? <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm font-semibold text-emerald-700">Senha atualizada.</div> : null}
+        {successMessage ? <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm font-semibold text-emerald-700">{successMessage}</div> : null}
 
         <Card>
           <div className="flex items-center gap-4">
@@ -49,7 +55,38 @@ export default async function ConfiguracoesPage({ searchParams }: { searchParams
               Assinatura
             </h2>
             <p className="mt-3 text-sm text-racing-muted">{subscriptionMessage(user.workspace)}</p>
-            <Link href="/assinatura" className="mt-4 inline-flex text-sm font-black text-racing-red">Gerenciar assinatura</Link>
+            <Link href="/assinatura" className="mt-4 inline-flex items-center gap-2 text-sm font-black text-racing-red">
+              <CreditCard size={16} />
+              Gerenciar assinatura
+            </Link>
+          </Card>
+
+          <Card>
+            <h2 className="flex items-center gap-2 font-black">
+              <Boxes size={18} />
+              Exibicao do estoque
+            </h2>
+            <p className="mt-3 text-sm text-racing-muted">Escolha qual visualizacao abre por padrao na tela de estoque.</p>
+            <form action="/api/configuracoes/estoque" method="post" className="mt-4 space-y-3">
+              <label className="block space-y-1.5 text-sm font-semibold">
+                <span>Modo padrao</span>
+                <select name="stockViewMode" defaultValue={user.workspace.stockViewMode || "completo"} className="h-11 rounded-lg px-3">
+                  <option value="simples">Simples</option>
+                  <option value="completo">Completo</option>
+                </select>
+              </label>
+              <div className="grid gap-2 text-xs font-semibold text-racing-muted sm:grid-cols-2">
+                <span className="flex items-center gap-2 rounded-lg bg-racing-soft p-3">
+                  <Boxes size={15} />
+                  Simples: lista rapida de balcao
+                </span>
+                <span className="flex items-center gap-2 rounded-lg bg-racing-soft p-3">
+                  <ImageIcon size={15} />
+                  Completo: cards com fotos
+                </span>
+              </div>
+              <Button type="submit" className="w-full">Salvar exibicao</Button>
+            </form>
           </Card>
 
           <Card>
