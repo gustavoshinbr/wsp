@@ -16,7 +16,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     });
     if (!quote) throw new ApiError("Orcamento nao encontrado.", 404);
     if (quote.status === "PAID") throw new ApiError("Orcamento ja finalizado.");
-    if (quote.status !== "APPROVED") throw new ApiError("Aprove o orcamento antes de finalizar.");
+    if (quote.status === "CANCELLED") throw new ApiError("Orcamento cancelado nao pode ser finalizado.");
 
     await prisma.$transaction(async (tx) => {
       const existingSale = await tx.sale.findFirst({

@@ -3,14 +3,9 @@ import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/Button";
 import { CartBuilder } from "@/components/CartBuilder";
 import { Card } from "@/components/Card";
+import { QuoteRecord } from "@/components/QuoteRecord";
 import { requirePageUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-
-const quoteDateFormatter = new Intl.DateTimeFormat("pt-BR", {
-  day: "2-digit",
-  month: "2-digit",
-  year: "numeric",
-});
 
 export default async function OrcamentosPage({ searchParams }: { searchParams: { error?: string } }) {
   const user = await requirePageUser();
@@ -23,8 +18,21 @@ export default async function OrcamentosPage({ searchParams }: { searchParams: {
       where: { workspaceId: user.workspaceId },
       select: {
         id: true,
+        status: true,
+        total: true,
+        notes: true,
         createdAt: true,
-        client: { select: { name: true } },
+        client: { select: { name: true, phone: true } },
+        motorcycle: { select: { plate: true, brand: true, model: true } },
+        items: {
+          select: {
+            id: true,
+            description: true,
+            quantity: true,
+            unitPrice: true,
+            total: true,
+          },
+        },
       },
       orderBy: { createdAt: "desc" },
       take: 12,
@@ -91,12 +99,13 @@ export default async function OrcamentosPage({ searchParams }: { searchParams: {
             {quotes.length ? (
               <div className="mt-4 overflow-hidden rounded-lg border border-racing-line">
                 {quotes.map((quote) => (
-                  <div key={quote.id} className="flex items-center justify-between gap-3 border-b border-racing-line px-3 py-3 last:border-b-0">
-                    <span className="min-w-0 truncate text-sm font-black">{quote.client.name}</span>
-                    <time className="shrink-0 text-sm font-semibold text-racing-muted" dateTime={quote.createdAt.toISOString()}>
-                      {quoteDateFormatter.format(quote.createdAt)}
-                    </time>
-                  </div>
+                  <QuoteRecord
+                    key={quote.id}
+                    quote={quote}
+                    workshopName={user.workspace.workshopName}
+                    workshopPhone={user.workspace.phone}
+                    workshopEmail={user.workspace.email}
+                  />
                 ))}
               </div>
             ) : (

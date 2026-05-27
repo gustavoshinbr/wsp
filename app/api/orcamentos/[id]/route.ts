@@ -28,11 +28,14 @@ export async function GET(_: Request, { params }: { params: { id: string } }) {
 export async function POST(req: Request, { params }: { params: { id: string } }) {
   try {
     const user = await requireApiUser();
-    await ensureQuote(params.id, user.workspaceId);
+    const quote = await ensureQuote(params.id, user.workspaceId);
     const formData = await req.formData();
     const method = formString(formData, "_method").toLowerCase();
 
     if (method === "delete") {
+      if (quote.status === "APPROVED" || quote.status === "PAID") {
+        throw new ApiError("Orcamento aprovado ou finalizado nao pode ser excluido.");
+      }
       await prisma.quote.delete({ where: { id: params.id } });
     } else {
       const status = formString(formData, "status") as "DRAFT" | "SENT" | "APPROVED" | "CANCELLED" | "PAID";
@@ -57,7 +60,10 @@ export async function POST(req: Request, { params }: { params: { id: string } })
 export async function DELETE(_: Request, { params }: { params: { id: string } }) {
   try {
     const user = await requireApiUser();
-    await ensureQuote(params.id, user.workspaceId);
+    const quote = await ensureQuote(params.id, user.workspaceId);
+    if (quote.status === "APPROVED" || quote.status === "PAID") {
+      throw new ApiError("Orcamento aprovado ou finalizado nao pode ser excluido.");
+    }
     await prisma.quote.delete({ where: { id: params.id } });
     return NextResponse.json({ ok: true });
   } catch (error) {
