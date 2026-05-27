@@ -1,11 +1,10 @@
 import { CheckCircle2, FileText, Plus, Trash2 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/Button";
+import { CartBuilder } from "@/components/CartBuilder";
 import { Card } from "@/components/Card";
-import { DynamicQuoteItems } from "@/components/DynamicQuoteItems";
 import { QuotePreview } from "@/components/QuotePreview";
 import { requirePageUser } from "@/lib/auth";
-import { brl } from "@/lib/currency";
 import { prisma } from "@/lib/prisma";
 
 export default async function OrcamentosPage({ searchParams }: { searchParams: { error?: string } }) {
@@ -24,11 +23,15 @@ export default async function OrcamentosPage({ searchParams }: { searchParams: {
   ]);
   const quoteProducts = products.map((product) => ({
     id: product.id,
-    label: `${product.name} - ${brl(product.sellPrice)}`,
+    name: product.name,
+    barcode: product.barcode,
+    sellPrice: Number(product.sellPrice),
+    quantity: product.quantity,
   }));
   const quoteServices = services.map((service) => ({
     id: service.id,
-    label: `${service.name} - ${brl(service.price)}`,
+    name: service.name,
+    price: Number(service.price),
   }));
 
   return (
@@ -60,12 +63,7 @@ export default async function OrcamentosPage({ searchParams }: { searchParams: {
                 ))}
               </select>
 
-              <DynamicQuoteItems products={quoteProducts} services={quoteServices} />
-
-              <div className="grid grid-cols-[1fr_120px] gap-2">
-                <input name="manualDescription" className="h-11 rounded-lg px-3" placeholder="Item manual" />
-                <input name="manualValue" type="number" step="0.01" className="h-11 rounded-lg px-3" placeholder="Valor" />
-              </div>
+              <CartBuilder products={quoteProducts} services={quoteServices} />
               <textarea name="notes" rows={3} className="rounded-lg px-3 py-2" placeholder="Observações e validade do orçamento" />
               <Button type="submit" className="w-full">
                 <Plus size={17} />

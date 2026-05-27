@@ -18,6 +18,15 @@ type SaleItemInput = {
   total: number;
 };
 
+type QuickProductItemInput = SaleItemInput & {
+  buyPrice: number;
+};
+
+function numberValue(value: string | undefined) {
+  const parsed = Number(String(value || "0").replace(",", "."));
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
 export async function GET() {
   try {
     const user = await requireApiUser();
@@ -62,6 +71,7 @@ export async function POST(req: Request) {
     }
 
     const items: SaleItemInput[] = [];
+    const quickProductItems: QuickProductItemInput[] = [];
 
     const productIds = values(formData, "productId");
     const productQuantities = values(formData, "productQuantity");
@@ -88,6 +98,27 @@ export async function POST(req: Request) {
       items.push({ serviceId, type: "SERVICE", description: service.name, quantity, unitPrice, total: quantity * unitPrice });
     }
 
+    const quickProductNames = values(formData, "quickProductName");
+    const quickProductQuantities = values(formData, "quickProductQuantity");
+    const quickProductUnitPrices = values(formData, "quickProductUnitPrice");
+    const quickProductBuyPrices = values(formData, "quickProductBuyPrice");
+    for (let index = 0; index < quickProductNames.length; index += 1) {
+      const name = quickProductNames[index];
+      const unitPrice = numberValue(quickProductUnitPrices[index]);
+      if (!name && unitPrice <= 0) continue;
+      if (!name || unitPrice <= 0) throw new ApiError("Produto criado na hora precisa ter nome e valor de venda.");
+
+      const quantity = Math.max(1, Number(quickProductQuantities[index]) || 1);
+      quickProductItems.push({
+        type: "PRODUCT",
+        description: name,
+        quantity,
+        unitPrice,
+        buyPrice: Math.max(0, numberValue(quickProductBuyPrices[index])),
+        total: quantity * unitPrice,
+      });
+    }
+
     const laborDescriptions = values(formData, "laborDescription");
     const laborValues = values(formData, "laborValue");
     for (let index = 0; index < laborDescriptions.length; index += 1) {
@@ -110,10 +141,32 @@ export async function POST(req: Request) {
       items.push({ type: "MANUAL", description: manualDescription, quantity: 1, unitPrice: manualValue, total: manualValue });
     }
 
-    if (!items.length) throw new ApiError("Adicione ao menos um item.");
-    const total = items.reduce((sum, item) => sum + item.total, 0);
+    if (!items.length && !quickProductItems.length) throw new ApiError("Adicione ao menos um item.");
+    const total = [...items, ...quickProductItems].reduce((sum, item) => sum + item.total, 0);
 
     await prisma.$transaction(async (tx) => {
+      const saleItems: SaleItemInput[] = [...items];
+      for (const quickProduct of quickProductItems) {
+        const product = await tx.product.create({
+          data: {
+            workspaceId: user.workspaceId,
+            name: quickProduct.description,
+            buyPrice: quickProduct.buyPrice,
+            sellPrice: quickProduct.unitPrice,
+            quantity: quickProduct.quantity,
+          },
+        });
+
+        saleItems.push({
+          productId: product.id,
+          type: "PRODUCT",
+          description: quickProduct.description,
+          quantity: quickProduct.quantity,
+          unitPrice: quickProduct.unitPrice,
+          total: quickProduct.total,
+        });
+      }
+
       const sale = await tx.sale.create({
         data: {
           workspaceId: user.workspaceId,
@@ -125,11 +178,11 @@ export async function POST(req: Request) {
           paymentStatus: isCreditSale ? "CREDIT_OPEN" : "PAID",
           paidAt: isCreditSale ? null : new Date(),
           dueDate: isCreditSale && formString(formData, "dueDate") ? new Date(formString(formData, "dueDate")) : null,
-          items: { create: items },
+          items: { create: saleItems },
         },
       });
 
-      for (const item of items) {
+      for (const item of saleItems) {
         if (item.productId) {
           await tx.product.update({
             where: { id: item.productId },

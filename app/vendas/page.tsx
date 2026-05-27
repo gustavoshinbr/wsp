@@ -3,9 +3,8 @@ import { Clock3, Plus, ShoppingCart, UserRound } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Badge } from "@/components/Badge";
 import { Button } from "@/components/Button";
+import { CartBuilder } from "@/components/CartBuilder";
 import { Card } from "@/components/Card";
-import { LaborRows } from "@/components/LaborRows";
-import { ProductSalePicker } from "@/components/ProductSalePicker";
 import { requirePageUser } from "@/lib/auth";
 import { brl } from "@/lib/currency";
 import { prisma } from "@/lib/prisma";
@@ -32,6 +31,11 @@ export default async function VendasPage({ searchParams }: { searchParams: { err
     barcode: product.barcode,
     sellPrice: Number(product.sellPrice),
     quantity: product.quantity,
+  }));
+  const serviceOptions = services.map((service) => ({
+    id: service.id,
+    name: service.name,
+    price: Number(service.price),
   }));
 
   return (
@@ -69,32 +73,8 @@ export default async function VendasPage({ searchParams }: { searchParams: { err
                 {mechanics.map((mechanic) => <option key={mechanic.id} value={mechanic.id}>{mechanic.name}</option>)}
               </select>
 
-              <div className="space-y-2">
-                <p className="text-sm font-black">Produtos com leitor de código de barras</p>
-                {[0, 1, 2].map((index) => (
-                  <ProductSalePicker key={index} products={productOptions} index={index} />
-                ))}
-              </div>
+              <CartBuilder products={productOptions} services={serviceOptions} />
 
-              <div className="space-y-2">
-                <p className="text-sm font-black">Serviços cadastrados</p>
-                {[0, 1].map((index) => (
-                  <div key={`s-${index}`} className="grid grid-cols-[1fr_74px] gap-2">
-                    <select name="serviceId" className="h-11 rounded-lg px-3">
-                      <option value="">Serviço</option>
-                      {services.map((service) => <option key={service.id} value={service.id}>{service.name} · {brl(service.price)}</option>)}
-                    </select>
-                    <input name="serviceQuantity" type="number" min={1} defaultValue={1} className="h-11 rounded-lg px-3" />
-                  </div>
-                ))}
-              </div>
-
-              <LaborRows />
-
-              <div className="grid grid-cols-[1fr_120px] gap-2">
-                <input name="manualDescription" className="h-11 rounded-lg px-3" placeholder="Item manual" />
-                <input name="manualValue" type="number" step="0.01" className="h-11 rounded-lg px-3" placeholder="Valor" />
-              </div>
               <div className="grid gap-2 sm:grid-cols-2">
                 <select name="paymentMethod" className="h-11 rounded-lg px-3">
                   <option>Pix</option>

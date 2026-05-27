@@ -8,6 +8,25 @@ function values(formData: FormData, key: string) {
   return formData.getAll(key).map((value) => String(value || "").trim());
 }
 
+function numberValue(value: string | undefined) {
+  const parsed = Number(String(value || "0").replace(",", "."));
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+type QuoteItemInput = {
+  productId?: string;
+  serviceId?: string;
+  type: "PRODUCT" | "SERVICE" | "MANUAL";
+  description: string;
+  quantity: number;
+  unitPrice: number;
+  total: number;
+};
+
+type QuickProductItemInput = QuoteItemInput & {
+  buyPrice: number;
+};
+
 export async function GET() {
   try {
     const user = await requireApiUser();
@@ -40,15 +59,8 @@ export async function POST(req: Request) {
       if (!motorcycle) throw new ApiError("Moto inválida.", 404);
     }
 
-    const items: Array<{
-      productId?: string;
-      serviceId?: string;
-      type: "PRODUCT" | "SERVICE" | "MANUAL";
-      description: string;
-      quantity: number;
-      unitPrice: number;
-      total: number;
-    }> = [];
+    const items: QuoteItemInput[] = [];
+    const quickProductItems: QuickProductItemInput[] = [];
 
     const productIds = values(formData, "productId");
     const productQuantities = values(formData, "productQuantity");
@@ -88,6 +100,43 @@ export async function POST(req: Request) {
       });
     }
 
+    const quickProductNames = values(formData, "quickProductName");
+    const quickProductQuantities = values(formData, "quickProductQuantity");
+    const quickProductUnitPrices = values(formData, "quickProductUnitPrice");
+    const quickProductBuyPrices = values(formData, "quickProductBuyPrice");
+    for (let index = 0; index < quickProductNames.length; index += 1) {
+      const name = quickProductNames[index];
+      const unitPrice = numberValue(quickProductUnitPrices[index]);
+      if (!name && unitPrice <= 0) continue;
+      if (!name || unitPrice <= 0) throw new ApiError("Produto criado na hora precisa ter nome e valor de venda.");
+
+      const quantity = Math.max(1, Number(quickProductQuantities[index]) || 1);
+      quickProductItems.push({
+        type: "PRODUCT",
+        description: name,
+        quantity,
+        unitPrice,
+        buyPrice: Math.max(0, numberValue(quickProductBuyPrices[index])),
+        total: quantity * unitPrice,
+      });
+    }
+
+    const laborDescriptions = values(formData, "laborDescription");
+    const laborValues = values(formData, "laborValue");
+    for (let index = 0; index < laborDescriptions.length; index += 1) {
+      const description = laborDescriptions[index];
+      const value = numberValue(laborValues[index]);
+      if (description && value > 0) {
+        items.push({
+          type: "SERVICE",
+          description: `Mao de obra: ${description}`,
+          quantity: 1,
+          unitPrice: value,
+          total: value,
+        });
+      }
+    }
+
     const manualDescription = formString(formData, "manualDescription");
     const manualValue = formNumber(formData, "manualValue");
     if (manualDescription && manualValue > 0) {
@@ -100,20 +149,44 @@ export async function POST(req: Request) {
       });
     }
 
-    if (!items.length) throw new ApiError("Adicione ao menos um item.");
-    const total = items.reduce((sum, item) => sum + item.total, 0);
+    if (!items.length && !quickProductItems.length) throw new ApiError("Adicione ao menos um item.");
+    const total = [...items, ...quickProductItems].reduce((sum, item) => sum + item.total, 0);
 
-    await prisma.quote.create({
-      data: {
-        workspaceId: user.workspaceId,
-        clientId,
-        motorcycleId,
-        manualValue: manualValue > 0 ? manualValue : null,
-        total,
-        notes: formString(formData, "notes") || null,
-        status: "DRAFT",
-        items: { create: items },
-      },
+    await prisma.$transaction(async (tx) => {
+      const quoteItems: QuoteItemInput[] = [...items];
+      for (const quickProduct of quickProductItems) {
+        const product = await tx.product.create({
+          data: {
+            workspaceId: user.workspaceId,
+            name: quickProduct.description,
+            buyPrice: quickProduct.buyPrice,
+            sellPrice: quickProduct.unitPrice,
+            quantity: quickProduct.quantity,
+          },
+        });
+
+        quoteItems.push({
+          productId: product.id,
+          type: "PRODUCT",
+          description: quickProduct.description,
+          quantity: quickProduct.quantity,
+          unitPrice: quickProduct.unitPrice,
+          total: quickProduct.total,
+        });
+      }
+
+      await tx.quote.create({
+        data: {
+          workspaceId: user.workspaceId,
+          clientId,
+          motorcycleId,
+          manualValue: manualValue > 0 ? manualValue : null,
+          total,
+          notes: formString(formData, "notes") || null,
+          status: "DRAFT",
+          items: { create: quoteItems },
+        },
+      });
     });
 
     return NextResponse.redirect(new URL("/orcamentos", req.url), { status: 303 });
