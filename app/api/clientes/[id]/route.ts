@@ -35,22 +35,26 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     if (method === "delete") {
       await prisma.client.delete({ where: { id: params.id } });
     } else {
+      const name = formString(formData, "name");
+      const phone = formString(formData, "phone");
+      if (!name || !phone) throw new ApiError("Nome e telefone sao obrigatorios.");
+
       await prisma.client.update({
         where: { id: params.id },
         data: {
-          name: formString(formData, "name"),
-          phone: formString(formData, "phone"),
+          name,
+          phone,
           address: formString(formData, "address") || null,
         },
       });
     }
 
-    return NextResponse.redirect(new URL("/clientes", req.url));
+    return NextResponse.redirect(new URL("/clientes", req.url), { status: 303 });
   } catch (error) {
     const { message } = apiError(error);
     const url = new URL("/clientes", req.url);
     url.searchParams.set("error", message);
-    return NextResponse.redirect(url);
+    return NextResponse.redirect(url, { status: 303 });
   }
 }
 

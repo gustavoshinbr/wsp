@@ -4,6 +4,7 @@ import { Badge } from "@/components/Badge";
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
 import { requirePageUser } from "@/lib/auth";
+import { appointmentStatusLabel } from "@/lib/appointment-status";
 import { brl } from "@/lib/currency";
 import { prisma } from "@/lib/prisma";
 
@@ -89,7 +90,7 @@ export default async function AgendamentosPage({ searchParams }: { searchParams:
                     <div className="flex flex-wrap items-center gap-2">
                       <h2 className="text-lg font-black">{appointment.client.name}</h2>
                       <Badge tone={appointment.status === "FINISHED" ? "green" : appointment.status === "CANCELLED" ? "red" : "amber"}>
-                        {appointment.status}
+                        {appointmentStatusLabel(appointment.status)}
                       </Badge>
                     </div>
                     <p className="text-sm text-racing-muted">

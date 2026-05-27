@@ -82,11 +82,11 @@ export async function POST(req: Request) {
       });
     }
 
-    return NextResponse.redirect(new URL("/clientes", req.url));
+    return NextResponse.redirect(new URL("/clientes", req.url), { status: 303 });
   } catch (error) {
     const { message } = apiError(error);
     const url = new URL("/clientes", req.url);
     url.searchParams.set("error", message);
-    return NextResponse.redirect(url);
+    return NextResponse.redirect(url, { status: 303 });
   }
 }

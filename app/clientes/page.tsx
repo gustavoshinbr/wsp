@@ -1,7 +1,8 @@
-import { Bike, Plus, Search, Trash2, UserRound } from "lucide-react";
+import { Bike, Plus, Search, UserRound } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
+import { ClientActions } from "@/components/ClientActions";
 import { DataTable } from "@/components/DataTable";
 import { requirePageUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -24,6 +25,12 @@ export default async function ClientesPage({ searchParams }: { searchParams: { q
     },
     include: { motorcycles: true },
     orderBy: { createdAt: "desc" },
+  });
+  const editableClient = (client: (typeof clients)[number]) => ({
+    id: client.id,
+    name: client.name,
+    phone: client.phone,
+    address: client.address,
   });
 
   return (
@@ -82,23 +89,8 @@ export default async function ClientesPage({ searchParams }: { searchParams: { q
                 },
                 {
                   header: "Ações",
-                  render: (client) => (
-                    <div className="flex flex-wrap gap-2">
-                      <form action={`/api/clientes/${client.id}`} method="post" className="grid gap-2">
-                        <input name="name" defaultValue={client.name} className="h-9 rounded-lg px-2 text-xs" />
-                        <input name="phone" defaultValue={client.phone} className="h-9 rounded-lg px-2 text-xs" />
-                        <input name="address" defaultValue={client.address || ""} className="h-9 rounded-lg px-2 text-xs" />
-                        <Button variant="outline" className="h-9 min-h-9 text-xs">Editar</Button>
-                      </form>
-                      <form action={`/api/clientes/${client.id}`} method="post">
-                        <input type="hidden" name="_method" value="delete" />
-                        <button className="inline-flex h-9 items-center gap-1 rounded-lg border border-racing-line px-3 text-xs font-bold text-racing-muted">
-                          <Trash2 size={14} />
-                          Excluir
-                        </button>
-                      </form>
-                    </div>
-                  ),
+                  className: "w-28",
+                  render: (client) => <ClientActions client={editableClient(client)} />,
                 },
               ]}
               mobileRender={(client) => (
@@ -115,6 +107,9 @@ export default async function ClientesPage({ searchParams }: { searchParams: { q
                         {client.motorcycles.length} moto(s)
                       </p>
                     </div>
+                  </div>
+                  <div className="mt-4">
+                    <ClientActions client={editableClient(client)} />
                   </div>
                 </Card>
               )}

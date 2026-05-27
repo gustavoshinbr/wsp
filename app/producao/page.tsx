@@ -4,6 +4,7 @@ import { AppShell } from "@/components/AppShell";
 import { Badge } from "@/components/Badge";
 import { Card } from "@/components/Card";
 import { StatCard } from "@/components/StatCard";
+import { appointmentStatusLabel } from "@/lib/appointment-status";
 import { requirePageUser } from "@/lib/auth";
 import { brl } from "@/lib/currency";
 import { prisma } from "@/lib/prisma";
@@ -75,7 +76,7 @@ export default async function ProducaoPage() {
                           {appointment.date.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })} · {appointment.motorcycle?.plate || "Sem moto"}
                         </p>
                       </div>
-                      <Badge tone={appointment.status === "FINISHED" ? "green" : "amber"}>{appointment.status}</Badge>
+                      <Badge tone={appointment.status === "FINISHED" ? "green" : "amber"}>{appointmentStatusLabel(appointment.status)}</Badge>
                     </div>
                     <p className="mt-2 text-sm text-racing-muted">
                       {appointment.items.map((item) => `${item.quantity}x ${item.description}`).join(" · ") || "Sem itens previstos"}
