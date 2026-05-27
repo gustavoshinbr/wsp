@@ -205,17 +205,18 @@ export default function LandingPage() {
     <main className="min-h-screen bg-white text-[#1f2937]">
       <header className="sticky top-0 z-50 border-b border-slate-100 bg-white/88 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
-          <Logo href="/" />
+          <Logo href="/" compact className="sm:hidden" />
+          <Logo href="/" className="hidden sm:inline-flex" />
           <nav className="hidden items-center gap-8 text-sm font-bold text-slate-500 md:flex">
             <a href="#funcionalidades" className="hover:text-rose-600">Funcionalidades</a>
             <a href="#beneficios" className="hover:text-rose-600">Benefícios</a>
             <a href="#depoimentos" className="hover:text-rose-600">Depoimentos</a>
           </nav>
           <div className="flex items-center gap-2 sm:gap-3">
-            <Link href="/login" className="hidden rounded-full px-4 py-2 text-sm font-black text-slate-600 hover:bg-slate-50 sm:inline-flex">
+            <Link href="/login" className="inline-flex rounded-full px-3 py-2 text-sm font-black text-slate-600 hover:bg-slate-50 sm:px-4">
               Login
             </Link>
-            <Link href="/register" className="rounded-full bg-rose-600 px-4 py-2.5 text-sm font-black text-white shadow-lg shadow-rose-200 hover:bg-rose-700 sm:px-5">
+            <Link href="/register" className="rounded-full bg-rose-600 px-3 py-2.5 text-sm font-black text-white shadow-lg shadow-rose-200 hover:bg-rose-700 sm:px-5">
               Criar conta
             </Link>
             <Link href="/register" className="hidden rounded-full border border-rose-100 bg-rose-50 px-4 py-2.5 text-sm font-black text-rose-700 hover:bg-rose-100 lg:inline-flex">
