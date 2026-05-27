@@ -17,7 +17,7 @@ export const navGroups = [
   {
     title: "Operacao",
     items: [
-      { href: "/dashboard", label: "Visao geral", icon: Gauge },
+      { href: "/dashboard", label: "INICIO", icon: Gauge },
       { href: "/producao", label: "Producao", icon: Wrench },
       { href: "/clientes", label: "Clientes", icon: Users },
       { href: "/agendamentos", label: "Agenda", icon: CalendarDays },

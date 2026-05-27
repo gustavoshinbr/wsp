@@ -13,7 +13,7 @@ export function MobileNav() {
       {mobileNavItems.map(({ href, label, icon: Icon }) => {
         const active = pathname === href;
         const shortLabel =
-          href === "/dashboard" ? "Inicio" : href === "/configuracoes" ? "Mais" : label;
+          href === "/dashboard" ? "INICIO" : href === "/configuracoes" ? "Mais" : label;
 
         return (
           <Link
