@@ -17,7 +17,7 @@ export default async function OrcamentosPage({ searchParams }: { searchParams: {
     prisma.service.findMany({ where: { workspaceId: user.workspaceId }, orderBy: { name: "asc" } }),
     prisma.quote.findMany({
       where: { workspaceId: user.workspaceId },
-      include: { client: true, motorcycle: true, items: { include: { product: true, service: true } } },
+      include: { client: true, motorcycle: true, items: true },
       orderBy: { createdAt: "desc" },
       take: 6,
     }),

@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Badge } from "@/components/Badge";
@@ -27,7 +26,6 @@ export function QuotePreview({
       quantity: number;
       unitPrice: unknown;
       total: unknown;
-      product?: { mainImageUrl: string | null } | null;
     }>;
   };
 }) {
@@ -74,9 +72,6 @@ export function QuotePreview({
       <div className="divide-y divide-racing-line">
         {quote.items.map((item) => (
           <div key={item.id} className="flex gap-3 py-3">
-            <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-racing-soft">
-              {item.product?.mainImageUrl ? <Image src={item.product.mainImageUrl} alt={item.description} fill className="object-cover" /> : null}
-            </div>
             <div className="min-w-0 flex-1">
               <p className="font-bold">{item.description}</p>
               <p className="text-sm text-racing-muted">

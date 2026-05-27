@@ -1,0 +1,10 @@
+<svg width="360" height="260" viewBox="0 0 360 260" xmlns="http://www.w3.org/2000/svg">
+  <rect width="360" height="260" rx="18" fill="#f5f7fb"/>
+  <ellipse cx="180" cy="213" rx="88" ry="15" fill="#d4d4d8"/>
+  <rect x="132" y="58" width="96" height="142" rx="18" fill="#15151a"/>
+  <rect x="151" y="38" width="58" height="25" rx="7" fill="#dc2626"/>
+  <rect x="145" y="92" width="70" height="76" rx="8" fill="#ffffff"/>
+  <path d="M162 118c17-25 38-17 44 1-11-8-23-8-44-1z" fill="#dc2626"/>
+  <text x="180" y="141" text-anchor="middle" font-family="Arial" font-size="24" font-weight="900" fill="#111827">20W50</text>
+  <text x="180" y="160" text-anchor="middle" font-family="Arial" font-size="12" font-weight="800" fill="#dc2626">MOTO OIL</text>
+</svg>
