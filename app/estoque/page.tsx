@@ -77,14 +77,6 @@ export default async function EstoquePage({ searchParams }: { searchParams: { q?
         <div className="grid gap-6 xl:grid-cols-[430px_1fr]">
           <Card>
             <h2 className="text-lg font-black">Novo produto</h2>
-            <form action="/api/produtos/precarregar" method="post" className="mt-4 rounded-lg border border-racing-line bg-racing-soft p-3">
-              <p className="text-sm font-bold">Itens padrao de moto</p>
-              <p className="mt-1 text-xs text-racing-muted">Carrega oleos 10W30, 20W50, 15W40, 5W30 e relacao/corrente.</p>
-              <button className="mt-3 inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-lg border border-racing-line px-3 py-2 text-sm font-black text-racing-muted hover:bg-racing-panel">
-                <Boxes size={16} />
-                Carregar oleos e relacao
-              </button>
-            </form>
             <form action="/api/produtos" method="post" encType="multipart/form-data" className="mt-4 space-y-3">
               <input name="name" required className="h-11 rounded-lg px-3" placeholder="Nome do produto" />
               <div className="grid grid-cols-2 gap-3">
@@ -94,8 +86,12 @@ export default async function EstoquePage({ searchParams }: { searchParams: { q?
               <input name="quantity" required type="number" className="h-11 rounded-lg px-3" placeholder="Quantidade" />
               <BarcodeInput name="barcode" placeholder="Código de barras: bipe, digite ou use câmera" />
               <input name="qrCode" className="h-11 rounded-lg px-3" placeholder="QR Code" />
-              <PresetImagePicker presets={productImagePresets} />
-              <ProductImageUploader />
+              {view === "completo" ? (
+                <>
+                  <PresetImagePicker presets={productImagePresets} />
+                  <ProductImageUploader />
+                </>
+              ) : null}
               <Button type="submit" className="w-full">
                 <Plus size={17} />
                 Salvar produto
