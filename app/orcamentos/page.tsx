@@ -77,7 +77,12 @@ export default async function OrcamentosPage({ searchParams }: { searchParams: {
           <section className="space-y-4">
             {quotes.map((quote) => (
               <div key={quote.id} className="space-y-2">
-                <QuotePreview quote={quote} workshopName={user.workspace.workshopName} />
+                <QuotePreview
+                  quote={quote}
+                  workshopName={user.workspace.workshopName}
+                  workshopPhone={user.workspace.phone}
+                  workshopEmail={user.workspace.email}
+                />
                 <div className="no-print flex flex-wrap gap-2">
                   {quote.status !== "APPROVED" && quote.status !== "PAID" ? (
                     <form action={`/api/orcamentos/${quote.id}`} method="post">

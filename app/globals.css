@@ -126,6 +126,11 @@ a {
 }
 
 @media print {
+  @page {
+    size: A4;
+    margin: 10mm;
+  }
+
   .no-print {
     display: none !important;
   }
@@ -133,5 +138,29 @@ a {
   body {
     background: #fff;
     color: #111827;
+  }
+
+  body.printing-quote * {
+    visibility: hidden !important;
+  }
+
+  body.printing-quote .print-active,
+  body.printing-quote .print-active * {
+    visibility: visible !important;
+  }
+
+  body.printing-quote .print-active {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    margin: 0 !important;
+  }
+
+  .quote-pdf {
+    break-inside: avoid;
+    color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 }
