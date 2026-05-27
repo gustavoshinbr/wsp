@@ -2,6 +2,7 @@ import { CheckCircle2, FileText, Plus, Trash2 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
+import { DynamicQuoteItems } from "@/components/DynamicQuoteItems";
 import { QuotePreview } from "@/components/QuotePreview";
 import { requirePageUser } from "@/lib/auth";
 import { brl } from "@/lib/currency";
@@ -21,6 +22,14 @@ export default async function OrcamentosPage({ searchParams }: { searchParams: {
       take: 6,
     }),
   ]);
+  const quoteProducts = products.map((product) => ({
+    id: product.id,
+    label: `${product.name} - ${brl(product.sellPrice)}`,
+  }));
+  const quoteServices = services.map((service) => ({
+    id: service.id,
+    label: `${service.name} - ${brl(service.price)}`,
+  }));
 
   return (
     <AppShell>
@@ -51,39 +60,7 @@ export default async function OrcamentosPage({ searchParams }: { searchParams: {
                 ))}
               </select>
 
-              <div className="space-y-2">
-                <p className="text-sm font-black">Produtos</p>
-                {[0, 1, 2].map((index) => (
-                  <div key={index} className="grid grid-cols-[1fr_74px] gap-2">
-                    <select name="productId" className="h-11 rounded-lg px-3">
-                      <option value="">Produto</option>
-                      {products.map((product) => (
-                        <option key={product.id} value={product.id}>
-                          {product.name} · {brl(product.sellPrice)}
-                        </option>
-                      ))}
-                    </select>
-                    <input name="productQuantity" type="number" min={1} defaultValue={1} className="h-11 rounded-lg px-3" />
-                  </div>
-                ))}
-              </div>
-
-              <div className="space-y-2">
-                <p className="text-sm font-black">Serviços</p>
-                {[0, 1, 2].map((index) => (
-                  <div key={index} className="grid grid-cols-[1fr_74px] gap-2">
-                    <select name="serviceId" className="h-11 rounded-lg px-3">
-                      <option value="">Serviço</option>
-                      {services.map((service) => (
-                        <option key={service.id} value={service.id}>
-                          {service.name} · {brl(service.price)}
-                        </option>
-                      ))}
-                    </select>
-                    <input name="serviceQuantity" type="number" min={1} defaultValue={1} className="h-11 rounded-lg px-3" />
-                  </div>
-                ))}
-              </div>
+              <DynamicQuoteItems products={quoteProducts} services={quoteServices} />
 
               <div className="grid grid-cols-[1fr_120px] gap-2">
                 <input name="manualDescription" className="h-11 rounded-lg px-3" placeholder="Item manual" />
