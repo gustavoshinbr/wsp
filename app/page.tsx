@@ -96,7 +96,7 @@ function DashboardMockup() {
 
         <div className="grid gap-0 lg:grid-cols-[220px_1fr]">
           <aside className="hidden border-r border-slate-100 bg-slate-50/70 p-4 lg:block">
-            {["INICIO", "OS", "Agenda", "Estoque", "Financeiro"].map((item, index) => (
+            {["Inicio", "OS", "Agenda", "Estoque", "Financeiro"].map((item, index) => (
               <div
                 key={item}
                 className={`mb-2 flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-black ${

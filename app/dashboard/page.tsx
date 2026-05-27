@@ -40,7 +40,7 @@ export default async function DashboardPage() {
       <div className="space-y-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-3xl font-black">INICIO</h1>
+            <h1 className="text-3xl font-black">Inicio</h1>
             <p className="text-sm text-racing-muted">{subscriptionMessage(user.workspace)}</p>
           </div>
           <Link
