@@ -85,4 +85,16 @@ Na Vercel, configure as variáveis de ambiente, use Neon em produção e troque:
 ASAAS_BASE_URL="https://api.asaas.com/v3"
 ```
 
-Uploads locais ficam em `public/uploads`. A estrutura está isolada para trocar por Cloudinary ou Supabase Storage em produção.
+Uploads de produtos usam Vercel Blob. Ao conectar o Blob ao projeto, a Vercel cria `BLOB_READ_WRITE_TOKEN` automaticamente.
+
+## Emissão fiscal
+
+A tela `/fiscal` gera recibos não fiscais e integra a emissão de NFC-e com a Focus NFe.
+
+Configure na Vercel:
+
+```text
+FOCUS_NFE_TOKEN="token_de_homologacao_ou_producao"
+```
+
+Antes de emitir, cadastre a empresa, certificado A1, CSC e habilitação de NFC-e na Focus NFe/SEFAZ. Comece em homologação e confirme NCM, CFOP, CSOSN, PIS e COFINS com a contabilidade. Serviços não são enviados na NFC-e; eles exigem NFS-e própria.

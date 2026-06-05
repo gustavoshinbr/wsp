@@ -9,7 +9,8 @@ import { requirePageUser } from "@/lib/auth";
 import { brl } from "@/lib/currency";
 import { prisma } from "@/lib/prisma";
 
-export default async function VendasPage({ searchParams }: { searchParams: { error?: string } }) {
+export default async function VendasPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
+  const query = await searchParams;
   const user = await requirePageUser();
   const [clients, motorcycles, mechanics, products, services, sales, openCreditSales] = await Promise.all([
     prisma.client.findMany({ where: { workspaceId: user.workspaceId }, orderBy: { name: "asc" } }),
@@ -51,7 +52,7 @@ export default async function VendasPage({ searchParams }: { searchParams: { err
             Vendas a prazo ({openCreditSales})
           </Link>
         </div>
-        {searchParams.error ? <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-700">{searchParams.error}</div> : null}
+        {query.error ? <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-700">{query.error}</div> : null}
 
         <div className="grid gap-6 xl:grid-cols-[480px_1fr]">
           <Card>

@@ -12,18 +12,19 @@ import { isSubscriptionActive } from "@/lib/subscription";
 export default async function CheckoutPage({
   searchParams,
 }: {
-  searchParams: { subscription?: string; paymentLink?: string };
+  searchParams: Promise<{ subscription?: string; paymentLink?: string }>;
 }) {
+  const query = await searchParams;
   const user = await requirePageUser({ allowExpiredSubscription: true });
   if (isSubscriptionActive(user.workspace)) redirect("/dashboard");
 
   const existingSubscriptionId =
     user.workspace.subscriptionStatus !== "CANCELED" ? user.workspace.asaasSubscriptionId : null;
   const existingPayment =
-    !searchParams.paymentLink && existingSubscriptionId
+    !query.paymentLink && existingSubscriptionId
       ? await getCurrentSubscriptionPayment(existingSubscriptionId).catch(() => null)
       : null;
-  const paymentLink = searchParams.paymentLink || paymentUrlWithAutoRedirect(existingPayment?.invoiceUrl || null);
+  const paymentLink = query.paymentLink || paymentUrlWithAutoRedirect(existingPayment?.invoiceUrl || null);
 
   return (
     <AppShell allowExpiredSubscription>

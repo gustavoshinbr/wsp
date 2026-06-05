@@ -10,11 +10,12 @@ async function ensureAppointment(id: string, workspaceId: string) {
   return appointment;
 }
 
-export async function GET(_: Request, { params }: { params: { id: string } }) {
+export async function GET(_: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params;
     const user = await requireApiUser();
     const appointment = await prisma.appointment.findFirst({
-      where: { id: params.id, workspaceId: user.workspaceId },
+      where: { id, workspaceId: user.workspaceId },
       include: { client: true, motorcycle: true, items: { include: { product: true, service: true } } },
     });
     if (!appointment) throw new ApiError("Agendamento não encontrado.", 404);
@@ -25,19 +26,20 @@ export async function GET(_: Request, { params }: { params: { id: string } }) {
   }
 }
 
-export async function POST(req: Request, { params }: { params: { id: string } }) {
+export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params;
     const user = await requireApiUser();
-    await ensureAppointment(params.id, user.workspaceId);
+    await ensureAppointment(id, user.workspaceId);
     const formData = await req.formData();
     const method = formString(formData, "_method").toLowerCase();
 
     if (method === "delete") {
-      await prisma.appointment.delete({ where: { id: params.id } });
+      await prisma.appointment.delete({ where: { id } });
     } else {
       const status = formString(formData, "status") as "SCHEDULED" | "FINISHED" | "CANCELLED";
       await prisma.appointment.update({
-        where: { id: params.id },
+        where: { id },
         data: {
           date: formString(formData, "date") ? new Date(formString(formData, "date")) : undefined,
           notes: formString(formData, "notes") || null,
@@ -55,11 +57,12 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   }
 }
 
-export async function DELETE(_: Request, { params }: { params: { id: string } }) {
+export async function DELETE(_: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params;
     const user = await requireApiUser();
-    await ensureAppointment(params.id, user.workspaceId);
-    await prisma.appointment.delete({ where: { id: params.id } });
+    await ensureAppointment(id, user.workspaceId);
+    await prisma.appointment.delete({ where: { id } });
     return NextResponse.json({ ok: true });
   } catch (error) {
     const { message, status } = apiError(error);

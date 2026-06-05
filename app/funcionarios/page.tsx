@@ -13,7 +13,8 @@ const roleLabels: Record<UserRole, string> = {
   STAFF: "Funcionário",
 };
 
-export default async function FuncionariosPage({ searchParams }: { searchParams: { error?: string } }) {
+export default async function FuncionariosPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
+  const query = await searchParams;
   const user = await requirePageUser();
   const canManage = user.role === "OWNER" || user.role === "ADMIN";
   const employees = await prisma.user.findMany({
@@ -28,7 +29,7 @@ export default async function FuncionariosPage({ searchParams }: { searchParams:
           <h1 className="text-3xl font-black">Funcionários</h1>
           <p className="text-sm text-racing-muted">Cadastre equipe da oficina, defina acesso e marque quem pode ser mecânico responsável.</p>
         </div>
-        {searchParams.error ? <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-700">{searchParams.error}</div> : null}
+        {query.error ? <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-700">{query.error}</div> : null}
 
         <div className="grid gap-6 xl:grid-cols-[420px_1fr]">
           <Card>

@@ -1,5 +1,5 @@
 import { CheckCircle2, Trash2 } from "lucide-react";
-import { PrintButton } from "@/components/PrintButton";
+import { QuotePdfButton } from "@/components/QuotePdfButton";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { brl, toNumber } from "@/lib/currency";
 import { quoteWhatsAppMessage, whatsappUrl } from "@/lib/whatsapp";
@@ -19,7 +19,7 @@ type QuoteRecordProps = {
     status: string;
     total: unknown;
     notes: string | null;
-    createdAt: Date;
+    createdAt: Date | string;
     client: { name: string; phone: string };
     motorcycle: { plate: string; brand: string | null; model: string | null } | null;
     items: Array<{
@@ -33,9 +33,7 @@ type QuoteRecordProps = {
 };
 
 export function QuoteRecord({ quote, workshopName, workshopPhone, workshopEmail }: QuoteRecordProps) {
-  const printTargetId = `quote-pdf-${quote.id}`;
-  const quoteNumber = quote.id.slice(-6).toUpperCase();
-  const quoteDate = quoteDateFormatter.format(quote.createdAt);
+  const quoteDate = quoteDateFormatter.format(new Date(quote.createdAt));
   const motorcycle = quote.motorcycle
     ? `${quote.motorcycle.plate} - ${[quote.motorcycle.brand, quote.motorcycle.model].filter(Boolean).join(" ")}`
     : null;
@@ -66,7 +64,12 @@ export function QuoteRecord({ quote, workshopName, workshopPhone, workshopEmail 
 
       <div className="mt-3 grid gap-2">
         <div className="grid gap-2 sm:grid-cols-2">
-          <PrintButton label="Baixar PDF" targetId={printTargetId} />
+          <QuotePdfButton
+            quote={quote}
+            workshopName={workshopName}
+            workshopPhone={workshopPhone}
+            workshopEmail={workshopEmail}
+          />
           <WhatsAppButton href={whatsappUrl(quote.client.phone, message)} label="Compartilhar" />
         </div>
 
@@ -98,86 +101,6 @@ export function QuoteRecord({ quote, workshopName, workshopPhone, workshopEmail 
           </form>
         ) : null}
       </div>
-
-      <article
-        id={printTargetId}
-        className="quote-pdf pointer-events-none fixed left-[-10000px] top-0 w-[794px] overflow-hidden rounded-lg border border-racing-line bg-white text-slate-950 shadow-sm print:pointer-events-auto print:rounded-none print:border-0 print:shadow-none"
-      >
-        <header className="border-b-4 border-rose-600 bg-slate-950 px-6 py-6 text-white print:px-8">
-          <div className="flex items-start justify-between gap-5">
-            <div>
-              <p className="text-xs font-black uppercase tracking-[0.18em] text-rose-300">Orçamento técnico</p>
-              <h2 className="mt-1 text-2xl font-black">{workshopName}</h2>
-              <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs font-semibold text-slate-300">
-                {workshopPhone ? <span>{workshopPhone}</span> : null}
-                {workshopEmail ? <span>{workshopEmail}</span> : null}
-              </div>
-            </div>
-            <div className="rounded-lg border border-white/15 bg-white/10 px-4 py-3 text-right">
-              <p className="text-xs font-bold uppercase text-slate-300">Numero</p>
-              <p className="text-xl font-black">#{quoteNumber}</p>
-              <p className="mt-1 text-xs text-slate-300">{quoteDate}</p>
-            </div>
-          </div>
-        </header>
-
-        <div className="space-y-6 p-6 print:p-8">
-          <div className="grid gap-4 md:grid-cols-2">
-            <section className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-              <p className="text-xs font-black uppercase text-slate-500">Cliente</p>
-              <p className="mt-2 text-lg font-black">{quote.client.name}</p>
-              <p className="text-sm font-semibold text-slate-600">{quote.client.phone}</p>
-            </section>
-            <section className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-              <p className="text-xs font-black uppercase text-slate-500">Moto</p>
-              <p className="mt-2 text-lg font-black">{motorcycle || "Não informada"}</p>
-            </section>
-          </div>
-
-          <section>
-            <div className="mb-3 flex items-end justify-between gap-4">
-              <div>
-                <p className="text-xs font-black uppercase text-rose-600">Itens do orçamento</p>
-                <h3 className="text-xl font-black">Produtos e serviços</h3>
-              </div>
-              <span className="text-xs font-bold text-slate-500">{quote.items.length} item(ns)</span>
-            </div>
-            <table className="w-full border-collapse text-sm">
-              <thead className="bg-slate-950 text-white">
-                <tr>
-                  <th className="px-4 py-3 text-left text-xs font-black uppercase">Descrição</th>
-                  <th className="w-20 px-4 py-3 text-center text-xs font-black uppercase">Qtd</th>
-                  <th className="w-32 px-4 py-3 text-right text-xs font-black uppercase">Unitario</th>
-                  <th className="w-32 px-4 py-3 text-right text-xs font-black uppercase">Total</th>
-                </tr>
-              </thead>
-              <tbody>
-                {quote.items.map((item) => (
-                  <tr key={item.id} className="border-t border-slate-200 even:bg-slate-50">
-                    <td className="px-4 py-3 font-bold">{item.description}</td>
-                    <td className="px-4 py-3 text-center font-semibold">{item.quantity}</td>
-                    <td className="px-4 py-3 text-right font-semibold">{brl(item.unitPrice as never)}</td>
-                    <td className="px-4 py-3 text-right font-black">{brl(item.total as never)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </section>
-
-          <div className="grid gap-4 md:grid-cols-[1fr_220px]">
-            <section className="rounded-lg border border-slate-200 p-4">
-              <p className="text-xs font-black uppercase text-slate-500">Observações</p>
-              <p className="mt-2 min-h-16 text-sm font-medium leading-6 text-slate-700">
-                {quote.notes || "Sem observações adicionais."}
-              </p>
-            </section>
-            <section className="rounded-lg bg-slate-950 p-5 text-white">
-              <p className="text-xs font-black uppercase text-slate-300">Valor total</p>
-              <p className="mt-3 text-3xl font-black">{brl(total)}</p>
-            </section>
-          </div>
-        </div>
-      </article>
     </div>
   );
 }

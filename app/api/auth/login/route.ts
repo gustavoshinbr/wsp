@@ -25,7 +25,7 @@ export async function POST(req: Request) {
     return redirectWithError(req, "Email ou senha inválidos.");
   }
 
-  setSessionCookie({
+  await setSessionCookie({
     userId: user.id,
     workspaceId: user.workspaceId,
     email: user.email,

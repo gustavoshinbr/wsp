@@ -48,6 +48,20 @@ enum SalePaymentStatus {
   CANCELED
 }
 
+enum FiscalDocumentType {
+  NFCE
+  NFE
+  NFSE
+}
+
+enum FiscalDocumentStatus {
+  PROCESSING
+  AUTHORIZED
+  REJECTED
+  CANCELLED
+  ERROR
+}
+
 model User {
   id                   String        @id @default(cuid())
   name                 String
@@ -97,6 +111,7 @@ model Workspace {
   appointments                 Appointment[]
   sales                        Sale[]
   fiscalConfig                 FiscalConfig?
+  fiscalDocuments              FiscalDocument[]
 }
 
 model Client {
@@ -148,6 +163,11 @@ model Product {
   mainImageUrl String?
   barcode      String?
   qrCode       String?
+  ncm          String?
+  cfop         String?
+  csosn        String?
+  fiscalUnit   String?           @default("UN")
+  fiscalOrigin String?           @default("0")
   createdAt    DateTime          @default(now())
   updatedAt    DateTime          @updatedAt
   images       ProductImage[]
@@ -290,6 +310,7 @@ model Sale {
   paidAt        DateTime?
   createdAt     DateTime     @default(now())
   items         SaleItem[]
+  fiscalDocuments FiscalDocument[]
 
   @@index([workspaceId])
   @@index([clientId])
@@ -328,6 +349,45 @@ model FiscalConfig {
   address               String?
   phone                 String?
   email                 String?
+  provider              String    @default("FOCUS_NFE")
+  environment           String    @default("homologacao")
+  defaultNcm            String?
+  defaultCfop           String    @default("5102")
+  defaultCsosn          String    @default("102")
+  defaultPisCst         String    @default("49")
+  defaultCofinsCst      String    @default("49")
+  defaultUnit           String    @default("UN")
+  defaultOrigin         String    @default("0")
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
+}
+
+model FiscalDocument {
+  id             String               @id @default(cuid())
+  workspaceId    String
+  workspace      Workspace            @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  saleId         String?
+  sale           Sale?                @relation(fields: [saleId], references: [id], onDelete: SetNull)
+  type           FiscalDocumentType
+  status         FiscalDocumentStatus @default(PROCESSING)
+  provider       String
+  environment    String
+  reference      String               @unique
+  number         String?
+  series         String?
+  accessKey      String?
+  protocol       String?
+  statusCode     String?
+  message        String?
+  danfeUrl       String?
+  xmlUrl         String?
+  qrCodeUrl      String?
+  payload        Json?
+  response       Json?
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+
+  @@index([workspaceId])
+  @@index([saleId])
+  @@index([status])
 }

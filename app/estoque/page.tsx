@@ -15,11 +15,12 @@ import { prisma } from "@/lib/prisma";
 import { productImagePresets } from "@/lib/product-presets";
 import { cn } from "@/lib/utils";
 
-export default async function EstoquePage({ searchParams }: { searchParams: { q?: string; error?: string; view?: string } }) {
+export default async function EstoquePage({ searchParams }: { searchParams: Promise<{ q?: string; error?: string; view?: string }> }) {
+  const query = await searchParams;
   const user = await requirePageUser();
-  const q = searchParams.q?.trim();
+  const q = query.q?.trim();
   const preferredView = user.workspace.stockViewMode === "simples" ? "simples" : "completo";
-  const view = searchParams.view === "simples" || searchParams.view === "completo" ? searchParams.view : preferredView;
+  const view = query.view === "simples" || query.view === "completo" ? query.view : preferredView;
   const products = await prisma.product.findMany({
     where: {
       workspaceId: user.workspaceId,
@@ -45,6 +46,11 @@ export default async function EstoquePage({ searchParams }: { searchParams: { q?
     quantity: product.quantity,
     barcode: product.barcode,
     qrCode: product.qrCode,
+    ncm: product.ncm,
+    cfop: product.cfop,
+    csosn: product.csosn,
+    fiscalUnit: product.fiscalUnit,
+    fiscalOrigin: product.fiscalOrigin,
   });
 
   return (
@@ -72,7 +78,7 @@ export default async function EstoquePage({ searchParams }: { searchParams: { q?
             </Link>
           </div>
         </div>
-        {searchParams.error ? <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-700">{searchParams.error}</div> : null}
+        {query.error ? <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-700">{query.error}</div> : null}
 
         <div className="grid gap-6 xl:grid-cols-[430px_1fr]">
           <Card>
@@ -86,6 +92,16 @@ export default async function EstoquePage({ searchParams }: { searchParams: { q?
               <input name="quantity" required type="number" className="h-11 rounded-lg px-3" placeholder="Quantidade" />
               <BarcodeInput name="barcode" placeholder="Código de barras: bipe, digite ou use câmera" />
               <input name="qrCode" className="h-11 rounded-lg px-3" placeholder="QR Code" />
+              <details className="rounded-lg border border-racing-line p-3">
+                <summary className="cursor-pointer text-sm font-black">Dados fiscais do produto</summary>
+                <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                  <input name="ncm" inputMode="numeric" className="h-11 rounded-lg px-3" placeholder="NCM (8 dígitos)" />
+                  <input name="cfop" inputMode="numeric" className="h-11 rounded-lg px-3" placeholder="CFOP, ex. 5102" />
+                  <input name="csosn" inputMode="numeric" className="h-11 rounded-lg px-3" placeholder="CSOSN, ex. 102" />
+                  <input name="fiscalUnit" defaultValue="UN" className="h-11 rounded-lg px-3 uppercase" placeholder="Unidade" />
+                  <input name="fiscalOrigin" inputMode="numeric" defaultValue="0" className="h-11 rounded-lg px-3" placeholder="Origem ICMS" />
+                </div>
+              </details>
               {view === "completo" ? (
                 <>
                   <PresetImagePicker presets={productImagePresets} />

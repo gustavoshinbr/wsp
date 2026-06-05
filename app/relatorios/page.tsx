@@ -18,9 +18,10 @@ function periodRange(period?: string, from?: string, to?: string) {
   return { from: startOfDay(now), to: endOfDay(now) };
 }
 
-export default async function RelatoriosPage({ searchParams }: { searchParams: { period?: string; from?: string; to?: string } }) {
+export default async function RelatoriosPage({ searchParams }: { searchParams: Promise<{ period?: string; from?: string; to?: string }> }) {
+  const query = await searchParams;
   const user = await requirePageUser();
-  const range = periodRange(searchParams.period, searchParams.from, searchParams.to);
+  const range = periodRange(query.period, query.from, query.to);
   const sales = await prisma.sale.findMany({
     where: { workspaceId: user.workspaceId, createdAt: { gte: range.from, lte: range.to } },
     include: { client: true, items: { include: { product: true, service: true } } },
@@ -75,14 +76,14 @@ export default async function RelatoriosPage({ searchParams }: { searchParams: {
 
         <Card className="no-print">
           <form className="grid gap-3 sm:grid-cols-5">
-            <select name="period" defaultValue={searchParams.period || "today"} className="h-11 rounded-lg px-3">
+            <select name="period" defaultValue={query.period || "today"} className="h-11 rounded-lg px-3">
               <option value="today">Hoje</option>
               <option value="7d">Últimos 7 dias</option>
               <option value="month">Mês atual</option>
               <option value="custom">Personalizado</option>
             </select>
-            <input name="from" type="date" defaultValue={searchParams.from} className="h-11 rounded-lg px-3" />
-            <input name="to" type="date" defaultValue={searchParams.to} className="h-11 rounded-lg px-3" />
+            <input name="from" type="date" defaultValue={query.from} className="h-11 rounded-lg px-3" />
+            <input name="to" type="date" defaultValue={query.to} className="h-11 rounded-lg px-3" />
             <button className="rounded-lg bg-racing-red px-4 py-2 text-sm font-bold text-white sm:col-span-2">Aplicar filtros</button>
           </form>
         </Card>

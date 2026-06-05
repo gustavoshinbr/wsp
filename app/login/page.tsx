@@ -4,7 +4,8 @@ import { Button } from "@/components/Button";
 import { Logo } from "@/components/Logo";
 import { redirectIfAuthenticated } from "@/lib/auth";
 
-export default async function LoginPage({ searchParams }: { searchParams: { error?: string; next?: string } }) {
+export default async function LoginPage({ searchParams }: { searchParams: Promise<{ error?: string; next?: string }> }) {
+  const query = await searchParams;
   await redirectIfAuthenticated();
 
   return (
@@ -17,14 +18,14 @@ export default async function LoginPage({ searchParams }: { searchParams: { erro
             <p className="mt-1 text-sm text-racing-muted">Entre para continuar gerenciando sua oficina.</p>
           </div>
 
-          {searchParams.error ? (
+          {query.error ? (
             <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
-              {searchParams.error}
+              {query.error}
             </div>
           ) : null}
 
           <form action="/api/auth/login" method="post" className="space-y-4 rounded-lg border border-racing-line bg-racing-panel p-5 shadow-sm">
-            <input type="hidden" name="next" value={searchParams.next || ""} />
+            <input type="hidden" name="next" value={query.next || ""} />
             <label className="block space-y-1.5 text-sm font-bold">
               Email
               <span className="relative block">

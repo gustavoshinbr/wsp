@@ -78,7 +78,7 @@ export async function POST(req: Request) {
     });
 
     const user = workspace.users[0];
-    setSessionCookie({
+    await setSessionCookie({
       userId: user.id,
       workspaceId: workspace.id,
       email: user.email,

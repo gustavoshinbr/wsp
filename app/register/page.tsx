@@ -3,7 +3,8 @@ import { Button } from "@/components/Button";
 import { Logo } from "@/components/Logo";
 import { redirectIfAuthenticated } from "@/lib/auth";
 
-export default async function RegisterPage({ searchParams }: { searchParams: { error?: string } }) {
+export default async function RegisterPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
+  const query = await searchParams;
   await redirectIfAuthenticated();
 
   return (
@@ -27,9 +28,9 @@ export default async function RegisterPage({ searchParams }: { searchParams: { e
         </section>
 
         <section className="rounded-lg border border-racing-line bg-racing-panel p-5 shadow-sm lg:p-8">
-          {searchParams.error ? (
+          {query.error ? (
             <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
-              {searchParams.error}
+              {query.error}
             </div>
           ) : null}
 

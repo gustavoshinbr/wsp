@@ -4,14 +4,15 @@ import { prisma } from "@/lib/prisma";
 import { apiError, ApiError } from "@/lib/validations";
 import { formString } from "@/lib/utils";
 
-export async function POST(req: Request, { params }: { params: { id: string } }) {
+export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params;
     const user = await requireApiUser();
     const formData = await req.formData().catch(() => new FormData());
     const paymentMethod = formString(formData, "paymentMethod") || "À vista";
 
     const quote = await prisma.quote.findFirst({
-      where: { id: params.id, workspaceId: user.workspaceId },
+      where: { id, workspaceId: user.workspaceId },
       include: { items: true },
     });
     if (!quote) throw new ApiError("Orçamento não encontrado.", 404);

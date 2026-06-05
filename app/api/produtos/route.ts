@@ -6,6 +6,10 @@ import { saveImageUpload } from "@/lib/upload";
 import { apiError, ApiError } from "@/lib/validations";
 import { formInt, formNumber, formString } from "@/lib/utils";
 
+function normalizeFiscalCode(value: string) {
+  return value.replace(/\D/g, "");
+}
+
 export async function GET(req: Request) {
   try {
     const user = await requireApiUser();
@@ -62,6 +66,11 @@ export async function POST(req: Request) {
         quantity: Math.max(0, formInt(formData, "quantity")),
         barcode: formString(formData, "barcode") || null,
         qrCode: formString(formData, "qrCode") || null,
+        ncm: normalizeFiscalCode(formString(formData, "ncm")) || null,
+        cfop: normalizeFiscalCode(formString(formData, "cfop")) || null,
+        csosn: normalizeFiscalCode(formString(formData, "csosn")) || null,
+        fiscalUnit: formString(formData, "fiscalUnit").toUpperCase() || "UN",
+        fiscalOrigin: normalizeFiscalCode(formString(formData, "fiscalOrigin")) || "0",
         mainImageUrl: images[0]?.url || safePresetImageUrl,
         images: {
           create: [

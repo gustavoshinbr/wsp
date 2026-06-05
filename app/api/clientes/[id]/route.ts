@@ -10,11 +10,12 @@ async function ensureClient(id: string, workspaceId: string) {
   return client;
 }
 
-export async function GET(_: Request, { params }: { params: { id: string } }) {
+export async function GET(_: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params;
     const user = await requireApiUser();
     const client = await prisma.client.findFirst({
-      where: { id: params.id, workspaceId: user.workspaceId },
+      where: { id, workspaceId: user.workspaceId },
       include: { motorcycles: true },
     });
     if (!client) throw new ApiError("Cliente não encontrado.", 404);
@@ -25,22 +26,23 @@ export async function GET(_: Request, { params }: { params: { id: string } }) {
   }
 }
 
-export async function POST(req: Request, { params }: { params: { id: string } }) {
+export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params;
     const user = await requireApiUser();
-    await ensureClient(params.id, user.workspaceId);
+    await ensureClient(id, user.workspaceId);
     const formData = await req.formData();
     const method = formString(formData, "_method").toLowerCase();
 
     if (method === "delete") {
-      await prisma.client.delete({ where: { id: params.id } });
+      await prisma.client.delete({ where: { id } });
     } else {
       const name = formString(formData, "name");
       const phone = formString(formData, "phone");
       if (!name || !phone) throw new ApiError("Nome e telefone sao obrigatorios.");
 
       await prisma.client.update({
-        where: { id: params.id },
+        where: { id },
         data: {
           name,
           phone,
@@ -58,11 +60,12 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   }
 }
 
-export async function DELETE(_: Request, { params }: { params: { id: string } }) {
+export async function DELETE(_: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params;
     const user = await requireApiUser();
-    await ensureClient(params.id, user.workspaceId);
-    await prisma.client.delete({ where: { id: params.id } });
+    await ensureClient(id, user.workspaceId);
+    await prisma.client.delete({ where: { id } });
     return NextResponse.json({ ok: true });
   } catch (error) {
     const { message, status } = apiError(error);

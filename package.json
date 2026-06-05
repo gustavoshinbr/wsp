@@ -7,7 +7,7 @@
     "postinstall": "prisma generate",
     "build": "prisma generate && next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx --max-warnings=0 --ignore-pattern .next --ignore-pattern node_modules",
     "prisma:generate": "prisma generate",
     "prisma:push": "prisma db push",
     "prisma:migrate": "prisma migrate dev",
@@ -15,28 +15,34 @@
   },
   "dependencies": {
     "@prisma/client": "4.16.2",
+    "@vercel/blob": "^2.4.0",
     "bcryptjs": "latest",
     "clsx": "^2.1.1",
     "date-fns": "^4.2.1",
+    "jspdf": "^4.2.1",
+    "jspdf-autotable": "^5.0.8",
     "lucide-react": "latest",
-    "next": "^14.2.35",
+    "next": "^15.5.16",
     "next-themes": "latest",
     "prisma": "4.16.2",
-    "react": "18.3.1",
-    "react-dom": "18.3.1",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
     "tailwind-merge": "^3.6.0"
   },
   "devDependencies": {
     "@types/bcryptjs": "latest",
     "@types/node": "latest",
-    "@types/react": "latest",
-    "@types/react-dom": "latest",
+    "@types/react": "^19.2.16",
+    "@types/react-dom": "^19.2.3",
     "autoprefixer": "^10.5.0",
     "eslint": "^8.57.1",
-    "eslint-config-next": "^14.2.35",
+    "eslint-config-next": "^15.5.16",
     "postcss": "^8.5.14",
     "tailwindcss": "^3.4.17",
     "tsx": "latest",
     "typescript": "latest"
+  },
+  "overrides": {
+    "postcss": "$postcss"
   }
 }

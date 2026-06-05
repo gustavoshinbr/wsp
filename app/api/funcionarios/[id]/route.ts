@@ -11,13 +11,14 @@ function requireManager(role: UserRole) {
   }
 }
 
-export async function POST(req: Request, { params }: { params: { id: string } }) {
+export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params;
     const currentUser = await requireApiUser();
     requireManager(currentUser.role);
 
     const employee = await prisma.user.findFirst({
-      where: { id: params.id, workspaceId: currentUser.workspaceId },
+      where: { id, workspaceId: currentUser.workspaceId },
     });
     if (!employee) throw new ApiError("Funcionário não encontrado.", 404);
     if (employee.role === "OWNER" && employee.id !== currentUser.id) {

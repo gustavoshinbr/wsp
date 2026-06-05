@@ -1,7 +1,7 @@
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Badge } from "@/components/Badge";
-import { PrintButton } from "@/components/PrintButton";
+import { QuotePdfButton } from "@/components/QuotePdfButton";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { brl, toNumber } from "@/lib/currency";
 import { quoteWhatsAppMessage, whatsappUrl } from "@/lib/whatsapp";
@@ -11,16 +11,18 @@ export function QuotePreview({
   workshopName,
   workshopPhone,
   workshopEmail,
+  disablePdf = false,
 }: {
   workshopName: string;
   workshopPhone?: string | null;
   workshopEmail?: string | null;
+  disablePdf?: boolean;
   quote: {
     id: string;
     status: string;
     total: unknown;
     notes: string | null;
-    createdAt: Date;
+    createdAt: Date | string;
     client: { name: string; phone: string };
     motorcycle: { plate: string; brand: string | null; model: string | null } | null;
     items: Array<{
@@ -56,12 +58,10 @@ export function QuotePreview({
   };
   const statusLabel = statusLabels[quote.status] || quote.status;
   const quoteNumber = quote.id.slice(-6).toUpperCase();
-  const printTargetId = `quote-pdf-${quote.id}`;
 
   return (
     <div className="space-y-3">
       <article
-        id={printTargetId}
         className="quote-pdf overflow-hidden rounded-lg border border-racing-line bg-white text-slate-950 shadow-sm print:rounded-none print:border-0 print:shadow-none"
       >
         <header className="border-b-4 border-rose-600 bg-slate-950 px-6 py-6 text-white print:px-8">
@@ -83,7 +83,7 @@ export function QuotePreview({
               <p className="text-xs font-bold uppercase text-slate-300">Numero</p>
               <p className="text-xl font-black">#{quoteNumber}</p>
               <p className="mt-1 text-xs text-slate-300">
-                {format(quote.createdAt, "dd/MM/yyyy", { locale: ptBR })}
+                {format(new Date(quote.createdAt), "dd/MM/yyyy", { locale: ptBR })}
               </p>
             </div>
           </div>
@@ -165,7 +165,13 @@ export function QuotePreview({
       </article>
 
       <div className="no-print flex flex-col gap-2 sm:flex-row sm:justify-end">
-        <PrintButton label="Gerar PDF" targetId={printTargetId} />
+        <QuotePdfButton
+          quote={quote}
+          workshopName={workshopName}
+          workshopPhone={workshopPhone}
+          workshopEmail={workshopEmail}
+          disabled={disablePdf}
+        />
         <WhatsAppButton href={whatsappUrl(quote.client.phone, message)} />
       </div>
     </div>

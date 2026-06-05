@@ -8,12 +8,14 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { requirePageUser } from "@/lib/auth";
 import { subscriptionMessage } from "@/lib/subscription";
 
-export default async function ConfiguracoesPage({ searchParams }: { searchParams: { error?: string; success?: string } }) {
+export default async function ConfiguracoesPage({ searchParams }: { searchParams: Promise<{ error?: string; success?: string }> }) {
+  const query = await searchParams;
   const user = await requirePageUser({ allowExpiredSubscription: true });
+  const isStaff = user.role === "STAFF";
   const successMessage =
-    searchParams.success === "stock-view"
+    query.success === "stock-view"
       ? "Modo de exibicao do estoque atualizado."
-      : searchParams.success
+      : query.success
         ? "Senha atualizada."
         : null;
 
@@ -24,7 +26,7 @@ export default async function ConfiguracoesPage({ searchParams }: { searchParams
           <h1 className="text-3xl font-black">Configurações</h1>
           <p className="text-sm text-racing-muted">Perfil da oficina, assinatura, tema e segurança.</p>
         </div>
-        {searchParams.error ? <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-700">{searchParams.error}</div> : null}
+        {query.error ? <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-700">{query.error}</div> : null}
         {successMessage ? <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm font-semibold text-emerald-700">{successMessage}</div> : null}
 
         <Card>
@@ -50,17 +52,19 @@ export default async function ConfiguracoesPage({ searchParams }: { searchParams
             </div>
           </Card>
 
-          <Card>
-            <h2 className="flex items-center gap-2 font-black">
-              <ShieldCheck size={18} />
-              Assinatura
-            </h2>
-            <p className="mt-3 text-sm text-racing-muted">{subscriptionMessage(user.workspace)}</p>
-            <Link href="/assinatura" className="mt-4 inline-flex items-center gap-2 text-sm font-black text-racing-red">
-              <CreditCard size={16} />
-              Gerenciar assinatura
-            </Link>
-          </Card>
+          {!isStaff ? (
+            <Card>
+              <h2 className="flex items-center gap-2 font-black">
+                <ShieldCheck size={18} />
+                Assinatura
+              </h2>
+              <p className="mt-3 text-sm text-racing-muted">{subscriptionMessage(user.workspace)}</p>
+              <Link href="/assinatura" className="mt-4 inline-flex items-center gap-2 text-sm font-black text-racing-red">
+                <CreditCard size={16} />
+                Gerenciar assinatura
+              </Link>
+            </Card>
+          ) : null}
 
           <Card>
             <h2 className="flex items-center gap-2 font-black">
@@ -118,10 +122,12 @@ export default async function ConfiguracoesPage({ searchParams }: { searchParams
               <ReceiptText size={16} />
               Dados fiscais
             </Link>
-            <Link href="/assinatura" className="mt-3 flex items-center gap-2 text-sm font-black text-racing-red">
-              <CreditCard size={16} />
-              Plano e checkout
-            </Link>
+            {!isStaff ? (
+              <Link href="/assinatura" className="mt-3 flex items-center gap-2 text-sm font-black text-racing-red">
+                <CreditCard size={16} />
+                Plano e checkout
+              </Link>
+            ) : null}
             <form action="/api/auth/logout" method="post" className="mt-6">
               <button className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-racing-line px-4 py-2 text-sm font-bold">
                 <LogOut size={17} />

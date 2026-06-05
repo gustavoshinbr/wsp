@@ -4,12 +4,13 @@ import { prisma } from "@/lib/prisma";
 import { apiError, ApiError } from "@/lib/validations";
 import { formString } from "@/lib/utils";
 
-export async function POST(req: Request, { params }: { params: { id: string } }) {
+export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params;
     const user = await requireApiUser();
     const formData = await req.formData().catch(() => new FormData());
     const sale = await prisma.sale.findFirst({
-      where: { id: params.id, workspaceId: user.workspaceId, paymentStatus: "CREDIT_OPEN" },
+      where: { id, workspaceId: user.workspaceId, paymentStatus: "CREDIT_OPEN" },
     });
     if (!sale) throw new ApiError("Venda a prazo em aberto não encontrada.", 404);
 

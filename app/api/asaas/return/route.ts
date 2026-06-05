@@ -17,7 +17,7 @@ export async function GET(req: Request) {
     const workspace = await syncWorkspaceSubscription(user.workspaceId);
     if (!workspace) return redirectTo("/assinatura", req);
 
-    setSessionCookie({
+    await setSessionCookie({
       userId: user.id,
       workspaceId: workspace.id,
       email: user.email,

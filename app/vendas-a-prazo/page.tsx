@@ -6,7 +6,8 @@ import { requirePageUser } from "@/lib/auth";
 import { brl } from "@/lib/currency";
 import { prisma } from "@/lib/prisma";
 
-export default async function VendasAPrazoPage({ searchParams }: { searchParams: { error?: string } }) {
+export default async function VendasAPrazoPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
+  const query = await searchParams;
   const user = await requirePageUser();
   const [openSales, paidSales] = await Promise.all([
     prisma.sale.findMany({
@@ -30,7 +31,7 @@ export default async function VendasAPrazoPage({ searchParams }: { searchParams:
           <h1 className="text-3xl font-black">Vendas a prazo</h1>
           <p className="text-sm text-racing-muted">Acompanhe clientes que ainda precisam pagar e finalize a compra quando receber.</p>
         </div>
-        {searchParams.error ? <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-700">{searchParams.error}</div> : null}
+        {query.error ? <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-700">{query.error}</div> : null}
 
         <div className="grid gap-4 sm:grid-cols-3">
           <Card title="Em aberto" value={openSales.length} />

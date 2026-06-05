@@ -7,9 +7,10 @@ import { DataTable } from "@/components/DataTable";
 import { requirePageUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-export default async function ClientesPage({ searchParams }: { searchParams: { q?: string; error?: string } }) {
+export default async function ClientesPage({ searchParams }: { searchParams: Promise<{ q?: string; error?: string }> }) {
+  const query = await searchParams;
   const user = await requirePageUser();
-  const q = searchParams.q?.trim();
+  const q = query.q?.trim();
   const clients = await prisma.client.findMany({
     where: {
       workspaceId: user.workspaceId,
@@ -40,7 +41,7 @@ export default async function ClientesPage({ searchParams }: { searchParams: { q
           <h1 className="text-3xl font-black">Clientes</h1>
           <p className="text-sm text-racing-muted">Cadastre clientes, motos e busque por nome, telefone ou placa.</p>
         </div>
-        {searchParams.error ? <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-700">{searchParams.error}</div> : null}
+        {query.error ? <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-700">{query.error}</div> : null}
 
         <div className="grid gap-6 xl:grid-cols-[400px_1fr]">
           <Card>

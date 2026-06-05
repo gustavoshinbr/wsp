@@ -42,7 +42,7 @@ export async function POST(req: Request) {
       const workspace = (await syncWorkspaceSubscription(user.workspaceId)) || user.workspace;
       const isActive = workspace.subscriptionStatus === "ACTIVE" || isPaidAsaasPaymentStatus(workspace.paymentStatus);
 
-      setSessionCookie({
+      await setSessionCookie({
         userId: user.id,
         workspaceId: workspace.id,
         email: user.email,
@@ -109,7 +109,7 @@ export async function POST(req: Request) {
       },
     });
 
-    setSessionCookie({
+    await setSessionCookie({
       userId: user.id,
       workspaceId: workspace.id,
       email: user.email,

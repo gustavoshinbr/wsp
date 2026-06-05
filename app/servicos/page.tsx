@@ -7,9 +7,10 @@ import { requirePageUser } from "@/lib/auth";
 import { brl } from "@/lib/currency";
 import { prisma } from "@/lib/prisma";
 
-export default async function ServicosPage({ searchParams }: { searchParams: { q?: string; error?: string } }) {
+export default async function ServicosPage({ searchParams }: { searchParams: Promise<{ q?: string; error?: string }> }) {
+  const query = await searchParams;
   const user = await requirePageUser();
-  const q = searchParams.q?.trim();
+  const q = query.q?.trim();
   const services = await prisma.service.findMany({
     where: { workspaceId: user.workspaceId, ...(q ? { name: { contains: q, mode: "insensitive" } } : {}) },
     orderBy: { createdAt: "desc" },
@@ -22,7 +23,7 @@ export default async function ServicosPage({ searchParams }: { searchParams: { q
           <h1 className="text-3xl font-black">Serviços</h1>
           <p className="text-sm text-racing-muted">Cadastre mão de obra com valor fixo e descrição.</p>
         </div>
-        {searchParams.error ? <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-700">{searchParams.error}</div> : null}
+        {query.error ? <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-700">{query.error}</div> : null}
 
         <div className="grid gap-6 xl:grid-cols-[380px_1fr]">
           <Card>

@@ -20,7 +20,7 @@ export async function requirePageUser(options?: { allowExpiredSubscription?: boo
 }
 
 export async function requireApiUser(options?: { allowExpiredSubscription?: boolean }) {
-  const session = currentSession();
+  const session = await currentSession();
   if (!session) throw new ApiError("Não autenticado.", 401);
 
   const user = await prisma.user.findFirst({

@@ -1,5 +1,6 @@
 import { CalendarDays, CheckCircle2, CreditCard, RefreshCw, ShieldCheck } from "lucide-react";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
@@ -50,8 +51,10 @@ function paymentStatusLabel(status?: string | null) {
   return labels[String(status || "").toUpperCase()] || status || "-";
 }
 
-export default async function SubscriptionPage({ searchParams }: { searchParams: { error?: string; synced?: string } }) {
+export default async function SubscriptionPage({ searchParams }: { searchParams: Promise<{ error?: string; synced?: string }> }) {
+  const query = await searchParams;
   const user = await requirePageUser({ allowExpiredSubscription: true });
+  if (user.role === "STAFF") redirect("/dashboard");
   const value = Number(process.env.ASAAS_PLAN_VALUE || 50);
   const workspace = user.workspace.asaasSubscriptionId
     ? (await syncWorkspaceSubscription(user.workspaceId).catch(() => null)) || user.workspace
@@ -68,12 +71,12 @@ export default async function SubscriptionPage({ searchParams }: { searchParams:
   return (
     <AppShell allowExpiredSubscription>
       <div className="mx-auto max-w-4xl">
-        {searchParams.error ? (
+        {query.error ? (
           <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
-            {searchParams.error}
+            {query.error}
           </div>
         ) : null}
-        {searchParams.synced ? (
+        {query.synced ? (
           <div className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm font-semibold text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-200">
             Status da assinatura atualizado.
           </div>

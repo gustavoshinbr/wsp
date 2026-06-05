@@ -10,11 +10,12 @@ async function ensureQuote(id: string, workspaceId: string) {
   return quote;
 }
 
-export async function GET(_: Request, { params }: { params: { id: string } }) {
+export async function GET(_: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params;
     const user = await requireApiUser();
     const quote = await prisma.quote.findFirst({
-      where: { id: params.id, workspaceId: user.workspaceId },
+      where: { id, workspaceId: user.workspaceId },
       include: { client: true, motorcycle: true, items: { include: { product: true, service: true } } },
     });
     if (!quote) throw new ApiError("Orçamento não encontrado.", 404);
@@ -25,10 +26,11 @@ export async function GET(_: Request, { params }: { params: { id: string } }) {
   }
 }
 
-export async function POST(req: Request, { params }: { params: { id: string } }) {
+export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params;
     const user = await requireApiUser();
-    const quote = await ensureQuote(params.id, user.workspaceId);
+    const quote = await ensureQuote(id, user.workspaceId);
     const formData = await req.formData();
     const method = formString(formData, "_method").toLowerCase();
 
@@ -36,11 +38,11 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       if (quote.status === "APPROVED" || quote.status === "PAID") {
         throw new ApiError("Orçamento aprovado ou finalizado não pode ser excluído.");
       }
-      await prisma.quote.delete({ where: { id: params.id } });
+      await prisma.quote.delete({ where: { id } });
     } else {
       const status = formString(formData, "status") as "DRAFT" | "SENT" | "APPROVED" | "CANCELLED" | "PAID";
       await prisma.quote.update({
-        where: { id: params.id },
+        where: { id },
         data: {
           status: status || "DRAFT",
           notes: formString(formData, "notes") || undefined,
@@ -57,14 +59,15 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   }
 }
 
-export async function DELETE(_: Request, { params }: { params: { id: string } }) {
+export async function DELETE(_: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params;
     const user = await requireApiUser();
-    const quote = await ensureQuote(params.id, user.workspaceId);
+    const quote = await ensureQuote(id, user.workspaceId);
     if (quote.status === "APPROVED" || quote.status === "PAID") {
       throw new ApiError("Orçamento aprovado ou finalizado não pode ser excluído.");
     }
-    await prisma.quote.delete({ where: { id: params.id } });
+    await prisma.quote.delete({ where: { id } });
     return NextResponse.json({ ok: true });
   } catch (error) {
     const { message, status } = apiError(error);

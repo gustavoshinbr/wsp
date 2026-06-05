@@ -78,7 +78,7 @@ export function makeSessionPayload(input: {
   };
 }
 
-export function setSessionCookie(input: {
+export async function setSessionCookie(input: {
   userId: string;
   workspaceId: string;
   email: string;
@@ -87,7 +87,8 @@ export function setSessionCookie(input: {
   trialEndsAt?: Date | string;
 }) {
   const { payload, maxAge } = makeSessionPayload(input);
-  cookies().set(COOKIE_NAME, createSessionToken(payload), {
+  const cookieStore = await cookies();
+  cookieStore.set(COOKIE_NAME, createSessionToken(payload), {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
@@ -96,8 +97,9 @@ export function setSessionCookie(input: {
   });
 }
 
-export function clearSessionCookie() {
-  cookies().set(COOKIE_NAME, "", {
+export async function clearSessionCookie() {
+  const cookieStore = await cookies();
+  cookieStore.set(COOKIE_NAME, "", {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
@@ -106,12 +108,13 @@ export function clearSessionCookie() {
   });
 }
 
-export function currentSession() {
-  return verifySessionToken(cookies().get(COOKIE_NAME)?.value);
+export async function currentSession() {
+  const cookieStore = await cookies();
+  return verifySessionToken(cookieStore.get(COOKIE_NAME)?.value);
 }
 
 export async function currentUser() {
-  const session = currentSession();
+  const session = await currentSession();
   if (!session) return null;
 
   return prisma.user.findFirst({

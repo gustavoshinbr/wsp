@@ -10,18 +10,19 @@ async function ensureMotorcycle(id: string, workspaceId: string) {
   return motorcycle;
 }
 
-export async function POST(req: Request, { params }: { params: { id: string } }) {
+export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params;
     const user = await requireApiUser();
-    await ensureMotorcycle(params.id, user.workspaceId);
+    await ensureMotorcycle(id, user.workspaceId);
     const formData = await req.formData();
     const method = formString(formData, "_method").toLowerCase();
 
     if (method === "delete") {
-      await prisma.motorcycle.delete({ where: { id: params.id } });
+      await prisma.motorcycle.delete({ where: { id } });
     } else {
       await prisma.motorcycle.update({
-        where: { id: params.id },
+        where: { id },
         data: {
           plate: formString(formData, "plate").toUpperCase(),
           model: formString(formData, "model") || null,
@@ -41,11 +42,12 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   }
 }
 
-export async function DELETE(_: Request, { params }: { params: { id: string } }) {
+export async function DELETE(_: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params;
     const user = await requireApiUser();
-    await ensureMotorcycle(params.id, user.workspaceId);
-    await prisma.motorcycle.delete({ where: { id: params.id } });
+    await ensureMotorcycle(id, user.workspaceId);
+    await prisma.motorcycle.delete({ where: { id } });
     return NextResponse.json({ ok: true });
   } catch (error) {
     const { message, status } = apiError(error);

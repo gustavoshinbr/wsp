@@ -1,7 +1,7 @@
 "use client";
 
 import { Boxes, PackagePlus, Plus, Search, Trash2, Wrench } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { brl } from "@/lib/currency";
 import { cn } from "@/lib/utils";
 
@@ -21,7 +21,7 @@ type ServiceOption = {
 
 type RowType = "product" | "service" | "quickProduct";
 
-type CartRow = {
+export type CartRow = {
   id: number;
   type: RowType;
   productId: string;
@@ -30,6 +30,12 @@ type CartRow = {
   quickProductName: string;
   quickProductUnitPrice: string;
   quantity: string;
+};
+
+export type CartSummary = {
+  rows: CartRow[];
+  laborDescription: string;
+  laborValue: string;
 };
 
 const typeLabels: Record<RowType, string> = {
@@ -56,9 +62,23 @@ function moneyValue(value: string) {
   return Number.isFinite(parsed) ? parsed : 0;
 }
 
-export function CartBuilder({ products, services }: { products: ProductOption[]; services: ServiceOption[] }) {
+export function CartBuilder({
+  products,
+  services,
+  onChange,
+}: {
+  products: ProductOption[];
+  services: ServiceOption[];
+  onChange?: (summary: CartSummary) => void;
+}) {
   const [nextId, setNextId] = useState(1);
   const [rows, setRows] = useState<CartRow[]>([emptyRow(0)]);
+  const [laborDescription, setLaborDescription] = useState("");
+  const [laborValue, setLaborValue] = useState("");
+
+  useEffect(() => {
+    onChange?.({ rows, laborDescription, laborValue });
+  }, [laborDescription, laborValue, onChange, rows]);
 
   function updateRow(id: number, patch: Partial<CartRow>) {
     setRows((currentRows) =>
@@ -96,9 +116,8 @@ export function CartBuilder({ products, services }: { products: ProductOption[];
     updateRow(row.id, { barcode: value, productId: found?.id || row.productId });
   }
 
-  const previewTotal = useMemo(
-    () =>
-      rows.reduce((sum, row) => {
+  const previewTotal = useMemo(() => {
+    const itemsTotal = rows.reduce((sum, row) => {
         const quantity = Math.max(1, Number(row.quantity) || 1);
         const product = products.find((item) => item.id === row.productId);
         const service = services.find((item) => item.id === row.serviceId);
@@ -110,9 +129,9 @@ export function CartBuilder({ products, services }: { products: ProductOption[];
               : moneyValue(row.quickProductUnitPrice);
 
         return sum + quantity * unitPrice;
-      }, 0),
-    [products, rows, services],
-  );
+      }, 0);
+    return itemsTotal + moneyValue(laborValue);
+  }, [laborValue, products, rows, services]);
 
   return (
     <div className="space-y-3">
@@ -290,8 +309,23 @@ export function CartBuilder({ products, services }: { products: ProductOption[];
           Mão de obra manual
         </p>
         <div className="mt-3 grid gap-2 sm:grid-cols-[1fr_130px]">
-          <input name="laborDescription" className="h-11 rounded-lg px-3" placeholder="Descrição da mão de obra" />
-          <input name="laborValue" type="number" step="0.01" min="0" className="h-11 rounded-lg px-3" placeholder="Valor" />
+          <input
+            name="laborDescription"
+            value={laborDescription}
+            onChange={(event) => setLaborDescription(event.target.value)}
+            className="h-11 rounded-lg px-3"
+            placeholder="Descrição da mão de obra"
+          />
+          <input
+            name="laborValue"
+            value={laborValue}
+            onChange={(event) => setLaborValue(event.target.value)}
+            type="number"
+            step="0.01"
+            min="0"
+            className="h-11 rounded-lg px-3"
+            placeholder="Valor"
+          />
         </div>
       </div>
 

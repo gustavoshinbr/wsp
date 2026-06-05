@@ -11,6 +11,11 @@ type EditableProduct = {
   quantity: number;
   barcode: string | null;
   qrCode: string | null;
+  ncm: string | null;
+  cfop: string | null;
+  csosn: string | null;
+  fiscalUnit: string | null;
+  fiscalOrigin: string | null;
 };
 
 export function ProductStockActions({ product }: { product: EditableProduct }) {
@@ -107,6 +112,31 @@ export function ProductStockActions({ product }: { product: EditableProduct }) {
                 <span>QR Code</span>
                 <input name="qrCode" defaultValue={product.qrCode || ""} className="h-11 rounded-lg px-3" />
               </label>
+              <details className="rounded-lg border border-racing-line p-3">
+                <summary className="cursor-pointer text-sm font-black">Dados fiscais</summary>
+                <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                  <label className="block space-y-1.5 text-sm font-semibold">
+                    <span>NCM</span>
+                    <input name="ncm" inputMode="numeric" defaultValue={product.ncm || ""} className="h-11 rounded-lg px-3" />
+                  </label>
+                  <label className="block space-y-1.5 text-sm font-semibold">
+                    <span>CFOP</span>
+                    <input name="cfop" inputMode="numeric" defaultValue={product.cfop || ""} className="h-11 rounded-lg px-3" />
+                  </label>
+                  <label className="block space-y-1.5 text-sm font-semibold">
+                    <span>CSOSN</span>
+                    <input name="csosn" inputMode="numeric" defaultValue={product.csosn || ""} className="h-11 rounded-lg px-3" />
+                  </label>
+                  <label className="block space-y-1.5 text-sm font-semibold">
+                    <span>Unidade</span>
+                    <input name="fiscalUnit" defaultValue={product.fiscalUnit || "UN"} className="h-11 rounded-lg px-3 uppercase" />
+                  </label>
+                  <label className="block space-y-1.5 text-sm font-semibold">
+                    <span>Origem ICMS</span>
+                    <input name="fiscalOrigin" inputMode="numeric" defaultValue={product.fiscalOrigin || "0"} className="h-11 rounded-lg px-3" />
+                  </label>
+                </div>
+              </details>
 
               <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-end">
                 <button

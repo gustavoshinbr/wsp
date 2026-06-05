@@ -10,18 +10,19 @@ async function ensureService(id: string, workspaceId: string) {
   return service;
 }
 
-export async function POST(req: Request, { params }: { params: { id: string } }) {
+export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params;
     const user = await requireApiUser();
-    await ensureService(params.id, user.workspaceId);
+    await ensureService(id, user.workspaceId);
     const formData = await req.formData();
     const method = formString(formData, "_method").toLowerCase();
 
     if (method === "delete") {
-      await prisma.service.delete({ where: { id: params.id } });
+      await prisma.service.delete({ where: { id } });
     } else {
       await prisma.service.update({
-        where: { id: params.id },
+        where: { id },
         data: {
           name: formString(formData, "name"),
           price: formNumber(formData, "price"),
@@ -39,11 +40,12 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   }
 }
 
-export async function DELETE(_: Request, { params }: { params: { id: string } }) {
+export async function DELETE(_: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params;
     const user = await requireApiUser();
-    await ensureService(params.id, user.workspaceId);
-    await prisma.service.delete({ where: { id: params.id } });
+    await ensureService(id, user.workspaceId);
+    await prisma.service.delete({ where: { id } });
     return NextResponse.json({ ok: true });
   } catch (error) {
     const { message, status } = apiError(error);

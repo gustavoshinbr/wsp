@@ -6,17 +6,22 @@ import { saveImageUpload } from "@/lib/upload";
 import { apiError, ApiError } from "@/lib/validations";
 import { formInt, formNumber, formString } from "@/lib/utils";
 
+function normalizeFiscalCode(value: string) {
+  return value.replace(/\D/g, "");
+}
+
 async function ensureProduct(id: string, workspaceId: string) {
   const product = await prisma.product.findFirst({ where: { id, workspaceId } });
   if (!product) throw new ApiError("Produto não encontrado.", 404);
   return product;
 }
 
-export async function GET(_: Request, { params }: { params: { id: string } }) {
+export async function GET(_: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params;
     const user = await requireApiUser();
     const product = await prisma.product.findFirst({
-      where: { id: params.id, workspaceId: user.workspaceId },
+      where: { id, workspaceId: user.workspaceId },
       include: { images: true },
     });
     if (!product) throw new ApiError("Produto não encontrado.", 404);
@@ -27,15 +32,16 @@ export async function GET(_: Request, { params }: { params: { id: string } }) {
   }
 }
 
-export async function POST(req: Request, { params }: { params: { id: string } }) {
+export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params;
     const user = await requireApiUser();
-    const current = await ensureProduct(params.id, user.workspaceId);
+    const current = await ensureProduct(id, user.workspaceId);
     const formData = await req.formData();
     const method = formString(formData, "_method").toLowerCase();
 
     if (method === "delete") {
-      await prisma.product.delete({ where: { id: params.id } });
+      await prisma.product.delete({ where: { id } });
     } else {
       const uploads = [];
       const presetImageUrl = formString(formData, "presetImageUrl");
@@ -48,7 +54,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       }
 
       await prisma.product.update({
-        where: { id: params.id },
+        where: { id },
         data: {
           name: formString(formData, "name"),
           buyPrice: formNumber(formData, "buyPrice"),
@@ -56,6 +62,11 @@ export async function POST(req: Request, { params }: { params: { id: string } })
           quantity: Math.max(0, formInt(formData, "quantity")),
           barcode: formString(formData, "barcode") || null,
           qrCode: formString(formData, "qrCode") || null,
+          ncm: normalizeFiscalCode(formString(formData, "ncm")) || null,
+          cfop: normalizeFiscalCode(formString(formData, "cfop")) || null,
+          csosn: normalizeFiscalCode(formString(formData, "csosn")) || null,
+          fiscalUnit: formString(formData, "fiscalUnit").toUpperCase() || "UN",
+          fiscalOrigin: normalizeFiscalCode(formString(formData, "fiscalOrigin")) || "0",
           mainImageUrl: uploads[0]?.url || safePresetImageUrl || current.mainImageUrl,
           images: uploads.length || safePresetImageUrl
             ? {
@@ -84,11 +95,12 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   }
 }
 
-export async function DELETE(_: Request, { params }: { params: { id: string } }) {
+export async function DELETE(_: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params;
     const user = await requireApiUser();
-    await ensureProduct(params.id, user.workspaceId);
-    await prisma.product.delete({ where: { id: params.id } });
+    await ensureProduct(id, user.workspaceId);
+    await prisma.product.delete({ where: { id } });
     return NextResponse.json({ ok: true });
   } catch (error) {
     const { message, status } = apiError(error);

@@ -10,7 +10,18 @@ export async function POST(req: Request) {
     const formData = await req.formData();
     const companyName = formString(formData, "companyName");
     const cnpj = normalizeDocument(formString(formData, "cnpj"));
-    if (!companyName || !cnpj) throw new ApiError("Empresa e CNPJ são obrigatórios.");
+    if (!companyName || cnpj.length !== 14) throw new ApiError("Empresa e CNPJ válido são obrigatórios.");
+    const fiscalDefaults = {
+      provider: "FOCUS_NFE",
+      environment: formString(formData, "environment") === "producao" ? "producao" : "homologacao",
+      defaultNcm: normalizeDocument(formString(formData, "defaultNcm")) || null,
+      defaultCfop: normalizeDocument(formString(formData, "defaultCfop")) || "5102",
+      defaultCsosn: normalizeDocument(formString(formData, "defaultCsosn")) || "102",
+      defaultPisCst: normalizeDocument(formString(formData, "defaultPisCst")) || "49",
+      defaultCofinsCst: normalizeDocument(formString(formData, "defaultCofinsCst")) || "49",
+      defaultUnit: formString(formData, "defaultUnit").toUpperCase() || "UN",
+      defaultOrigin: normalizeDocument(formString(formData, "defaultOrigin")) || "0",
+    };
 
     await prisma.fiscalConfig.upsert({
       where: { workspaceId: user.workspaceId },
@@ -22,6 +33,7 @@ export async function POST(req: Request) {
         address: formString(formData, "address") || null,
         phone: formString(formData, "phone") || null,
         email: formString(formData, "email") || null,
+        ...fiscalDefaults,
       },
       create: {
         workspaceId: user.workspaceId,
@@ -32,6 +44,7 @@ export async function POST(req: Request) {
         address: formString(formData, "address") || null,
         phone: formString(formData, "phone") || null,
         email: formString(formData, "email") || null,
+        ...fiscalDefaults,
       },
     });
 

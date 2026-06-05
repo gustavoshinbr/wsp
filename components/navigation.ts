@@ -29,6 +29,7 @@ export const navGroups = [
       { href: "/vendas", label: "Vendas", icon: ShoppingCart },
       { href: "/vendas-a-prazo", label: "Vendas a prazo", icon: Clock3 },
       { href: "/orcamentos", label: "Orçamentos", icon: FileText },
+      { href: "/fiscal", label: "Cupom Fiscal", icon: ReceiptText },
       { href: "/estoque", label: "Estoque", icon: Package },
       { href: "/servicos", label: "Serviços", icon: Wrench },
     ],
@@ -39,7 +40,6 @@ export const navGroups = [
       { href: "/financeiro", label: "Financeiro", icon: BarChart3 },
       { href: "/relatorios", label: "Relatórios", icon: BarChart3 },
       { href: "/funcionarios", label: "Funcionários", icon: UserCog },
-      { href: "/fiscal", label: "Fiscal", icon: ReceiptText },
       { href: "/configuracoes", label: "Configurações", icon: Settings },
     ],
   },
@@ -51,5 +51,5 @@ export const mobileNavItems = [
   navGroups[1].items[0],
   navGroups[1].items[3],
   navGroups[0].items[3],
-  navGroups[2].items[4],
+  navGroups[2].items[3],
 ] as const;

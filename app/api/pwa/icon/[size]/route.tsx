@@ -2,8 +2,9 @@ import { ImageResponse } from "next/og";
 
 export const runtime = "edge";
 
-export async function GET(_request: Request, { params }: { params: { size: string } }) {
-  const requestedSize = Number(params.size);
+export async function GET(_request: Request, { params }: { params: Promise<{ size: string }> }) {
+  const { size: sizeParam } = await params;
+  const requestedSize = Number(sizeParam);
   const size = requestedSize === 512 ? 512 : 192;
   const scale = size / 512;
 

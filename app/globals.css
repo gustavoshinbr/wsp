@@ -57,6 +57,10 @@ a {
   transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease, opacity 0.18s ease;
 }
 
+.print-root {
+  display: none;
+}
+
 [data-reveal] {
   opacity: 0;
   transform: translateY(22px);
@@ -127,8 +131,18 @@ a {
 
 @media print {
   @page {
-    size: A4;
+    size: auto;
     margin: 10mm;
+  }
+
+  @page document {
+    size: A4 portrait;
+    margin: 10mm;
+  }
+
+  @page receipt {
+    size: 80mm auto;
+    margin: 4mm;
   }
 
   .no-print {
@@ -140,25 +154,26 @@ a {
     color: #111827;
   }
 
-  body.printing-quote * {
-    visibility: hidden !important;
+  body.printing-document > :not(.print-root) {
+    display: none !important;
   }
 
-  body.printing-quote .print-active,
-  body.printing-quote .print-active * {
-    visibility: visible !important;
+  body.printing-document .print-root {
+    display: block !important;
+    margin: 0 auto !important;
   }
 
-  body.printing-quote .print-active {
-    position: absolute !important;
-    left: 0 !important;
-    top: 0 !important;
+  body.printing-document .print-root--document {
+    page: document;
     width: 100% !important;
-    margin: 0 !important;
+  }
+
+  body.printing-document .print-root--receipt {
+    page: receipt;
+    width: 72mm !important;
   }
 
   .quote-pdf {
-    break-inside: avoid;
     color-adjust: exact;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
