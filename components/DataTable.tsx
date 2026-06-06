@@ -18,7 +18,7 @@ export function DataTable<T>({
 
   return (
     <>
-      <div className="hidden overflow-hidden rounded-lg border border-racing-line bg-racing-panel shadow-sm md:block">
+      <div className="hidden overflow-x-auto rounded-2xl border border-racing-line bg-racing-panel shadow-sm md:block">
         <table className="w-full border-collapse text-sm">
           <thead className="bg-racing-soft text-left text-xs uppercase tracking-wide text-racing-muted">
             <tr>
@@ -31,7 +31,7 @@ export function DataTable<T>({
           </thead>
           <tbody>
             {data.map((item) => (
-              <tr key={getKey(item)} className="border-t border-racing-line">
+              <tr key={getKey(item)} className="border-t border-racing-line transition-colors hover:bg-racing-soft/70">
                 {columns.map((column) => (
                   <td key={column.header} className={cn("px-4 py-3 align-top", column.className)}>
                     {column.render(item)}

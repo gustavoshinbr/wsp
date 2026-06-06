@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import { onlyDigits } from "@/lib/utils";
 
 export function isValidEmail(email: string) {
@@ -30,6 +31,14 @@ export class ApiError extends Error {
 export function apiError(error: unknown) {
   if (error instanceof ApiError) {
     return { message: error.message, status: error.status };
+  }
+
+  if (error instanceof Prisma.PrismaClientKnownRequestError) {
+    if (error.code === "P2002") return { message: "Já existe um registro com esses dados.", status: 409 };
+    if (error.code === "P2003") {
+      return { message: "Este registro está em uso e não pode ser excluído.", status: 409 };
+    }
+    if (error.code === "P2025") return { message: "Registro não encontrado.", status: 404 };
   }
 
   if (error instanceof Error) {

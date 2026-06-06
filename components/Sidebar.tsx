@@ -1,5 +1,7 @@
+"use client";
+
 import Link from "next/link";
-import { FileCog } from "lucide-react";
+import { usePathname } from "next/navigation";
 import { Logo } from "@/components/Logo";
 import { navGroups } from "@/components/navigation";
 import { cn } from "@/lib/utils";
@@ -8,11 +10,15 @@ export function BrandMark({ compact = false }: { compact?: boolean }) {
   return <Logo compact={compact} />;
 }
 
-export function Sidebar({ pathname }: { pathname?: string }) {
+export function Sidebar() {
+  const pathname = usePathname();
+
   return (
-    <aside className="sticky top-0 hidden h-screen w-72 shrink-0 border-r border-racing-line bg-racing-panel px-4 py-5 shadow-sm lg:block">
-      <Logo />
-      <nav className="mt-7 space-y-5">
+    <aside className="sticky top-0 hidden h-screen w-72 shrink-0 flex-col border-r border-racing-line bg-racing-panel px-4 py-5 shadow-sm lg:flex">
+      <div className="px-2">
+        <Logo />
+      </div>
+      <nav className="mt-7 min-h-0 flex-1 space-y-5 overflow-y-auto pr-1">
         {navGroups.map((group) => (
           <div key={group.title}>
             <p className="mb-2 px-3 text-[11px] font-black uppercase text-racing-muted">{group.title}</p>
@@ -23,12 +29,13 @@ export function Sidebar({ pathname }: { pathname?: string }) {
                   <Link
                     key={href}
                     href={href}
+                    aria-current={active ? "page" : undefined}
                     className={cn(
-                      "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-bold text-racing-muted hover:bg-red-50 hover:text-racing-red dark:hover:bg-red-500/10",
-                      active && "bg-red-50 text-racing-red dark:bg-red-500/10",
+                      "group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold text-racing-muted hover:bg-racing-soft hover:text-racing-text",
+                      active && "bg-red-50 text-racing-red shadow-sm dark:bg-red-500/10 dark:text-red-300",
                     )}
                   >
-                    <Icon size={18} />
+                    <Icon size={18} className="transition-transform group-hover:scale-105" />
                     {label}
                   </Link>
                 );
@@ -37,15 +44,6 @@ export function Sidebar({ pathname }: { pathname?: string }) {
           </div>
         ))}
       </nav>
-      <div className="absolute bottom-5 left-4 right-4 rounded-lg border border-racing-line bg-racing-soft p-4">
-        <div className="flex items-center gap-2 text-sm font-black">
-          <FileCog size={17} className="text-racing-red" />
-          Oficina isolada por workspace
-        </div>
-        <p className="mt-1 text-xs leading-5 text-racing-muted">
-          Cada equipe acessa somente os dados da própria oficina.
-        </p>
-      </div>
     </aside>
   );
 }

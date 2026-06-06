@@ -29,12 +29,14 @@ export async function POST(req: Request) {
     const formData = await req.formData();
     const name = formString(formData, "name");
     if (!name) throw new ApiError("Nome do serviço é obrigatório.");
+    const price = formNumber(formData, "price");
+    if (price < 0) throw new ApiError("O valor do serviço não pode ser negativo.");
 
     await prisma.service.create({
       data: {
         workspaceId: user.workspaceId,
         name,
-        price: formNumber(formData, "price"),
+        price,
         description: formString(formData, "description") || null,
       },
     });

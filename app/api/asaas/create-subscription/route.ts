@@ -7,7 +7,7 @@ import {
   paymentUrlWithAutoRedirect,
   updateAsaasSubscriptionCallback,
 } from "@/lib/asaas";
-import { requireApiUser } from "@/lib/auth";
+import { requireApiUser, requireManager } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { setSessionCookie } from "@/lib/session";
 import { syncWorkspaceSubscription } from "@/lib/subscription-sync";
@@ -28,6 +28,7 @@ function redirectToPayment(req: Request, subscriptionId: string, paymentLink?: s
 export async function POST(req: Request) {
   try {
     const user = await requireApiUser({ allowExpiredSubscription: true });
+    requireManager(user.role);
     const acceptsJson = req.headers.get("accept")?.includes("application/json");
     const callbackSuccessUrl = new URL("/api/asaas/return", req.url).toString();
 

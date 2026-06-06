@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { requireApiUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { apiError, ApiError } from "@/lib/validations";
-import { formString } from "@/lib/utils";
+import { formString, positiveInteger } from "@/lib/utils";
 
 function values(formData: FormData, key: string) {
   return formData.getAll(key).map((value) => String(value || "").trim());
@@ -67,7 +67,8 @@ export async function POST(req: Request) {
       if (!productId) continue;
       const product = await prisma.product.findFirst({ where: { id: productId, workspaceId: user.workspaceId } });
       if (!product) throw new ApiError("Produto inválido.", 404);
-      const quantity = Math.max(1, Number(productQuantities[index]) || 1);
+      const quantity = positiveInteger(productQuantities[index]);
+      if (!quantity) throw new ApiError(`Quantidade inválida para ${product.name}.`);
       const unitPrice = Number(product.sellPrice);
       items.push({ productId, type: "PRODUCT", description: product.name, quantity, unitPrice, total: quantity * unitPrice });
     }
@@ -79,7 +80,8 @@ export async function POST(req: Request) {
       if (!serviceId) continue;
       const service = await prisma.service.findFirst({ where: { id: serviceId, workspaceId: user.workspaceId } });
       if (!service) throw new ApiError("Serviço inválido.", 404);
-      const quantity = Math.max(1, Number(serviceQuantities[index]) || 1);
+      const quantity = positiveInteger(serviceQuantities[index]);
+      if (!quantity) throw new ApiError(`Quantidade inválida para ${service.name}.`);
       const unitPrice = Number(service.price);
       items.push({ serviceId, type: "SERVICE", description: service.name, quantity, unitPrice, total: quantity * unitPrice });
     }

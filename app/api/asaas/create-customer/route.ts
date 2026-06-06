@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
 import { createAsaasCustomer } from "@/lib/asaas";
-import { requireApiUser } from "@/lib/auth";
+import { requireApiUser, requireManager } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { apiError } from "@/lib/validations";
 
 export async function POST() {
   try {
     const user = await requireApiUser({ allowExpiredSubscription: true });
+    requireManager(user.role);
     if (user.workspace.asaasCustomerId) {
       return NextResponse.json({ id: user.workspace.asaasCustomerId });
     }

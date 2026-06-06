@@ -41,6 +41,12 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       await prisma.quote.delete({ where: { id } });
     } else {
       const status = formString(formData, "status") as "DRAFT" | "SENT" | "APPROVED" | "CANCELLED" | "PAID";
+      if (status === "PAID") {
+        throw new ApiError("Use a ação de finalizar para gerar a venda e baixar o estoque.");
+      }
+      if (status && !["DRAFT", "SENT", "APPROVED", "CANCELLED"].includes(status)) {
+        throw new ApiError("Status de orçamento inválido.");
+      }
       await prisma.quote.update({
         where: { id },
         data: {

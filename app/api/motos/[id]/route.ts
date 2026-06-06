@@ -21,10 +21,22 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     if (method === "delete") {
       await prisma.motorcycle.delete({ where: { id } });
     } else {
+      const plate = formString(formData, "plate").toUpperCase();
+      if (!plate) throw new ApiError("Placa é obrigatória.");
+      const duplicate = await prisma.motorcycle.findFirst({
+        where: {
+          workspaceId: user.workspaceId,
+          id: { not: id },
+          plate: { equals: plate, mode: "insensitive" },
+        },
+        select: { id: true },
+      });
+      if (duplicate) throw new ApiError("Já existe uma moto cadastrada com esta placa.");
+
       await prisma.motorcycle.update({
         where: { id },
         data: {
-          plate: formString(formData, "plate").toUpperCase(),
+          plate,
           model: formString(formData, "model") || null,
           brand: formString(formData, "brand") || null,
           year: formString(formData, "year") || null,

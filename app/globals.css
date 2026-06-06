@@ -33,6 +33,7 @@ body {
   background: rgb(var(--bg));
   color: rgb(var(--text));
   font-feature-settings: "rlig" 1, "calt" 1;
+  text-rendering: optimizeLegibility;
 }
 
 input,
@@ -52,13 +53,26 @@ textarea:focus {
   box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.16);
 }
 
+input::placeholder,
+textarea::placeholder {
+  color: rgb(var(--muted));
+  opacity: 0.8;
+}
+
 button,
 a {
   transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease, opacity 0.18s ease;
 }
 
-.print-root {
-  display: none;
+button:focus-visible,
+a:focus-visible,
+summary:focus-visible {
+  outline: 3px solid rgba(220, 38, 38, 0.28);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: rgba(220, 38, 38, 0.2);
 }
 
 [data-reveal] {
@@ -135,16 +149,6 @@ a {
     margin: 10mm;
   }
 
-  @page document {
-    size: A4 portrait;
-    margin: 10mm;
-  }
-
-  @page receipt {
-    size: 80mm auto;
-    margin: 4mm;
-  }
-
   .no-print {
     display: none !important;
   }
@@ -152,25 +156,6 @@ a {
   body {
     background: #fff;
     color: #111827;
-  }
-
-  body.printing-document > :not(.print-root) {
-    display: none !important;
-  }
-
-  body.printing-document .print-root {
-    display: block !important;
-    margin: 0 auto !important;
-  }
-
-  body.printing-document .print-root--document {
-    page: document;
-    width: 100% !important;
-  }
-
-  body.printing-document .print-root--receipt {
-    page: receipt;
-    width: 72mm !important;
   }
 
   .quote-pdf {

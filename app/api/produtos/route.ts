@@ -46,6 +46,9 @@ export async function POST(req: Request) {
     const formData = await req.formData();
     const name = formString(formData, "name");
     if (!name) throw new ApiError("Nome do produto é obrigatório.");
+    const buyPrice = formNumber(formData, "buyPrice");
+    const sellPrice = formNumber(formData, "sellPrice");
+    if (buyPrice < 0 || sellPrice < 0) throw new ApiError("Os valores do produto não podem ser negativos.");
     const presetImageUrl = formString(formData, "presetImageUrl");
     const safePresetImageUrl = presetImageUrl && isValidPresetImage(presetImageUrl) ? presetImageUrl : null;
 
@@ -61,8 +64,8 @@ export async function POST(req: Request) {
       data: {
         workspaceId: user.workspaceId,
         name,
-        buyPrice: formNumber(formData, "buyPrice"),
-        sellPrice: formNumber(formData, "sellPrice"),
+        buyPrice,
+        sellPrice,
         quantity: Math.max(0, formInt(formData, "quantity")),
         barcode: formString(formData, "barcode") || null,
         qrCode: formString(formData, "qrCode") || null,

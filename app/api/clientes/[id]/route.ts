@@ -39,7 +39,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     } else {
       const name = formString(formData, "name");
       const phone = formString(formData, "phone");
-      if (!name || !phone) throw new ApiError("Nome e telefone sao obrigatorios.");
+      if (!name || !phone) throw new ApiError("Nome e telefone são obrigatórios.");
 
       await prisma.client.update({
         where: { id },

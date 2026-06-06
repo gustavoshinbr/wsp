@@ -6,6 +6,7 @@ export function WhatsAppButton({ href, label = "Enviar via WhatsApp" }: { href: 
     <Link
       href={href}
       target="_blank"
+      rel="noreferrer"
       className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-700"
     >
       <MessageCircle size={17} />

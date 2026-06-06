@@ -19,6 +19,7 @@ export function MobileNav() {
           <Link
             key={href}
             href={href}
+            aria-current={active ? "page" : undefined}
             className={cn(
               "flex flex-col items-center justify-center gap-1 rounded-lg px-1 py-1.5 text-[10px] font-bold text-racing-muted",
               active && "text-racing-red",

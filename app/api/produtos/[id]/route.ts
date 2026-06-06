@@ -43,6 +43,12 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     if (method === "delete") {
       await prisma.product.delete({ where: { id } });
     } else {
+      const name = formString(formData, "name");
+      const buyPrice = formNumber(formData, "buyPrice");
+      const sellPrice = formNumber(formData, "sellPrice");
+      if (!name) throw new ApiError("Nome do produto é obrigatório.");
+      if (buyPrice < 0 || sellPrice < 0) throw new ApiError("Os valores do produto não podem ser negativos.");
+
       const uploads = [];
       const presetImageUrl = formString(formData, "presetImageUrl");
       const safePresetImageUrl = presetImageUrl && isValidPresetImage(presetImageUrl) ? presetImageUrl : null;
@@ -56,9 +62,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       await prisma.product.update({
         where: { id },
         data: {
-          name: formString(formData, "name"),
-          buyPrice: formNumber(formData, "buyPrice"),
-          sellPrice: formNumber(formData, "sellPrice"),
+          name,
+          buyPrice,
+          sellPrice,
           quantity: Math.max(0, formInt(formData, "quantity")),
           barcode: formString(formData, "barcode") || null,
           qrCode: formString(formData, "qrCode") || null,

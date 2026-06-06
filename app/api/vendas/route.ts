@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { requireApiUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { decrementStock } from "@/lib/stock";
 import { apiError, ApiError } from "@/lib/validations";
-import { formNumber, formString } from "@/lib/utils";
+import { formNumber, formString, positiveInteger } from "@/lib/utils";
 
 function values(formData: FormData, key: string) {
   return formData.getAll(key).map((value) => String(value || "").trim());
@@ -59,7 +60,13 @@ export async function POST(req: Request) {
     if (isCreditSale && !clientId) throw new ApiError("Venda a prazo precisa ter cliente vinculado.");
 
     if (motorcycleId) {
-      const motorcycle = await prisma.motorcycle.findFirst({ where: { id: motorcycleId, workspaceId: user.workspaceId } });
+      const motorcycle = await prisma.motorcycle.findFirst({
+        where: {
+          id: motorcycleId,
+          workspaceId: user.workspaceId,
+          ...(clientId ? { clientId } : {}),
+        },
+      });
       if (!motorcycle) throw new ApiError("Moto inválida.", 404);
     }
 
@@ -80,7 +87,8 @@ export async function POST(req: Request) {
       if (!productId) continue;
       const product = await prisma.product.findFirst({ where: { id: productId, workspaceId: user.workspaceId } });
       if (!product) throw new ApiError("Produto inválido.", 404);
-      const quantity = Math.max(1, Number(productQuantities[index]) || 1);
+      const quantity = positiveInteger(productQuantities[index]);
+      if (!quantity) throw new ApiError(`Quantidade inválida para ${product.name}.`);
       if (product.quantity < quantity) throw new ApiError(`Estoque insuficiente para ${product.name}.`);
       const unitPrice = Number(product.sellPrice);
       items.push({ productId, type: "PRODUCT", description: product.name, quantity, unitPrice, total: quantity * unitPrice });
@@ -93,7 +101,8 @@ export async function POST(req: Request) {
       if (!serviceId) continue;
       const service = await prisma.service.findFirst({ where: { id: serviceId, workspaceId: user.workspaceId } });
       if (!service) throw new ApiError("Serviço inválido.", 404);
-      const quantity = Math.max(1, Number(serviceQuantities[index]) || 1);
+      const quantity = positiveInteger(serviceQuantities[index]);
+      if (!quantity) throw new ApiError(`Quantidade inválida para ${service.name}.`);
       const unitPrice = Number(service.price);
       items.push({ serviceId, type: "SERVICE", description: service.name, quantity, unitPrice, total: quantity * unitPrice });
     }
@@ -108,7 +117,8 @@ export async function POST(req: Request) {
       if (!name && unitPrice <= 0) continue;
       if (!name || unitPrice <= 0) throw new ApiError("Produto criado na hora precisa ter nome e valor de venda.");
 
-      const quantity = Math.max(1, Number(quickProductQuantities[index]) || 1);
+      const quantity = positiveInteger(quickProductQuantities[index]);
+      if (!quantity) throw new ApiError(`Quantidade inválida para ${name}.`);
       quickProductItems.push({
         type: "PRODUCT",
         description: name,
@@ -143,6 +153,9 @@ export async function POST(req: Request) {
 
     if (!items.length && !quickProductItems.length) throw new ApiError("Adicione ao menos um item.");
     const total = [...items, ...quickProductItems].reduce((sum, item) => sum + item.total, 0);
+    const dueDateValue = formString(formData, "dueDate");
+    const dueDate = dueDateValue ? new Date(`${dueDateValue}T12:00:00`) : null;
+    if (dueDate && Number.isNaN(dueDate.getTime())) throw new ApiError("Data de vencimento inválida.");
 
     await prisma.$transaction(async (tx) => {
       const saleItems: SaleItemInput[] = [...items];
@@ -177,19 +190,12 @@ export async function POST(req: Request) {
           paymentMethod,
           paymentStatus: isCreditSale ? "CREDIT_OPEN" : "PAID",
           paidAt: isCreditSale ? null : new Date(),
-          dueDate: isCreditSale && formString(formData, "dueDate") ? new Date(formString(formData, "dueDate")) : null,
+          dueDate: isCreditSale ? dueDate : null,
           items: { create: saleItems },
         },
       });
 
-      for (const item of saleItems) {
-        if (item.productId) {
-          await tx.product.update({
-            where: { id: item.productId },
-            data: { quantity: { decrement: item.quantity } },
-          });
-        }
-      }
+      await decrementStock(tx, user.workspaceId, saleItems);
 
       return sale;
     });

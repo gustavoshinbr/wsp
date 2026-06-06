@@ -12,6 +12,14 @@ import { prisma } from "@/lib/prisma";
 export default async function FiscalPage({ searchParams }: { searchParams: Promise<{ error?: string; success?: string }> }) {
   const query = await searchParams;
   const user = await requirePageUser();
+  const canConfigureFiscal = user.role === "OWNER" || user.role === "ADMIN";
+  const fiscalStatusLabels: Record<string, string> = {
+    PROCESSING: "Processando",
+    AUTHORIZED: "Autorizada",
+    REJECTED: "Rejeitada",
+    CANCELLED: "Cancelada",
+    ERROR: "Erro",
+  };
   const [config, clients, motorcycles, products, services, quotes, sales, documents] = await Promise.all([
     prisma.fiscalConfig.findUnique({ where: { workspaceId: user.workspaceId } }),
     prisma.client.findMany({ where: { workspaceId: user.workspaceId }, orderBy: { name: "asc" } }),
@@ -101,8 +109,9 @@ export default async function FiscalPage({ searchParams }: { searchParams: Promi
           </div>
         ) : null}
 
-        <Card>
-          <details open={!config}>
+        {canConfigureFiscal ? (
+          <Card>
+            <details open={!config}>
             <summary className="flex cursor-pointer list-none items-center gap-2 text-lg font-black">
               <Settings2 size={19} />
               Configuração fiscal
@@ -178,8 +187,16 @@ export default async function FiscalPage({ searchParams }: { searchParams: Promi
             <p className="mt-4 text-xs font-semibold text-racing-muted">
               Os códigos fiscais devem ser confirmados com a contabilidade. Homologação não gera documento com valor fiscal.
             </p>
-          </details>
-        </Card>
+            </details>
+          </Card>
+        ) : (
+          <Card>
+            <p className="font-black">Configuração fiscal</p>
+            <p className="mt-1 text-sm text-racing-muted">
+              Os dados fiscais são administrados pelo dono ou por um administrador da oficina.
+            </p>
+          </Card>
+        )}
 
         <FiscalReceiptComposer
           clients={clients.map((client) => ({ id: client.id, name: client.name, phone: client.phone }))}
@@ -209,8 +226,8 @@ export default async function FiscalPage({ searchParams }: { searchParams: Promi
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
                       <strong>NFC-e {document.number ? `#${document.number}` : `#${document.reference.slice(-8)}`}</strong>
-                      <Badge tone={tone}>{document.status}</Badge>
-                      <Badge>{document.environment}</Badge>
+                      <Badge tone={tone}>{fiscalStatusLabels[document.status] || document.status}</Badge>
+                      <Badge>{document.environment === "producao" ? "Produção" : "Homologação"}</Badge>
                     </div>
                     <p className="mt-1 text-sm text-racing-muted">
                       {document.sale?.client?.name || "Consumidor"} · {document.createdAt.toLocaleString("pt-BR")}

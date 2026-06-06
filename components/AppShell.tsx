@@ -16,12 +16,14 @@ export async function AppShell({
     <div className="flex min-h-screen bg-racing-bg text-racing-text">
       <Sidebar />
       <main className="min-w-0 flex-1 px-4 py-4 pb-24 sm:px-6 lg:px-8 lg:py-6">
-        <Header
-          workshopName={user.workspace.workshopName}
-          userName={user.name}
-          workspace={user.workspace}
-        />
-        {children}
+        <div className="mx-auto w-full max-w-[1600px]">
+          <Header
+            workshopName={user.workspace.workshopName}
+            userName={user.name}
+            workspace={user.workspace}
+          />
+          {children}
+        </div>
       </main>
       <MobileNav />
     </div>

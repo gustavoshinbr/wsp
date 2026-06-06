@@ -4,7 +4,7 @@ import { Button } from "@/components/Button";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Badge } from "@/components/Badge";
 import { MobileMenuButton } from "@/components/MobileMenuButton";
-import { subscriptionMessage } from "@/lib/subscription";
+import { isSubscriptionActive, subscriptionMessage } from "@/lib/subscription";
 import type { Workspace } from "@prisma/client";
 
 export function Header({
@@ -14,12 +14,12 @@ export function Header({
 }: {
   workshopName: string;
   userName: string;
-  workspace: Pick<Workspace, "trialEndsAt" | "subscriptionStatus">;
+  workspace: Pick<Workspace, "trialEndsAt" | "subscriptionStatus" | "paymentStatus">;
 }) {
-  const active = workspace.subscriptionStatus === "ACTIVE";
+  const active = isSubscriptionActive(workspace);
 
   return (
-    <header className="mb-6 flex flex-col gap-3 rounded-lg border border-racing-line bg-racing-panel p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+    <header className="mb-6 flex flex-col gap-3 rounded-2xl border border-racing-line bg-racing-panel p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
       <div className="flex min-w-0 items-center gap-3">
         <MobileMenuButton />
         <div className="min-w-0">

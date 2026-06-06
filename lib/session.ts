@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createHmac, timingSafeEqual } from "crypto";
+import { cache } from "react";
 import { prisma } from "@/lib/prisma";
 
 export const COOKIE_NAME = "wsp_session";
@@ -113,7 +114,7 @@ export async function currentSession() {
   return verifySessionToken(cookieStore.get(COOKIE_NAME)?.value);
 }
 
-export async function currentUser() {
+export const currentUser = cache(async function currentUser() {
   const session = await currentSession();
   if (!session) return null;
 
@@ -121,7 +122,7 @@ export async function currentUser() {
     where: { id: session.userId, workspaceId: session.workspaceId, isActive: true },
     include: { workspace: true },
   });
-}
+});
 
 export async function requireUser() {
   const user = await currentUser();

@@ -8,7 +8,7 @@ type CardProps = React.HTMLAttributes<HTMLDivElement> & {
 export function Card({ className, title, value, children, ...props }: CardProps) {
   return (
     <section
-      className={cn("rounded-lg border border-racing-line bg-racing-panel p-5 shadow-sm", className)}
+      className={cn("rounded-2xl border border-racing-line bg-racing-panel p-5 shadow-sm", className)}
       {...props}
     >
       {title ? <p className="text-sm font-medium text-racing-muted">{title}</p> : null}

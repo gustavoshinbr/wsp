@@ -21,11 +21,16 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     if (method === "delete") {
       await prisma.service.delete({ where: { id } });
     } else {
+      const name = formString(formData, "name");
+      const price = formNumber(formData, "price");
+      if (!name) throw new ApiError("Nome do serviço é obrigatório.");
+      if (price < 0) throw new ApiError("O valor do serviço não pode ser negativo.");
+
       await prisma.service.update({
         where: { id },
         data: {
-          name: formString(formData, "name"),
-          price: formNumber(formData, "price"),
+          name,
+          price,
           description: formString(formData, "description") || null,
         },
       });

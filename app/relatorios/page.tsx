@@ -67,7 +67,7 @@ export default async function RelatoriosPage({ searchParams }: { searchParams: P
           </div>
           <div className="flex flex-wrap gap-2">
             <PrintButton label="Exportar HTML/PDF" />
-            <Link href={whatsappUrl(user.workspace.phone, summary)} target="_blank" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-bold text-white">
+            <Link href={whatsappUrl(user.workspace.phone, summary)} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-bold text-white">
               <MessageCircle size={17} />
               Enviar resumo
             </Link>

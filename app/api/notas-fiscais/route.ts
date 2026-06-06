@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireApiUser } from "@/lib/auth";
+import { requireApiUser, requireManager } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { apiError, ApiError } from "@/lib/validations";
 import { formString, normalizeDocument } from "@/lib/utils";
@@ -7,6 +7,7 @@ import { formString, normalizeDocument } from "@/lib/utils";
 export async function POST(req: Request) {
   try {
     const user = await requireApiUser();
+    requireManager(user.role);
     const formData = await req.formData();
     const companyName = formString(formData, "companyName");
     const cnpj = normalizeDocument(formString(formData, "cnpj"));

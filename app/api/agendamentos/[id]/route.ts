@@ -30,18 +30,30 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   try {
     const { id } = await params;
     const user = await requireApiUser();
-    await ensureAppointment(id, user.workspaceId);
+    const appointment = await ensureAppointment(id, user.workspaceId);
     const formData = await req.formData();
     const method = formString(formData, "_method").toLowerCase();
 
     if (method === "delete") {
+      if (appointment.status === "FINISHED") {
+        throw new ApiError("Agendamento finalizado não pode ser excluído.");
+      }
       await prisma.appointment.delete({ where: { id } });
     } else {
       const status = formString(formData, "status") as "SCHEDULED" | "FINISHED" | "CANCELLED";
+      if (status === "FINISHED") {
+        throw new ApiError("Use a ação de finalizar para gerar a venda e baixar o estoque.");
+      }
+      if (status && status !== "SCHEDULED" && status !== "CANCELLED") {
+        throw new ApiError("Status de agendamento inválido.");
+      }
+      const dateValue = formString(formData, "date");
+      const date = dateValue ? new Date(dateValue) : undefined;
+      if (date && Number.isNaN(date.getTime())) throw new ApiError("Data de agendamento inválida.");
       await prisma.appointment.update({
         where: { id },
         data: {
-          date: formString(formData, "date") ? new Date(formString(formData, "date")) : undefined,
+          date,
           notes: formString(formData, "notes") || null,
           status: status || "SCHEDULED",
         },
@@ -61,7 +73,10 @@ export async function DELETE(_: Request, { params }: { params: Promise<{ id: str
   try {
     const { id } = await params;
     const user = await requireApiUser();
-    await ensureAppointment(id, user.workspaceId);
+    const appointment = await ensureAppointment(id, user.workspaceId);
+    if (appointment.status === "FINISHED") {
+      throw new ApiError("Agendamento finalizado não pode ser excluído.");
+    }
     await prisma.appointment.delete({ where: { id } });
     return NextResponse.json({ ok: true });
   } catch (error) {

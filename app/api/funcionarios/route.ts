@@ -1,15 +1,9 @@
 import { NextResponse } from "next/server";
 import { UserRole } from "@prisma/client";
-import { hashPassword, requireApiUser } from "@/lib/auth";
+import { hashPassword, requireApiUser, requireManager } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { apiError, ApiError, isValidEmail, validatePassword } from "@/lib/validations";
 import { formNumber, formString } from "@/lib/utils";
-
-function requireManager(role: UserRole) {
-  if (role !== "OWNER" && role !== "ADMIN") {
-    throw new ApiError("Apenas dono ou administrador pode gerenciar funcionários.", 403);
-  }
-}
 
 export async function GET() {
   try {
@@ -51,6 +45,14 @@ export async function POST(req: Request) {
     if (!isValidEmail(email)) throw new ApiError("Email inválido.");
     if (!validatePassword(password)) throw new ApiError("A senha precisa ter no mínimo 8 caracteres.");
     if (!["ADMIN", "STAFF"].includes(role)) throw new ApiError("Perfil de funcionário inválido.");
+    if (currentUser.role === "ADMIN" && role !== "STAFF") {
+      throw new ApiError("Apenas o dono pode conceder acesso de administrador.", 403);
+    }
+
+    const commissionPercent = formNumber(formData, "commissionPercent");
+    if (commissionPercent < 0 || commissionPercent > 100) {
+      throw new ApiError("A comissão deve ficar entre 0% e 100%.");
+    }
 
     const existing = await prisma.user.findUnique({ where: { email }, select: { id: true } });
     if (existing) throw new ApiError("Email já cadastrado.");
@@ -66,7 +68,7 @@ export async function POST(req: Request) {
         isActive: formData.get("isActive") !== "off",
         isMechanic: formData.get("isMechanic") === "on",
         specialty: formString(formData, "specialty") || null,
-        commissionPercent: formNumber(formData, "commissionPercent") || null,
+        commissionPercent: commissionPercent || null,
       },
     });
 

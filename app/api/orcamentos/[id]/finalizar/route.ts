@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireApiUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { decrementStock } from "@/lib/stock";
 import { apiError, ApiError } from "@/lib/validations";
 import { formString } from "@/lib/utils";
 
@@ -20,20 +21,22 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     if (quote.status === "CANCELLED") throw new ApiError("Orçamento cancelado não pode ser finalizado.");
 
     await prisma.$transaction(async (tx) => {
+      const locked = await tx.quote.updateMany({
+        where: {
+          id: quote.id,
+          workspaceId: user.workspaceId,
+          status: { in: ["DRAFT", "SENT", "APPROVED"] },
+        },
+        data: { status: "PAID" },
+      });
+      if (locked.count !== 1) throw new ApiError("Orçamento já finalizado ou cancelado.");
+
       const existingSale = await tx.sale.findFirst({
         where: { workspaceId: user.workspaceId, quoteId: quote.id },
       });
       if (existingSale) throw new ApiError("Orçamento já gerou uma venda.");
 
-      for (const item of quote.items) {
-        if (!item.productId) continue;
-        const product = await tx.product.findFirst({
-          where: { id: item.productId, workspaceId: user.workspaceId },
-        });
-        if (!product || product.quantity < item.quantity) {
-          throw new ApiError(`Estoque insuficiente para ${item.description}.`);
-        }
-      }
+      await decrementStock(tx, user.workspaceId, quote.items);
 
       await tx.sale.create({
         data: {
@@ -59,19 +62,6 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
         },
       });
 
-      for (const item of quote.items) {
-        if (item.productId) {
-          await tx.product.update({
-            where: { id: item.productId },
-            data: { quantity: { decrement: item.quantity } },
-          });
-        }
-      }
-
-      await tx.quote.update({
-        where: { id: quote.id },
-        data: { status: "PAID" },
-      });
     });
 
     return NextResponse.redirect(new URL("/orcamentos", req.url), { status: 303 });

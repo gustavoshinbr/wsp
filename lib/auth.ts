@@ -1,4 +1,5 @@
 import bcrypt from "bcryptjs";
+import type { UserRole } from "@prisma/client";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { currentSession, currentUser, requireUser } from "@/lib/session";
@@ -11,6 +12,12 @@ export async function hashPassword(password: string) {
 
 export async function verifyPassword(password: string, hash: string) {
   return bcrypt.compare(password, hash);
+}
+
+export function requireManager(role: UserRole) {
+  if (role !== "OWNER" && role !== "ADMIN") {
+    throw new ApiError("Apenas dono ou administrador pode realizar esta ação.", 403);
+  }
 }
 
 export async function requirePageUser(options?: { allowExpiredSubscription?: boolean }) {

@@ -2,6 +2,7 @@ import { Plus, Search, Trash2, Wrench } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
+import { ConfirmSubmitButton } from "@/components/ConfirmSubmitButton";
 import { DataTable } from "@/components/DataTable";
 import { requirePageUser } from "@/lib/auth";
 import { brl } from "@/lib/currency";
@@ -62,10 +63,13 @@ export default async function ServicosPage({ searchParams }: { searchParams: Pro
                       </form>
                       <form action={`/api/servicos/${service.id}`} method="post">
                         <input type="hidden" name="_method" value="delete" />
-                        <button className="inline-flex h-9 items-center gap-1 rounded-lg border border-racing-line px-3 text-xs font-bold text-racing-muted">
+                        <ConfirmSubmitButton
+                          message={`Excluir o serviço "${service.name}"?`}
+                          className="inline-flex h-9 items-center gap-1 rounded-lg border border-racing-line px-3 text-xs font-bold text-racing-muted"
+                        >
                           <Trash2 size={14} />
                           Excluir
-                        </button>
+                        </ConfirmSubmitButton>
                       </form>
                     </div>
                   ),

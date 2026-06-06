@@ -1,13 +1,14 @@
 import { NextResponse } from "next/server";
 import { addDays, format } from "date-fns";
 import { asaasRequest } from "@/lib/asaas";
-import { requireApiUser } from "@/lib/auth";
+import { requireApiUser, requireManager } from "@/lib/auth";
 import { absoluteUrl } from "@/lib/utils";
 import { apiError } from "@/lib/validations";
 
 export async function POST(req: Request) {
   try {
     const user = await requireApiUser({ allowExpiredSubscription: true });
+    requireManager(user.role);
     const checkout = await asaasRequest<{ id: string; link?: string; url?: string }>("/checkouts", {
       method: "POST",
       body: JSON.stringify({

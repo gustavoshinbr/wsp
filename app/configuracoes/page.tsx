@@ -14,7 +14,7 @@ export default async function ConfiguracoesPage({ searchParams }: { searchParams
   const isStaff = user.role === "STAFF";
   const successMessage =
     query.success === "stock-view"
-      ? "Modo de exibicao do estoque atualizado."
+      ? "Modo de exibição do estoque atualizado."
       : query.success
         ? "Senha atualizada."
         : null;
@@ -69,12 +69,12 @@ export default async function ConfiguracoesPage({ searchParams }: { searchParams
           <Card>
             <h2 className="flex items-center gap-2 font-black">
               <Boxes size={18} />
-              Exibicao do estoque
+              Exibição do estoque
             </h2>
-            <p className="mt-3 text-sm text-racing-muted">Escolha qual visualizacao abre por padrao na tela de estoque.</p>
+            <p className="mt-3 text-sm text-racing-muted">Escolha qual visualização abre por padrão na tela de estoque.</p>
             <form action="/api/configuracoes/estoque" method="post" className="mt-4 space-y-3">
               <label className="block space-y-1.5 text-sm font-semibold">
-                <span>Modo padrao</span>
+                <span>Modo padrão</span>
                 <select name="stockViewMode" defaultValue={user.workspace.stockViewMode || "completo"} className="h-11 rounded-lg px-3">
                   <option value="simples">Simples</option>
                   <option value="completo">Completo</option>
@@ -83,7 +83,7 @@ export default async function ConfiguracoesPage({ searchParams }: { searchParams
               <div className="grid gap-2 text-xs font-semibold text-racing-muted sm:grid-cols-2">
                 <span className="flex items-center gap-2 rounded-lg bg-racing-soft p-3">
                   <Boxes size={15} />
-                  Simples: lista rapida de balcao
+                  Simples: lista rápida de balcão
                 </span>
                 <span className="flex items-center gap-2 rounded-lg bg-racing-soft p-3">
                   <ImageIcon size={15} />

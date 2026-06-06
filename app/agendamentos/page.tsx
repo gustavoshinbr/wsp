@@ -110,7 +110,7 @@ export default async function AgendamentosPage({ searchParams }: { searchParams:
                   </div>
                   <div className="text-left sm:text-right">
                     <strong className="text-xl">{brl(appointment.total)}</strong>
-                    {appointment.status !== "FINISHED" ? (
+                    {appointment.status === "SCHEDULED" ? (
                       <form action={`/api/agendamentos/${appointment.id}/finalizar`} method="post" className="mt-3 space-y-2">
                         <select name="paymentMethod" className="h-10 rounded-lg px-3 text-sm">
                           <option>Pix</option>

@@ -45,7 +45,7 @@ export default async function FuncionariosPage({ searchParams }: { searchParams:
                 <input name="password" required type="password" minLength={8} className="h-11 rounded-lg px-3" placeholder="Senha inicial" />
                 <select name="role" defaultValue="STAFF" className="h-11 rounded-lg px-3">
                   <option value="STAFF">Funcionário</option>
-                  <option value="ADMIN">Administrador</option>
+                  {user.role === "OWNER" ? <option value="ADMIN">Administrador</option> : null}
                 </select>
                 <input name="specialty" className="h-11 rounded-lg px-3" placeholder="Especialidade: motor, elétrica, revisão..." />
                 <input name="commissionPercent" type="number" step="0.01" min="0" className="h-11 rounded-lg px-3" placeholder="Comissão % opcional" />
@@ -85,14 +85,20 @@ export default async function FuncionariosPage({ searchParams }: { searchParams:
                     </p>
                   </div>
 
-                  {canManage ? (
+                  {canManage &&
+                  (user.role === "OWNER" || employee.role === "STAFF" || employee.id === user.id) ? (
                     <form action={`/api/funcionarios/${employee.id}`} method="post" className="grid gap-2 lg:w-[360px]">
                       <div className="grid grid-cols-2 gap-2">
                         <input name="name" defaultValue={employee.name} className="h-10 rounded-lg px-3 text-sm" />
                         <input name="phone" defaultValue={employee.phone || ""} className="h-10 rounded-lg px-3 text-sm" />
                       </div>
                       <div className="grid grid-cols-2 gap-2">
-                        <select name="role" defaultValue={employee.role} className="h-10 rounded-lg px-3 text-sm" disabled={employee.role === "OWNER"}>
+                        <select
+                          name="role"
+                          defaultValue={employee.role}
+                          className="h-10 rounded-lg px-3 text-sm"
+                          disabled={employee.role === "OWNER" || employee.id === user.id}
+                        >
                           <option value="OWNER">Dono</option>
                           <option value="ADMIN">Administrador</option>
                           <option value="STAFF">Funcionário</option>

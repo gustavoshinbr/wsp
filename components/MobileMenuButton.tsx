@@ -62,6 +62,7 @@ export function MobileMenuButton() {
                         <Link
                           key={href}
                           href={href}
+                          aria-current={active ? "page" : undefined}
                           className={cn(
                             "flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-bold text-racing-muted",
                             active && "bg-red-50 text-racing-red dark:bg-red-500/10",

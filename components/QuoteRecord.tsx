@@ -1,4 +1,5 @@
 import { CheckCircle2, Trash2 } from "lucide-react";
+import { ConfirmSubmitButton } from "@/components/ConfirmSubmitButton";
 import { QuotePdfButton } from "@/components/QuotePdfButton";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { brl, toNumber } from "@/lib/currency";
@@ -74,8 +75,13 @@ export function QuoteRecord({ quote, workshopName, workshopPhone, workshopEmail 
         </div>
 
         {canFinalize ? (
-          <form action={`/api/orcamentos/${quote.id}/finalizar`} method="post">
-            <input type="hidden" name="paymentMethod" value="À vista" />
+          <form action={`/api/orcamentos/${quote.id}/finalizar`} method="post" className="space-y-2">
+            <select name="paymentMethod" className="h-10 rounded-lg px-3 text-sm">
+              <option>Pix</option>
+              <option>Dinheiro</option>
+              <option>Cartão de crédito</option>
+              <option>Cartão de débito</option>
+            </select>
             <button className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-racing-red px-3 py-2 text-sm font-black text-white hover:bg-red-700">
               <CheckCircle2 size={16} />
               Aprovar e finalizar
@@ -94,10 +100,13 @@ export function QuoteRecord({ quote, workshopName, workshopPhone, workshopEmail 
         {canDelete ? (
           <form action={`/api/orcamentos/${quote.id}`} method="post">
             <input type="hidden" name="_method" value="delete" />
-            <button className="inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-lg border border-racing-line px-3 py-2 text-sm font-bold text-racing-muted hover:bg-racing-soft">
+            <ConfirmSubmitButton
+              message={`Excluir o orçamento de ${quote.client.name}?`}
+              className="inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-lg border border-racing-line px-3 py-2 text-sm font-bold text-racing-muted hover:bg-racing-soft"
+            >
               <Trash2 size={16} />
               Excluir
-            </button>
+            </ConfirmSubmitButton>
           </form>
         ) : null}
       </div>

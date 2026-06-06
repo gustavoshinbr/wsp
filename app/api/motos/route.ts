@@ -29,6 +29,11 @@ export async function POST(req: Request) {
 
     const client = await prisma.client.findFirst({ where: { id: clientId, workspaceId: user.workspaceId } });
     if (!client) throw new ApiError("Cliente não encontrado.", 404);
+    const existingMotorcycle = await prisma.motorcycle.findFirst({
+      where: { workspaceId: user.workspaceId, plate: { equals: plate, mode: "insensitive" } },
+      select: { id: true },
+    });
+    if (existingMotorcycle) throw new ApiError("Já existe uma moto cadastrada com esta placa.");
 
     await prisma.motorcycle.create({
       data: {

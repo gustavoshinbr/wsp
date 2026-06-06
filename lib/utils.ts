@@ -33,6 +33,11 @@ export function formInt(formData: FormData, key: string, fallback = 0) {
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
+export function positiveInteger(value: unknown) {
+  const parsed = Number(value);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
+}
+
 export function addDays(date: Date, days: number) {
   const next = new Date(date);
   next.setDate(next.getDate() + days);

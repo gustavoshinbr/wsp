@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { Pencil, X } from "lucide-react";
+import { ConfirmSubmitButton } from "@/components/ConfirmSubmitButton";
 
 type EditableProduct = {
   id: string;
@@ -35,14 +36,14 @@ export function ProductStockActions({ product }: { product: EditableProduct }) {
         </button>
         <form action={`/api/produtos/${product.id}`} method="post">
           <input type="hidden" name="_method" value="delete" />
-          <button
-            type="submit"
+          <ConfirmSubmitButton
+            message={`Excluir o produto "${product.name}"?`}
             title="Excluir produto"
             aria-label={`Excluir ${product.name}`}
             className="grid h-10 w-10 place-items-center rounded-lg border border-red-200 bg-red-50 text-red-600 hover:bg-red-100 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200"
           >
             <X size={18} />
-          </button>
+          </ConfirmSubmitButton>
         </form>
       </div>
 

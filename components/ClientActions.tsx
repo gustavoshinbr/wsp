@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { Pencil, X } from "lucide-react";
+import { ConfirmSubmitButton } from "@/components/ConfirmSubmitButton";
 
 type EditableClient = {
   id: string;
@@ -27,14 +28,14 @@ export function ClientActions({ client }: { client: EditableClient }) {
         </button>
         <form action={`/api/clientes/${client.id}`} method="post">
           <input type="hidden" name="_method" value="delete" />
-          <button
-            type="submit"
+          <ConfirmSubmitButton
+            message={`Excluir o cliente "${client.name}"?`}
             title="Excluir cliente"
             aria-label={`Excluir ${client.name}`}
             className="grid h-10 w-10 place-items-center rounded-lg border border-red-200 bg-red-50 text-red-600 hover:bg-red-100 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200"
           >
             <X size={18} />
-          </button>
+          </ConfirmSubmitButton>
         </form>
       </div>
 
