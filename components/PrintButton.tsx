@@ -11,33 +11,17 @@ export function PrintButton({
   targetId?: string;
   format?: "document" | "receipt";
 }) {
-  function removeFrame(frame: HTMLIFrameElement) {
-    window.setTimeout(() => frame.remove(), 0);
-  }
-
   function printTarget() {
     const target = targetId ? document.getElementById(targetId) : null;
 
     if (target) {
-      const frame = document.createElement("iframe");
-      frame.title = "Documento para impressão";
-      frame.setAttribute("aria-hidden", "true");
-      frame.style.position = "fixed";
-      frame.style.right = "0";
-      frame.style.bottom = "0";
-      frame.style.width = "0";
-      frame.style.height = "0";
-      frame.style.border = "0";
-      frame.style.opacity = "0";
-      document.body.appendChild(frame);
-
-      const printWindow = frame.contentWindow;
-      const printDocument = frame.contentDocument;
-      if (!printWindow || !printDocument) {
-        frame.remove();
+      const printWindow = window.open("", `wsp-print-${Date.now()}`);
+      if (!printWindow) {
+        window.alert("O navegador bloqueou a janela de impressão. Permita pop-ups para imprimir somente o cupom.");
         return;
       }
 
+      const printDocument = printWindow.document;
       const styles = Array.from(document.querySelectorAll('link[rel="stylesheet"], style'))
         .map((node) => node.outerHTML)
         .join("");
@@ -56,39 +40,72 @@ export function PrintButton({
         <html lang="pt-BR">
           <head>
             <meta charset="utf-8" />
-            <title>${document.title}</title>
+            <meta name="viewport" content="width=device-width, initial-scale=1" />
+            <base href="${document.baseURI}" />
+            <title>Impressão - WSP Racing</title>
             ${styles}
             <style>
               ${pageStyles}
               html, body {
                 margin: 0 !important;
-                padding: 0 !important;
                 background: #fff !important;
                 color: #111827 !important;
               }
-              .no-print { display: none !important; }
+              body { padding: 16px !important; }
+              .print-actions {
+                position: sticky;
+                top: 0;
+                z-index: 50;
+                display: flex;
+                justify-content: center;
+                gap: 8px;
+                margin: 0 auto 16px;
+                padding: 10px;
+                background: #fff;
+                border: 1px solid #e5e7eb;
+                border-radius: 12px;
+                box-shadow: 0 8px 24px rgb(0 0 0 / 10%);
+                max-width: 420px;
+              }
+              .print-actions button {
+                min-height: 44px;
+                padding: 10px 16px;
+                border: 0;
+                border-radius: 8px;
+                background: #dc2626;
+                color: #fff;
+                font: 700 14px system-ui, sans-serif;
+              }
+              .print-actions .secondary { background: #111827; }
               #print-document > * {
                 margin: 0 !important;
                 border: 0 !important;
                 border-radius: 0 !important;
                 box-shadow: none !important;
               }
+              @media print {
+                body { padding: 0 !important; }
+                .print-actions, .no-print { display: none !important; }
+              }
             </style>
           </head>
           <body>
+            <div class="print-actions">
+              <button id="print-now" type="button">Imprimir cupom</button>
+              <button id="close-print" type="button" class="secondary">Fechar</button>
+            </div>
             <main id="print-document">${target.outerHTML}</main>
           </body>
         </html>`);
       printDocument.close();
 
-      const cleanup = () => removeFrame(frame);
-      printWindow.addEventListener("afterprint", cleanup, { once: true });
+      printDocument.getElementById("print-now")?.addEventListener("click", () => printWindow.print());
+      printDocument.getElementById("close-print")?.addEventListener("click", () => printWindow.close());
       window.setTimeout(async () => {
         await printDocument.fonts?.ready;
         printWindow.focus();
         printWindow.print();
-      }, 150);
-      window.setTimeout(cleanup, 60_000);
+      }, 250);
       return;
     }
 

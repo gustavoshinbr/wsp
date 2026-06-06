@@ -1,5 +1,5 @@
-const CACHE_NAME = "wsp-racing-pwa-v1";
-const STATIC_ASSETS = ["/", "/login", "/logo-wsp-racing.svg"];
+const CACHE_NAME = "wsp-racing-pwa-v2";
+const STATIC_ASSETS = ["/", "/login", "/icons/wsp-app-icon-192.png", "/icons/wsp-app-icon-512.png"];
 
 self.addEventListener("install", (event) => {
   self.skipWaiting();

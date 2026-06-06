@@ -8,6 +8,7 @@ import {
   focusPaymentCode,
   focusRequest,
   optionalFocusText,
+  resolveFocusToken,
   type FocusEnvironment,
   type FocusNfceResponse,
 } from "@/lib/focus-nfe";
@@ -32,10 +33,6 @@ export async function POST(req: Request) {
 
   try {
     const user = await requireApiUser();
-    if (!focusNfeConfigured()) {
-      throw new ApiError("Defina FOCUS_NFE_TOKEN antes de emitir uma NFC-e.");
-    }
-
     const body = (await req.json()) as IssueBody;
     if (!body.saleId) throw new ApiError("Selecione uma venda para emitir a NFC-e.");
 
@@ -85,6 +82,12 @@ export async function POST(req: Request) {
     }
 
     const environment = (config.environment === "producao" ? "producao" : "homologacao") as FocusEnvironment;
+    if (!focusNfeConfigured(config, environment)) {
+      throw new ApiError(
+        `Configure o token Focus NFe de ${environment === "producao" ? "produção" : "homologação"} desta oficina antes de emitir.`,
+      );
+    }
+    const apiToken = resolveFocusToken(user.workspaceId, config, environment);
     const productTotal = productItems.reduce((sum, item) => sum + Number(item.total), 0);
     const reference = existingDocument
       ? `${fiscalReference(sale.id)}r${Date.now()}`
@@ -172,6 +175,7 @@ export async function POST(req: Request) {
 
     const response = await focusRequest<FocusNfceResponse>(
       environment,
+      apiToken,
       `/v2/nfce?ref=${encodeURIComponent(reference)}&completa=1`,
       {
         method: "POST",

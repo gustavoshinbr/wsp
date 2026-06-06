@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { ExternalLink, FileCheck2, Settings2 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Badge } from "@/components/Badge";
@@ -6,7 +7,7 @@ import { Card } from "@/components/Card";
 import { FiscalReceiptComposer } from "@/components/FiscalReceiptComposer";
 import { requirePageUser } from "@/lib/auth";
 import { brl } from "@/lib/currency";
-import { focusNfeConfigured } from "@/lib/focus-nfe";
+import { focusCredentialSource, focusNfeConfigured } from "@/lib/focus-nfe";
 import { prisma } from "@/lib/prisma";
 
 export default async function FiscalPage({ searchParams }: { searchParams: Promise<{ error?: string; success?: string }> }) {
@@ -93,6 +94,9 @@ export default async function FiscalPage({ searchParams }: { searchParams: Promi
       total: Number(item.total),
     })),
   }));
+  const focusEnvironment = config?.environment === "producao" ? "producao" : "homologacao";
+  const fiscalConfigured = focusNfeConfigured(config, focusEnvironment);
+  const credentialSource = focusCredentialSource(config, focusEnvironment);
 
   return (
     <AppShell>
@@ -103,9 +107,22 @@ export default async function FiscalPage({ searchParams }: { searchParams: Promi
         </div>
         {query.error ? <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-700">{query.error}</div> : null}
         {query.success ? <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm font-semibold text-emerald-700">Dados fiscais salvos.</div> : null}
-        {!focusNfeConfigured() ? (
+        {!fiscalConfigured ? (
           <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm font-semibold text-amber-900">
-            A API fiscal está pronta, mas falta configurar <code>FOCUS_NFE_TOKEN</code> no ambiente da Vercel.
+            Configure o token Focus NFe de {focusEnvironment === "producao" ? "produção" : "homologação"} desta oficina em{" "}
+            <Link href="/configuracoes" className="underline">
+              Configurações
+            </Link>
+            .
+          </div>
+        ) : null}
+        {credentialSource === "legacy" ? (
+          <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm font-semibold text-amber-900">
+            Esta oficina ainda usa a credencial global antiga. Salve o token próprio em{" "}
+            <Link href="/configuracoes" className="underline">
+              Configurações
+            </Link>
+            {" "}para concluir o isolamento fiscal.
           </div>
         ) : null}
 
@@ -210,7 +227,7 @@ export default async function FiscalPage({ searchParams }: { searchParams: Promi
           workshopPhone={config?.phone || user.workspace.phone}
           workshopEmail={config?.email || user.workspace.email}
           workshopAddress={config?.address}
-          fiscalConfigured={focusNfeConfigured()}
+          fiscalConfigured={fiscalConfigured}
         />
 
         <Card>

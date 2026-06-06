@@ -1,3 +1,5 @@
+import type { FiscalConfig } from "@prisma/client";
+import { decryptSecret } from "@/lib/secrets";
 import { ApiError } from "@/lib/validations";
 
 export type FocusEnvironment = "homologacao" | "producao";
@@ -18,12 +20,53 @@ export type FocusNfceResponse = {
   [key: string]: unknown;
 };
 
-function token() {
+type FocusCredentials = Pick<
+  FiscalConfig,
+  "focusHomologationTokenEncrypted" | "focusProductionTokenEncrypted"
+>;
+
+function legacyToken() {
   return process.env.FOCUS_NFE_TOKEN?.trim() || "";
 }
 
-export function focusNfeConfigured() {
-  return Boolean(token());
+function encryptedToken(config: FocusCredentials | null | undefined, environment: FocusEnvironment) {
+  return environment === "producao"
+    ? config?.focusProductionTokenEncrypted
+    : config?.focusHomologationTokenEncrypted;
+}
+
+export function focusNfeConfigured(
+  config: FocusCredentials | null | undefined,
+  environment: FocusEnvironment,
+) {
+  return Boolean(encryptedToken(config, environment) || legacyToken());
+}
+
+export function focusCredentialSource(
+  config: FocusCredentials | null | undefined,
+  environment: FocusEnvironment,
+) {
+  if (encryptedToken(config, environment)) return "workspace" as const;
+  if (legacyToken()) return "legacy" as const;
+  return "none" as const;
+}
+
+export function resolveFocusToken(
+  workspaceId: string,
+  config: FocusCredentials | null | undefined,
+  environment: FocusEnvironment,
+) {
+  const encrypted = encryptedToken(config, environment);
+  if (encrypted) {
+    return decryptSecret(encrypted, `focus-nfe:${workspaceId}:${environment}`);
+  }
+
+  const fallback = legacyToken();
+  if (fallback) return fallback;
+
+  throw new ApiError(
+    `Configure o token Focus NFe de ${environment === "producao" ? "produção" : "homologação"} nas configurações.`,
+  );
 }
 
 export function focusBaseUrl(environment: FocusEnvironment) {
@@ -63,14 +106,10 @@ function focusErrorMessage(body: unknown, fallback: string) {
 
 export async function focusRequest<T>(
   environment: FocusEnvironment,
+  apiToken: string,
   path: string,
   init: RequestInit = {},
 ) {
-  const apiToken = token();
-  if (!apiToken) {
-    throw new ApiError("Integração fiscal não configurada. Defina FOCUS_NFE_TOKEN na Vercel.");
-  }
-
   const response = await fetch(`${focusBaseUrl(environment)}${path}`, {
     ...init,
     cache: "no-store",

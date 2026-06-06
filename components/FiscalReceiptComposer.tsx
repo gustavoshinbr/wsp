@@ -307,7 +307,7 @@ export function FiscalReceiptComposer({
               type="button"
               onClick={issueNfce}
               disabled={mode !== "sale" || !selectedSource || issuing || !fiscalConfigured}
-              title={!fiscalConfigured ? "Configure FOCUS_NFE_TOKEN na Vercel" : undefined}
+              title={!fiscalConfigured ? "Configure o token Focus NFe desta oficina em Configurações" : undefined}
             >
               {issuing ? <Loader2 size={17} className="animate-spin" /> : <FileCheck2 size={17} />}
               Emitir NFC-e

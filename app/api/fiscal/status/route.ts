@@ -1,28 +1,39 @@
 import { NextResponse } from "next/server";
 import { requireApiUser } from "@/lib/auth";
-import { focusNfeConfigured, focusRequest, type FocusEnvironment } from "@/lib/focus-nfe";
+import {
+  focusCredentialSource,
+  focusNfeConfigured,
+  focusRequest,
+  resolveFocusToken,
+  type FocusEnvironment,
+} from "@/lib/focus-nfe";
 import { prisma } from "@/lib/prisma";
 import { apiError } from "@/lib/validations";
 import { onlyDigits } from "@/lib/utils";
 
 export async function GET() {
+  let configured = false;
   try {
     const user = await requireApiUser();
     const config = await prisma.fiscalConfig.findUnique({ where: { workspaceId: user.workspaceId } });
     const environment = (config?.environment === "producao" ? "producao" : "homologacao") as FocusEnvironment;
     const cnpj = onlyDigits(config?.cnpj || user.workspace.document);
+    configured = focusNfeConfigured(config, environment);
 
-    if (!focusNfeConfigured()) {
+    if (!configured) {
       return NextResponse.json({
         configured: false,
         connected: false,
         environment,
-        message: "FOCUS_NFE_TOKEN não foi configurado.",
+        credentialSource: "none",
+        message: `O token Focus NFe de ${environment === "producao" ? "produção" : "homologação"} não foi configurado para esta oficina.`,
       });
     }
 
+    const apiToken = resolveFocusToken(user.workspaceId, config, environment);
     const result = await focusRequest<unknown>(
       environment,
+      apiToken,
       `/v2/empresas?cnpj=${encodeURIComponent(cnpj)}`,
     );
     const companies = Array.isArray(result)
@@ -39,6 +50,7 @@ export async function GET() {
       configured: true,
       connected: true,
       environment,
+      credentialSource: focusCredentialSource(config, environment),
       companyFound: Boolean(company),
       nfceEnabled,
       certificateValidUntil: company?.certificado_valido_ate || null,
@@ -48,6 +60,6 @@ export async function GET() {
     });
   } catch (error) {
     const { message, status } = apiError(error);
-    return NextResponse.json({ configured: focusNfeConfigured(), connected: false, message }, { status });
+    return NextResponse.json({ configured, connected: false, message }, { status });
   }
 }

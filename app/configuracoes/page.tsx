@@ -6,15 +6,27 @@ import { Card } from "@/components/Card";
 import { PwaInstallButton } from "@/components/PwaInstall";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { requirePageUser } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { subscriptionMessage } from "@/lib/subscription";
 
 export default async function ConfiguracoesPage({ searchParams }: { searchParams: Promise<{ error?: string; success?: string }> }) {
   const query = await searchParams;
   const user = await requirePageUser({ allowExpiredSubscription: true });
   const isStaff = user.role === "STAFF";
+  const fiscalCredentials = isStaff
+    ? null
+    : await prisma.fiscalConfig.findUnique({
+        where: { workspaceId: user.workspaceId },
+        select: {
+          focusHomologationTokenLastFour: true,
+          focusProductionTokenLastFour: true,
+        },
+      });
   const successMessage =
     query.success === "stock-view"
       ? "Modo de exibição do estoque atualizado."
+      : query.success === "focus-nfe"
+        ? "Credenciais da Focus NFe atualizadas com segurança."
       : query.success
         ? "Senha atualizada."
         : null;
@@ -93,6 +105,92 @@ export default async function ConfiguracoesPage({ searchParams }: { searchParams
               <Button type="submit" className="w-full">Salvar exibicao</Button>
             </form>
           </Card>
+
+          {!isStaff ? (
+            <Card className="md:col-span-2">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <h2 className="flex items-center gap-2 font-black">
+                    <ReceiptText size={18} />
+                    Focus NFe por oficina
+                  </h2>
+                  <p className="mt-2 max-w-2xl text-sm text-racing-muted">
+                    Cadastre os tokens desta oficina. As credenciais ficam criptografadas e isoladas por workspace.
+                  </p>
+                </div>
+                <Link href="/fiscal" className="inline-flex items-center gap-2 text-sm font-black text-racing-red">
+                  <ShieldCheck size={16} />
+                  Completar dados fiscais
+                </Link>
+              </div>
+
+              <form action="/api/configuracoes/focus-nfe" method="post" autoComplete="off" className="mt-5 grid gap-4 sm:grid-cols-2">
+                <div className="space-y-3 rounded-xl border border-racing-line p-4">
+                  <div>
+                    <p className="font-black">Homologação</p>
+                    <p className="text-xs text-racing-muted">Use para testes antes de emitir documentos reais.</p>
+                  </div>
+                  <label className="block space-y-1.5 text-sm font-semibold">
+                    <span>
+                      Token
+                      {fiscalCredentials?.focusHomologationTokenLastFour ? (
+                        <span className="ml-2 rounded-full bg-emerald-100 px-2 py-1 text-xs text-emerald-800">
+                          configurado ••••{fiscalCredentials.focusHomologationTokenLastFour}
+                        </span>
+                      ) : null}
+                    </span>
+                    <input
+                      name="focusHomologationToken"
+                      type="password"
+                      className="h-11 rounded-lg px-3"
+                      placeholder={fiscalCredentials?.focusHomologationTokenLastFour ? "Deixe vazio para manter" : "Token de homologação"}
+                      autoComplete="new-password"
+                    />
+                  </label>
+                  {fiscalCredentials?.focusHomologationTokenLastFour ? (
+                    <label className="flex items-center gap-2 text-xs font-semibold text-racing-muted">
+                      <input name="removeHomologationToken" type="checkbox" className="h-4 w-4" />
+                      Remover token de homologação
+                    </label>
+                  ) : null}
+                </div>
+
+                <div className="space-y-3 rounded-xl border border-racing-line p-4">
+                  <div>
+                    <p className="font-black">Produção</p>
+                    <p className="text-xs text-racing-muted">Use somente após validar a emissão em homologação.</p>
+                  </div>
+                  <label className="block space-y-1.5 text-sm font-semibold">
+                    <span>
+                      Token
+                      {fiscalCredentials?.focusProductionTokenLastFour ? (
+                        <span className="ml-2 rounded-full bg-emerald-100 px-2 py-1 text-xs text-emerald-800">
+                          configurado ••••{fiscalCredentials.focusProductionTokenLastFour}
+                        </span>
+                      ) : null}
+                    </span>
+                    <input
+                      name="focusProductionToken"
+                      type="password"
+                      className="h-11 rounded-lg px-3"
+                      placeholder={fiscalCredentials?.focusProductionTokenLastFour ? "Deixe vazio para manter" : "Token de produção"}
+                      autoComplete="new-password"
+                    />
+                  </label>
+                  {fiscalCredentials?.focusProductionTokenLastFour ? (
+                    <label className="flex items-center gap-2 text-xs font-semibold text-racing-muted">
+                      <input name="removeProductionToken" type="checkbox" className="h-4 w-4" />
+                      Remover token de produção
+                    </label>
+                  ) : null}
+                </div>
+
+                <div className="sm:col-span-2">
+                  <Button type="submit">Salvar credenciais fiscais</Button>
+                </div>
+              </form>
+            </Card>
+          ) : null}
 
           <Card>
             <h2 className="flex items-center gap-2 font-black">

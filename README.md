@@ -91,10 +91,12 @@ Uploads de produtos usam Vercel Blob. Ao conectar o Blob ao projeto, a Vercel cr
 
 A tela `/fiscal` gera recibos não fiscais e integra a emissão de NFC-e com a Focus NFe.
 
-Configure na Vercel:
+Configure uma chave de criptografia estável na Vercel:
 
 ```text
-FOCUS_NFE_TOKEN="token_de_homologacao_ou_producao"
+FISCAL_CREDENTIALS_KEY="uma_chave_aleatoria_forte"
 ```
+
+Cada oficina cadastra seus próprios tokens de homologação e produção em `/configuracoes`. Os tokens são criptografados antes de serem armazenados e nunca são exibidos novamente. `FOCUS_NFE_TOKEN` existe apenas como compatibilidade temporária com a configuração global antiga.
 
 Antes de emitir, cadastre a empresa, certificado A1, CSC e habilitação de NFC-e na Focus NFe/SEFAZ. Comece em homologação e confirme NCM, CFOP, CSOSN, PIS e COFINS com a contabilidade. Serviços não são enviados na NFC-e; eles exigem NFS-e própria.

@@ -6,6 +6,7 @@ import {
   focusDocumentStatus,
   focusRequest,
   optionalFocusText,
+  resolveFocusToken,
   type FocusEnvironment,
   type FocusNfceResponse,
 } from "@/lib/focus-nfe";
@@ -16,14 +17,19 @@ export async function POST(_: Request, { params }: { params: Promise<{ id: strin
   try {
     const { id } = await params;
     const user = await requireApiUser();
-    const document = await prisma.fiscalDocument.findFirst({
-      where: { id, workspaceId: user.workspaceId, type: "NFCE" },
-    });
+    const [document, config] = await Promise.all([
+      prisma.fiscalDocument.findFirst({
+        where: { id, workspaceId: user.workspaceId, type: "NFCE" },
+      }),
+      prisma.fiscalConfig.findUnique({ where: { workspaceId: user.workspaceId } }),
+    ]);
     if (!document) throw new ApiError("Documento fiscal não encontrado.", 404);
 
     const environment = (document.environment === "producao" ? "producao" : "homologacao") as FocusEnvironment;
+    const apiToken = resolveFocusToken(user.workspaceId, config, environment);
     const response = await focusRequest<FocusNfceResponse>(
       environment,
+      apiToken,
       `/v2/nfce/${encodeURIComponent(document.reference)}?completa=1`,
     );
     const status = focusDocumentStatus(response.status);

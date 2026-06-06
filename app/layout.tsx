@@ -14,8 +14,11 @@ export const metadata: Metadata = {
     title: "WSP Racing",
   },
   icons: {
-    icon: "/api/pwa/icon/192",
-    apple: "/api/pwa/icon/192",
+    icon: [
+      { url: "/icons/wsp-app-icon-32.png", sizes: "32x32", type: "image/png" },
+      { url: "/icons/wsp-app-icon-192.png", sizes: "192x192", type: "image/png" },
+    ],
+    apple: "/icons/wsp-app-icon-180.png",
   },
 };
 

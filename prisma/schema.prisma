@@ -351,6 +351,10 @@ model FiscalConfig {
   email                 String?
   provider              String    @default("FOCUS_NFE")
   environment           String    @default("homologacao")
+  focusHomologationTokenEncrypted String?
+  focusHomologationTokenLastFour  String?
+  focusProductionTokenEncrypted   String?
+  focusProductionTokenLastFour    String?
   defaultNcm            String?
   defaultCfop           String    @default("5102")
   defaultCsosn          String    @default("102")
