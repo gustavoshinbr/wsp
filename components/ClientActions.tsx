@@ -8,6 +8,8 @@ type EditableClient = {
   id: string;
   name: string;
   phone: string;
+  document: string | null;
+  email: string | null;
   address: string | null;
 };
 
@@ -45,7 +47,7 @@ export function ClientActions({ client }: { client: EditableClient }) {
             <div className="flex items-start justify-between gap-4">
               <div>
                 <h2 className="text-xl font-black">Editar cliente</h2>
-                <p className="text-sm text-racing-muted">Atualize nome, telefone e endereço.</p>
+                <p className="text-sm text-racing-muted">Atualize os dados de contato e faturamento.</p>
               </div>
               <button
                 type="button"
@@ -67,6 +69,16 @@ export function ClientActions({ client }: { client: EditableClient }) {
                 <span>Telefone</span>
                 <input name="phone" required defaultValue={client.phone} className="h-11 rounded-lg px-3" />
               </label>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <label className="block space-y-1.5 text-sm font-semibold">
+                  <span>CPF/CNPJ</span>
+                  <input name="document" inputMode="numeric" defaultValue={client.document || ""} className="h-11 rounded-lg px-3" />
+                </label>
+                <label className="block space-y-1.5 text-sm font-semibold">
+                  <span>E-mail</span>
+                  <input name="email" type="email" defaultValue={client.email || ""} className="h-11 rounded-lg px-3" />
+                </label>
+              </div>
               <label className="block space-y-1.5 text-sm font-semibold">
                 <span>Endereço</span>
                 <input name="address" defaultValue={client.address || ""} className="h-11 rounded-lg px-3" />

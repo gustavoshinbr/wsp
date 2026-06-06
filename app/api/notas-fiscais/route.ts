@@ -13,7 +13,7 @@ export async function POST(req: Request) {
     const cnpj = normalizeDocument(formString(formData, "cnpj"));
     if (!companyName || cnpj.length !== 14) throw new ApiError("Empresa e CNPJ válido são obrigatórios.");
     const fiscalDefaults = {
-      provider: "FOCUS_NFE",
+      provider: "SEBRAE",
       environment: formString(formData, "environment") === "producao" ? "producao" : "homologacao",
       defaultNcm: normalizeDocument(formString(formData, "defaultNcm")) || null,
       defaultCfop: normalizeDocument(formString(formData, "defaultCfop")) || "5102",

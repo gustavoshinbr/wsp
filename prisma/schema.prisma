@@ -55,6 +55,7 @@ enum FiscalDocumentType {
 }
 
 enum FiscalDocumentStatus {
+  DRAFT
   PROCESSING
   AUTHORIZED
   REJECTED
@@ -120,6 +121,8 @@ model Client {
   workspace    Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   name         String
   phone        String
+  document     String?
+  email        String?
   address      String?
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
@@ -349,12 +352,8 @@ model FiscalConfig {
   address               String?
   phone                 String?
   email                 String?
-  provider              String    @default("FOCUS_NFE")
+  provider              String    @default("SEBRAE")
   environment           String    @default("homologacao")
-  focusHomologationTokenEncrypted String?
-  focusHomologationTokenLastFour  String?
-  focusProductionTokenEncrypted   String?
-  focusProductionTokenLastFour    String?
   defaultNcm            String?
   defaultCfop           String    @default("5102")
   defaultCsosn          String    @default("102")
@@ -386,6 +385,7 @@ model FiscalDocument {
   danfeUrl       String?
   xmlUrl         String?
   qrCodeUrl      String?
+  xmlContent     String?
   payload        Json?
   response       Json?
   createdAt      DateTime             @default(now())

@@ -2,13 +2,14 @@ import { NextResponse } from "next/server";
 import { requireApiUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { apiError, ApiError } from "@/lib/validations";
-import { formString } from "@/lib/utils";
+import { formString, normalizeDocument } from "@/lib/utils";
 
 export async function GET(req: Request) {
   try {
     const user = await requireApiUser();
     const { searchParams } = new URL(req.url);
     const q = searchParams.get("q")?.trim();
+    const documentQuery = normalizeDocument(q || "");
 
     const clients = await prisma.client.findMany({
       where: {
@@ -18,6 +19,8 @@ export async function GET(req: Request) {
               OR: [
                 { name: { contains: q, mode: "insensitive" } },
                 { phone: { contains: q } },
+                ...(documentQuery ? [{ document: { contains: documentQuery } }] : []),
+                { email: { contains: q, mode: "insensitive" } },
                 { motorcycles: { some: { plate: { contains: q, mode: "insensitive" } } } },
               ],
             }
@@ -78,6 +81,8 @@ export async function POST(req: Request) {
           workspaceId: user.workspaceId,
           name,
           phone,
+          document: normalizeDocument(formString(formData, "document")) || null,
+          email: formString(formData, "email").toLowerCase() || null,
           address: formString(formData, "address") || null,
           motorcycles: plate
             ? {

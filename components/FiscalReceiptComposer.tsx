@@ -1,7 +1,6 @@
 "use client";
 
-import { AlertTriangle, CheckCircle2, FileCheck2, Loader2, PlugZap } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { AlertTriangle, CheckCircle2, ExternalLink, FileCheck2, Loader2 } from "lucide-react";
 import { useId, useMemo, useState } from "react";
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
@@ -42,7 +41,7 @@ export function FiscalReceiptComposer({
   workshopPhone,
   workshopEmail,
   workshopAddress,
-  fiscalConfigured,
+  fiscalReady,
 }: {
   clients: Array<{ id: string; name: string; phone: string }>;
   motorcycles: Array<{ id: string; plate: string; brand: string | null; model: string | null; clientId: string }>;
@@ -55,7 +54,7 @@ export function FiscalReceiptComposer({
   workshopPhone?: string | null;
   workshopEmail?: string | null;
   workshopAddress?: string | null;
-  fiscalConfigured: boolean;
+  fiscalReady: boolean;
 }) {
   const initialMode = sales.length ? "sale" : quotes.length ? "quote" : "manual";
   const [mode, setMode] = useState<"manual" | "quote" | "sale">(initialMode);
@@ -63,10 +62,8 @@ export function FiscalReceiptComposer({
   const [selectedClientId, setSelectedClientId] = useState(clients[0]?.id || "");
   const [selectedMotorcycleId, setSelectedMotorcycleId] = useState("");
   const [cart, setCart] = useState<CartSummary>({ rows: [], laborDescription: "", laborValue: "" });
-  const [testing, setTesting] = useState(false);
   const [issuing, setIssuing] = useState(false);
   const [feedback, setFeedback] = useState<{ tone: "success" | "error" | "info"; message: string } | null>(null);
-  const router = useRouter();
   const stableId = useId().replace(/:/g, "");
   const thermalId = `receipt-${stableId}`;
 
@@ -168,48 +165,33 @@ export function FiscalReceiptComposer({
     if (nextMode === "quote") setSelectedSourceId(quotes[0]?.id || "");
   }
 
-  async function testIntegration() {
-    setTesting(true);
-    setFeedback(null);
-    try {
-      const response = await fetch("/api/fiscal/status", { cache: "no-store" });
-      const body = await response.json();
-      setFeedback({
-        tone: response.ok && body.connected ? "success" : "error",
-        message: body.nfceEnabled === false
-          ? `${body.message} A NFC-e ainda não está habilitada para este CNPJ.`
-          : body.message,
-      });
-    } catch {
-      setFeedback({ tone: "error", message: "Não foi possível testar a conexão fiscal." });
-    } finally {
-      setTesting(false);
-    }
-  }
-
-  async function issueNfce() {
+  async function prepareNfe() {
     if (mode !== "sale" || !selectedSource) return;
+    const guideWindow = window.open("", "_blank");
     setIssuing(true);
     setFeedback(null);
     try {
-      const response = await fetch("/api/fiscal/nfce", {
+      const response = await fetch("/api/fiscal/sebrae/prepare", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ saleId: selectedSource.id }),
       });
       const body = await response.json();
-      if (!response.ok) throw new Error(body.error || "Falha na emissão.");
+      if (!response.ok) throw new Error(body.error || "Falha ao preparar a NF-e.");
 
       const excluded = Number(body.servicesExcluded || 0);
       setFeedback({
-        tone: body.ok ? "success" : "info",
-        message: body.ok
-          ? `NFC-e autorizada${body.document?.number ? `, número ${body.document.number}` : ""}.${excluded ? ` ${excluded} item(ns) de serviço não foram incluídos.` : ""}`
-          : body.document?.message || "Documento enviado para processamento.",
+        tone: "success",
+        message: `Ficha da NF-e preparada.${excluded ? ` ${excluded} item(ns) de serviço devem ser emitidos por NFS-e.` : ""}`,
       });
-      router.refresh();
+      if (guideWindow) {
+        guideWindow.location.href = body.guideUrl;
+      } else {
+        window.location.href = body.guideUrl;
+      }
     } catch (error) {
-      setFeedback({ tone: "error", message: error instanceof Error ? error.message : "Falha na emissão." });
+      guideWindow?.close();
+      setFeedback({ tone: "error", message: error instanceof Error ? error.message : "Falha ao preparar a NF-e." });
     } finally {
       setIssuing(false);
     }
@@ -220,10 +202,10 @@ export function FiscalReceiptComposer({
       <Card>
         <div className="space-y-4">
           <div>
-            <p className="text-sm font-black uppercase text-racing-red">Comprovante e NFC-e</p>
+            <p className="text-sm font-black uppercase text-racing-red">Comprovante e NF-e</p>
             <h2 className="mt-1 text-2xl font-black">Cupom da venda</h2>
             <p className="mt-1 text-sm text-racing-muted">
-              Gere um recibo térmico ou transmita as mercadorias de uma venda para a Focus NFe.
+              Gere um recibo térmico ou prepare os dados para emitir gratuitamente no Emissor Sebrae.
             </p>
           </div>
 
@@ -282,7 +264,7 @@ export function FiscalReceiptComposer({
               Recibo não é nota fiscal
             </p>
             <p className="mt-1">
-              A impressão abaixo é um comprovante. A NFC-e válida só existe após autorização da SEFAZ.
+              A impressão abaixo é um comprovante. A NF-e válida só existe após assinatura e autorização da SEFAZ.
             </p>
           </div>
 
@@ -299,18 +281,23 @@ export function FiscalReceiptComposer({
           ) : null}
 
           <div className="grid gap-2 sm:grid-cols-2">
-            <Button type="button" variant="outline" onClick={testIntegration} disabled={testing}>
-              {testing ? <Loader2 size={17} className="animate-spin" /> : <PlugZap size={17} />}
-              Testar API fiscal
-            </Button>
+            <a
+              href="https://sebrae.com.br/subsites/emissor-nf-e"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-racing-line bg-racing-panel px-4 py-2 text-sm font-bold"
+            >
+              Abrir Emissor Sebrae
+              <ExternalLink size={17} />
+            </a>
             <Button
               type="button"
-              onClick={issueNfce}
-              disabled={mode !== "sale" || !selectedSource || issuing || !fiscalConfigured}
-              title={!fiscalConfigured ? "Configure o token Focus NFe desta oficina em Configurações" : undefined}
+              onClick={prepareNfe}
+              disabled={mode !== "sale" || !selectedSource || issuing || !fiscalReady}
+              title={!fiscalReady ? "Complete os dados fiscais desta oficina" : undefined}
             >
               {issuing ? <Loader2 size={17} className="animate-spin" /> : <FileCheck2 size={17} />}
-              Emitir NFC-e
+              Preparar NF-e grátis
             </Button>
           </div>
         </div>

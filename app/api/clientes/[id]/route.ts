@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { requireApiUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { apiError, ApiError } from "@/lib/validations";
-import { formString } from "@/lib/utils";
+import { formString, normalizeDocument } from "@/lib/utils";
 
 async function ensureClient(id: string, workspaceId: string) {
   const client = await prisma.client.findFirst({ where: { id, workspaceId } });
@@ -46,6 +46,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
         data: {
           name,
           phone,
+          document: normalizeDocument(formString(formData, "document")) || null,
+          email: formString(formData, "email").toLowerCase() || null,
           address: formString(formData, "address") || null,
         },
       });

@@ -11,14 +11,17 @@ export default async function ClientesPage({ searchParams }: { searchParams: Pro
   const query = await searchParams;
   const user = await requirePageUser();
   const q = query.q?.trim();
+  const documentQuery = q?.replace(/\D/g, "") || "";
   const clients = await prisma.client.findMany({
     where: {
       workspaceId: user.workspaceId,
       ...(q
         ? {
             OR: [
-              { name: { contains: q, mode: "insensitive" } },
-              { phone: { contains: q } },
+                { name: { contains: q, mode: "insensitive" } },
+                { phone: { contains: q } },
+                ...(documentQuery ? [{ document: { contains: documentQuery } }] : []),
+                { email: { contains: q, mode: "insensitive" } },
               { motorcycles: { some: { plate: { contains: q, mode: "insensitive" } } } },
             ],
           }
@@ -31,6 +34,8 @@ export default async function ClientesPage({ searchParams }: { searchParams: Pro
     id: client.id,
     name: client.name,
     phone: client.phone,
+    document: client.document,
+    email: client.email,
     address: client.address,
   });
 
@@ -49,6 +54,10 @@ export default async function ClientesPage({ searchParams }: { searchParams: Pro
             <form action="/api/clientes" method="post" className="mt-4 space-y-3">
               <input name="name" required className="h-11 rounded-lg px-3" placeholder="Nome completo" />
               <input name="phone" required className="h-11 rounded-lg px-3" placeholder="Telefone" />
+              <div className="grid gap-3 sm:grid-cols-2">
+                <input name="document" inputMode="numeric" className="h-11 rounded-lg px-3" placeholder="CPF ou CNPJ" />
+                <input name="email" type="email" className="h-11 rounded-lg px-3" placeholder="E-mail para NF-e" />
+              </div>
               <input name="address" className="h-11 rounded-lg px-3" placeholder="Endereço" />
               <div className="grid gap-3 sm:grid-cols-2">
                 <input name="plate" className="h-11 rounded-lg px-3" placeholder="Placa" />
@@ -81,6 +90,7 @@ export default async function ClientesPage({ searchParams }: { searchParams: Pro
                     <div>
                       <p className="font-black">{client.name}</p>
                       <p className="text-sm text-racing-muted">{client.phone}</p>
+                      {client.document ? <p className="text-xs text-racing-muted">{client.document}</p> : null}
                     </div>
                   ),
                 },

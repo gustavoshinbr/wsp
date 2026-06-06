@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ExternalLink, FileCheck2, Settings2 } from "lucide-react";
+import { ExternalLink, FileCheck2, FileUp, Settings2 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Badge } from "@/components/Badge";
 import { Button } from "@/components/Button";
@@ -7,7 +7,6 @@ import { Card } from "@/components/Card";
 import { FiscalReceiptComposer } from "@/components/FiscalReceiptComposer";
 import { requirePageUser } from "@/lib/auth";
 import { brl } from "@/lib/currency";
-import { focusCredentialSource, focusNfeConfigured } from "@/lib/focus-nfe";
 import { prisma } from "@/lib/prisma";
 
 export default async function FiscalPage({ searchParams }: { searchParams: Promise<{ error?: string; success?: string }> }) {
@@ -15,6 +14,7 @@ export default async function FiscalPage({ searchParams }: { searchParams: Promi
   const user = await requirePageUser();
   const canConfigureFiscal = user.role === "OWNER" || user.role === "ADMIN";
   const fiscalStatusLabels: Record<string, string> = {
+    DRAFT: "Rascunho",
     PROCESSING: "Processando",
     AUTHORIZED: "Autorizada",
     REJECTED: "Rejeitada",
@@ -94,37 +94,34 @@ export default async function FiscalPage({ searchParams }: { searchParams: Promi
       total: Number(item.total),
     })),
   }));
-  const focusEnvironment = config?.environment === "producao" ? "producao" : "homologacao";
-  const fiscalConfigured = focusNfeConfigured(config, focusEnvironment);
-  const credentialSource = focusCredentialSource(config, focusEnvironment);
+  const fiscalReady = Boolean(config?.companyName && String(config?.cnpj || "").replace(/\D/g, "").length === 14);
 
   return (
     <AppShell>
       <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-black">Fiscal e recibos</h1>
-          <p className="text-sm text-racing-muted">Recibos térmicos e integração de NFC-e com a Focus NFe.</p>
+          <p className="text-sm text-racing-muted">Recibos térmicos e preparação de NF-e para emissão gratuita no Sebrae.</p>
         </div>
         {query.error ? <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-700">{query.error}</div> : null}
-        {query.success ? <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm font-semibold text-emerald-700">Dados fiscais salvos.</div> : null}
-        {!fiscalConfigured ? (
-          <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm font-semibold text-amber-900">
-            Configure o token Focus NFe de {focusEnvironment === "producao" ? "produção" : "homologação"} desta oficina em{" "}
-            <Link href="/configuracoes" className="underline">
-              Configurações
-            </Link>
-            .
+        {query.success ? (
+          <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm font-semibold text-emerald-700">
+            {query.success === "sebrae-imported" ? "XML da NF-e autorizado e arquivado." : "Dados fiscais salvos."}
           </div>
         ) : null}
-        {credentialSource === "legacy" ? (
+        {!fiscalReady ? (
           <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm font-semibold text-amber-900">
-            Esta oficina ainda usa a credencial global antiga. Salve o token próprio em{" "}
-            <Link href="/configuracoes" className="underline">
-              Configurações
-            </Link>
-            {" "}para concluir o isolamento fiscal.
+            Complete o nome da empresa e o CNPJ na configuração fiscal antes de preparar uma NF-e.
           </div>
         ) : null}
+
+        <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-950">
+          <strong>Emissão gratuita:</strong> o WSP prepara e valida os dados. A assinatura e transmissão são concluídas no{" "}
+          <a href="https://sebrae.com.br/subsites/emissor-nf-e" target="_blank" rel="noreferrer" className="font-black underline">
+            Emissor Sebrae
+          </a>
+          , que não cobra por nota. Conta Sebrae, credenciamento na SEFAZ e certificado digital são obrigatórios; o certificado pode ter custo externo.
+        </div>
 
         {canConfigureFiscal ? (
           <Card>
@@ -227,7 +224,7 @@ export default async function FiscalPage({ searchParams }: { searchParams: Promi
           workshopPhone={config?.phone || user.workspace.phone}
           workshopEmail={config?.email || user.workspace.email}
           workshopAddress={config?.address}
-          fiscalConfigured={fiscalConfigured}
+          fiscalReady={fiscalReady}
         />
 
         <Card>
@@ -242,7 +239,7 @@ export default async function FiscalPage({ searchParams }: { searchParams: Promi
                 <div key={document.id} className="flex flex-col gap-3 rounded-lg border border-racing-line p-3 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
-                      <strong>NFC-e {document.number ? `#${document.number}` : `#${document.reference.slice(-8)}`}</strong>
+                      <strong>{document.type === "NFCE" ? "NFC-e" : "NF-e"} {document.number ? `#${document.number}` : `#${document.reference.slice(-8)}`}</strong>
                       <Badge tone={tone}>{fiscalStatusLabels[document.status] || document.status}</Badge>
                       <Badge>{document.environment === "producao" ? "Produção" : "Homologação"}</Badge>
                     </div>
@@ -253,9 +250,30 @@ export default async function FiscalPage({ searchParams }: { searchParams: Promi
                     {document.message ? <p className="mt-1 text-xs font-semibold text-racing-muted">{document.message}</p> : null}
                   </div>
                   <div className="flex flex-wrap gap-2">
+                    {document.provider === "SEBRAE" ? (
+                      <Link href={`/fiscal/sebrae/${document.id}`} className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-racing-line px-3 text-sm font-bold">
+                        Ficha Sebrae <ExternalLink size={15} />
+                      </Link>
+                    ) : null}
+                    {document.provider === "SEBRAE" && document.status !== "AUTHORIZED" ? (
+                      <form action={`/api/fiscal/sebrae/${document.id}/import`} method="post" encType="multipart/form-data" className="flex items-center gap-2">
+                        <input
+                          name="xml"
+                          type="file"
+                          accept=".xml,application/xml,text/xml"
+                          required
+                          aria-label="XML autorizado"
+                          className="max-w-44 rounded-lg border border-racing-line p-2 text-xs"
+                        />
+                        <button type="submit" className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-racing-red px-3 text-sm font-bold text-white">
+                          <FileUp size={15} />
+                          Importar
+                        </button>
+                      </form>
+                    ) : null}
                     {document.danfeUrl ? (
                       <a href={document.danfeUrl} target="_blank" rel="noreferrer" className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-racing-line px-3 text-sm font-bold">
-                        DANFC-e <ExternalLink size={15} />
+                        {document.type === "NFCE" ? "DANFC-e" : "DANFE"} <ExternalLink size={15} />
                       </a>
                     ) : null}
                     {document.xmlUrl ? (

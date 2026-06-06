@@ -89,14 +89,13 @@ Uploads de produtos usam Vercel Blob. Ao conectar o Blob ao projeto, a Vercel cr
 
 ## Emissão fiscal
 
-A tela `/fiscal` gera recibos não fiscais e integra a emissão de NFC-e com a Focus NFe.
+A tela `/fiscal` gera recibos não fiscais e prepara NF-e de mercadorias para emissão gratuita no Emissor Sebrae.
 
-Configure uma chave de criptografia estável na Vercel:
+Fluxo:
 
-```text
-FISCAL_CREDENTIALS_KEY="uma_chave_aleatoria_forte"
-```
+1. Complete os dados fiscais da oficina e dos produtos.
+2. Selecione uma venda e gere a ficha de preparação.
+3. Confira, assine e transmita no portal `https://emissornfe.sebrae.com.br`.
+4. Baixe o XML autorizado no Sebrae e importe no WSP para arquivamento.
 
-Cada oficina cadastra seus próprios tokens de homologação e produção em `/configuracoes`. Os tokens são criptografados antes de serem armazenados e nunca são exibidos novamente. `FOCUS_NFE_TOKEN` existe apenas como compatibilidade temporária com a configuração global antiga.
-
-Antes de emitir, cadastre a empresa, certificado A1, CSC e habilitação de NFC-e na Focus NFe/SEFAZ. Comece em homologação e confirme NCM, CFOP, CSOSN, PIS e COFINS com a contabilidade. Serviços não são enviados na NFC-e; eles exigem NFS-e própria.
+O Sebrae não oferece API pública para transmissão automática. O uso do emissor não tem cobrança por nota, mas o certificado digital pode ter custo externo. A assinatura fiscal permanece no portal oficial e exige Conta Sebrae, credenciamento na SEFAZ e certificado digital A1 ou A3. Comece em homologação e confirme NCM, CFOP, CSOSN, PIS e COFINS com a contabilidade. Serviços não fazem parte da NF-e de mercadorias e devem ser emitidos por NFS-e.

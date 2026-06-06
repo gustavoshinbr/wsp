@@ -19,6 +19,7 @@
     "bcryptjs": "latest",
     "clsx": "^2.1.1",
     "date-fns": "^4.2.1",
+    "fast-xml-parser": "^5.8.0",
     "jspdf": "^4.2.1",
     "jspdf-autotable": "^5.0.8",
     "lucide-react": "latest",

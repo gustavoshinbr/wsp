@@ -29,7 +29,7 @@ export const navGroups = [
       { href: "/vendas", label: "Vendas", icon: ShoppingCart },
       { href: "/vendas-a-prazo", label: "Vendas a prazo", icon: Clock3 },
       { href: "/orcamentos", label: "Orçamentos", icon: FileText },
-      { href: "/fiscal", label: "Cupom Fiscal", icon: ReceiptText },
+      { href: "/fiscal", label: "Fiscal e NF-e", icon: ReceiptText },
       { href: "/estoque", label: "Estoque", icon: Package },
       { href: "/servicos", label: "Serviços", icon: Wrench },
     ],
