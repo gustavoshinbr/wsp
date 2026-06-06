@@ -94,7 +94,7 @@ export default async function FiscalPage({ searchParams }: { searchParams: Promi
       total: Number(item.total),
     })),
   }));
-  const fiscalReady = Boolean(config?.companyName && String(config?.cnpj || "").replace(/\D/g, "").length === 14);
+  const fiscalReady = String(config?.cnpj || user.workspace.document || "").replace(/\D/g, "").length === 14;
 
   return (
     <AppShell>
@@ -111,7 +111,7 @@ export default async function FiscalPage({ searchParams }: { searchParams: Promi
         ) : null}
         {!fiscalReady ? (
           <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm font-semibold text-amber-900">
-            Complete o nome da empresa e o CNPJ na configuração fiscal antes de preparar uma NF-e.
+            O botão está disponível, mas a preparação só será concluída após cadastrar o CNPJ da oficina na configuração fiscal.
           </div>
         ) : null}
 
@@ -224,7 +224,6 @@ export default async function FiscalPage({ searchParams }: { searchParams: Promi
           workshopPhone={config?.phone || user.workspace.phone}
           workshopEmail={config?.email || user.workspace.email}
           workshopAddress={config?.address}
-          fiscalReady={fiscalReady}
         />
 
         <Card>

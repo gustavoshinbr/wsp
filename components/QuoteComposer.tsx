@@ -1,12 +1,11 @@
 "use client";
 
-import { FileText, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
 import { CartBuilder, CartSummary } from "@/components/CartBuilder";
-import { QuotePreview } from "@/components/QuotePreview";
 import { brl } from "@/lib/currency";
 
 export function QuoteComposer({
@@ -14,26 +13,18 @@ export function QuoteComposer({
   motorcycles,
   products,
   services,
-  workshopName,
-  workshopPhone,
-  workshopEmail,
 }: {
   clients: Array<{ id: string; name: string; phone: string }>;
   motorcycles: Array<{ id: string; plate: string; brand: string | null; model: string | null; clientId: string }>;
   products: Array<{ id: string; name: string; barcode: string | null; sellPrice: number; quantity: number }>;
   services: Array<{ id: string; name: string; price: number }>;
-  workshopName: string;
-  workshopPhone?: string | null;
-  workshopEmail?: string | null;
 }) {
   const [selectedClientId, setSelectedClientId] = useState(clients[0]?.id || "");
   const [selectedMotorcycleId, setSelectedMotorcycleId] = useState("");
   const [notes, setNotes] = useState("");
   const [cart, setCart] = useState<CartSummary>({ rows: [], laborDescription: "", laborValue: "" });
 
-  const selectedClient = clients.find((client) => client.id === selectedClientId) || clients[0];
   const clientMotorcycles = motorcycles.filter((motorcycle) => motorcycle.clientId === selectedClientId);
-  const selectedMotorcycle = clientMotorcycles.find((motorcycle) => motorcycle.id === selectedMotorcycleId) || null;
 
   useEffect(() => {
     if (selectedMotorcycleId && !clientMotorcycles.some((motorcycle) => motorcycle.id === selectedMotorcycleId)) {
@@ -103,32 +94,14 @@ export function QuoteComposer({
     return items;
   }, [cart, products, services]);
 
-  const previewQuote = useMemo(
-    () => ({
-      id: "draft",
-      status: "DRAFT",
-      total: draftItems.reduce((sum, item) => sum + item.total, 0),
-      notes,
-      createdAt: new Date(),
-      client: selectedClient
-        ? { name: selectedClient.name, phone: selectedClient.phone }
-        : { name: "Cliente", phone: "-" },
-      motorcycle: selectedMotorcycle
-        ? {
-            plate: selectedMotorcycle.plate,
-            brand: selectedMotorcycle.brand,
-            model: selectedMotorcycle.model,
-          }
-        : null,
-      items: draftItems,
-    }),
-    [draftItems, notes, selectedClient, selectedMotorcycle],
+  const quoteTotal = useMemo(
+    () => draftItems.reduce((sum, item) => sum + item.total, 0),
+    [draftItems],
   );
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
-      <Card>
-        <form action="/api/orcamentos" method="post" className="space-y-4">
+    <Card>
+      <form action="/api/orcamentos" method="post" className="space-y-4">
           <div>
             <p className="text-sm font-black uppercase text-racing-red">Emissão rápida</p>
             <h2 className="mt-1 text-2xl font-black">Montar orçamento</h2>
@@ -193,34 +166,14 @@ export function QuoteComposer({
 
           <div className="rounded-lg border border-racing-line bg-racing-panel p-3">
             <p className="text-sm font-black">Total do orçamento</p>
-            <p className="mt-1 text-3xl font-black">{brl(previewQuote.total)}</p>
+            <p className="mt-1 text-3xl font-black">{brl(quoteTotal)}</p>
           </div>
 
           <Button type="submit" className="w-full" disabled={!clients.length || !draftItems.length}>
             <Plus size={17} />
             Salvar orçamento
           </Button>
-        </form>
-      </Card>
-
-      <Card className="h-fit">
-        <div>
-          <p className="flex items-center gap-2 text-sm font-black uppercase text-racing-red">
-            <FileText size={16} />
-            Prévia
-          </p>
-          <h2 className="mt-1 text-2xl font-black">Documento de orçamento</h2>
-        </div>
-        <div className="mt-4">
-          <QuotePreview
-            quote={previewQuote}
-            workshopName={workshopName}
-            workshopPhone={workshopPhone}
-            workshopEmail={workshopEmail}
-            disablePdf={!draftItems.length}
-          />
-        </div>
-      </Card>
-    </div>
+      </form>
+    </Card>
   );
 }

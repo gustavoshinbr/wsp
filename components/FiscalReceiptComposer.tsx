@@ -41,7 +41,6 @@ export function FiscalReceiptComposer({
   workshopPhone,
   workshopEmail,
   workshopAddress,
-  fiscalReady,
 }: {
   clients: Array<{ id: string; name: string; phone: string }>;
   motorcycles: Array<{ id: string; plate: string; brand: string | null; model: string | null; clientId: string }>;
@@ -54,7 +53,6 @@ export function FiscalReceiptComposer({
   workshopPhone?: string | null;
   workshopEmail?: string | null;
   workshopAddress?: string | null;
-  fiscalReady: boolean;
 }) {
   const initialMode = sales.length ? "sale" : quotes.length ? "quote" : "manual";
   const [mode, setMode] = useState<"manual" | "quote" | "sale">(initialMode);
@@ -293,8 +291,7 @@ export function FiscalReceiptComposer({
             <Button
               type="button"
               onClick={prepareNfe}
-              disabled={mode !== "sale" || !selectedSource || issuing || !fiscalReady}
-              title={!fiscalReady ? "Complete os dados fiscais desta oficina" : undefined}
+              disabled={mode !== "sale" || !selectedSource || issuing}
             >
               {issuing ? <Loader2 size={17} className="animate-spin" /> : <FileCheck2 size={17} />}
               Preparar NF-e grátis

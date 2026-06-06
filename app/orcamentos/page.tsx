@@ -76,9 +76,6 @@ export default async function OrcamentosPage({ searchParams }: { searchParams: P
             motorcycles={motorcycles}
             products={quoteProducts}
             services={quoteServices}
-            workshopName={user.workspace.workshopName}
-            workshopPhone={user.workspace.phone}
-            workshopEmail={user.workspace.email}
           />
 
           <Card className="h-fit p-4 sm:p-5 xl:sticky xl:top-6">

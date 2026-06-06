@@ -28,7 +28,7 @@ export async function POST(req: Request) {
     const body = (await req.json()) as PrepareBody;
     if (!body.saleId) throw new ApiError("Selecione uma venda para preparar a NF-e.");
 
-    const [config, sale, existing] = await Promise.all([
+    const [storedConfig, sale, existing] = await Promise.all([
       prisma.fiscalConfig.findUnique({ where: { workspaceId: user.workspaceId } }),
       prisma.sale.findFirst({
         where: { id: body.saleId, workspaceId: user.workspaceId },
@@ -48,12 +48,24 @@ export async function POST(req: Request) {
       }),
     ]);
 
-    if (!config) throw new ApiError("Salve os dados fiscais da oficina antes de preparar a NF-e.");
     if (!sale) throw new ApiError("Venda não encontrada.", 404);
     if (existing?.status === "AUTHORIZED") throw new ApiError("Esta venda já possui uma NF-e autorizada.");
 
-    const cnpj = onlyDigits(config.cnpj);
-    if (cnpj.length !== 14) throw new ApiError("Informe um CNPJ válido nos dados fiscais.");
+    const cnpj = onlyDigits(storedConfig?.cnpj || user.workspace.document);
+    if (cnpj.length !== 14) {
+      throw new ApiError("A emissão de NF-e exige o CNPJ da oficina. Atualize os dados na configuração fiscal.");
+    }
+    const config = storedConfig || await prisma.fiscalConfig.create({
+      data: {
+        workspaceId: user.workspaceId,
+        companyName: user.workspace.workshopName,
+        cnpj,
+        phone: user.workspace.phone,
+        email: user.workspace.email,
+        provider: "SEBRAE",
+        environment: "homologacao",
+      },
+    });
 
     const productItems = sale.items.filter((item) => item.type === "PRODUCT");
     const serviceItems = sale.items.filter((item) => item.type !== "PRODUCT");
