@@ -1,7 +1,11 @@
+import "@neondatabase/auth-ui/css";
 import "./globals.css";
 import type { Metadata, Viewport } from "next";
+import { AsyncFormBridge } from "@/components/AsyncFormBridge";
+import { NeonAuthProvider } from "@/components/NeonAuthProvider";
 import { PwaInstaller } from "@/components/PwaInstall";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { SystemDialogProvider } from "@/components/SystemDialogProvider";
 
 export const metadata: Metadata = {
   applicationName: "WSP Racing",
@@ -31,8 +35,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="pt-BR" suppressHydrationWarning>
       <body>
         <ThemeProvider>
-          <PwaInstaller />
-          {children}
+          <NeonAuthProvider>
+            <SystemDialogProvider>
+              <PwaInstaller />
+              <AsyncFormBridge />
+              {children}
+            </SystemDialogProvider>
+          </NeonAuthProvider>
         </ThemeProvider>
       </body>
     </html>

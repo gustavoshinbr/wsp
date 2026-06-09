@@ -1,7 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { Pencil, X } from "lucide-react";
+import { ChevronDown, Pencil, X } from "lucide-react";
+import { ActionModal } from "@/components/ActionModal";
 import { ConfirmSubmitButton } from "@/components/ConfirmSubmitButton";
 
 type EditableProduct = {
@@ -19,7 +20,7 @@ type EditableProduct = {
   fiscalOrigin: string | null;
 };
 
-export function ProductStockActions({ product }: { product: EditableProduct }) {
+export function ProductStockActions({ product, canDelete }: { product: EditableProduct; canDelete: boolean }) {
   const [editing, setEditing] = React.useState(false);
 
   return (
@@ -34,38 +35,35 @@ export function ProductStockActions({ product }: { product: EditableProduct }) {
         >
           <Pencil size={17} />
         </button>
-        <form action={`/api/produtos/${product.id}`} method="post">
-          <input type="hidden" name="_method" value="delete" />
-          <ConfirmSubmitButton
-            message={`Excluir o produto "${product.name}"?`}
-            title="Excluir produto"
-            aria-label={`Excluir ${product.name}`}
-            className="grid h-10 w-10 place-items-center rounded-lg border border-red-200 bg-red-50 text-red-600 hover:bg-red-100 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200"
-          >
-            <X size={18} />
-          </ConfirmSubmitButton>
-        </form>
+        {canDelete ? (
+          <form action={`/api/produtos/${product.id}`} method="post">
+            <input type="hidden" name="_method" value="delete" />
+            <ConfirmSubmitButton
+              message={`Excluir o produto "${product.name}"?`}
+              title="Excluir produto"
+              aria-label={`Excluir ${product.name}`}
+              className="grid h-10 w-10 place-items-center rounded-lg border border-red-200 bg-red-50 text-red-600 hover:bg-red-100 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200"
+            >
+              <X size={18} />
+            </ConfirmSubmitButton>
+          </form>
+        ) : null}
       </div>
 
-      {editing ? (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4">
-          <div className="w-full max-w-lg rounded-lg border border-racing-line bg-racing-panel p-5 shadow-2xl">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <h2 className="text-xl font-black">Editar produto</h2>
-                <p className="text-sm text-racing-muted">Atualize os dados do estoque.</p>
-              </div>
-              <button
-                type="button"
-                aria-label="Fechar edição"
-                onClick={() => setEditing(false)}
-                className="grid h-10 w-10 place-items-center rounded-lg border border-racing-line text-racing-muted"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            <form action={`/api/produtos/${product.id}`} method="post" className="mt-5 space-y-3">
+      <ActionModal
+        open={editing}
+        onClose={() => setEditing(false)}
+        title="Editar produto"
+        description="Atualize os dados do estoque."
+        maxWidth="max-w-lg"
+      >
+            <form
+              action={`/api/produtos/${product.id}`}
+              method="post"
+              data-reset-on-success="true"
+              onSubmit={(event) => event.currentTarget.addEventListener("wsp:success", () => setEditing(false), { once: true })}
+              className="mt-5 space-y-3"
+            >
               <input type="hidden" name="_method" value="update" />
               <label className="block space-y-1.5 text-sm font-semibold">
                 <span>Produto</span>
@@ -113,8 +111,15 @@ export function ProductStockActions({ product }: { product: EditableProduct }) {
                 <span>QR Code</span>
                 <input name="qrCode" defaultValue={product.qrCode || ""} className="h-11 rounded-lg px-3" />
               </label>
-              <details className="rounded-lg border border-racing-line p-3">
-                <summary className="cursor-pointer text-sm font-black">Dados fiscais</summary>
+              <details className="group rounded-lg border border-racing-line p-3">
+                <summary className="flex min-h-8 cursor-pointer list-none items-center gap-2 text-sm font-black [&::-webkit-details-marker]:hidden">
+                  <span>Dados fiscais</span>
+                  <ChevronDown
+                    size={18}
+                    aria-hidden="true"
+                    className="ml-auto shrink-0 text-racing-muted transition-transform duration-200 group-open:rotate-180"
+                  />
+                </summary>
                 <div className="mt-3 grid gap-3 sm:grid-cols-2">
                   <label className="block space-y-1.5 text-sm font-semibold">
                     <span>NCM</span>
@@ -155,9 +160,7 @@ export function ProductStockActions({ product }: { product: EditableProduct }) {
                 </button>
               </div>
             </form>
-          </div>
-        </div>
-      ) : null}
+      </ActionModal>
     </>
   );
 }

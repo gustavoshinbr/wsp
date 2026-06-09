@@ -1,9 +1,9 @@
-import { Plus, Search, Trash2, Wrench } from "lucide-react";
+import { Plus, Search, Wrench } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
-import { ConfirmSubmitButton } from "@/components/ConfirmSubmitButton";
 import { DataTable } from "@/components/DataTable";
+import { ServiceActions } from "@/components/ServiceActions";
 import { requirePageUser } from "@/lib/auth";
 import { brl } from "@/lib/currency";
 import { prisma } from "@/lib/prisma";
@@ -15,6 +15,12 @@ export default async function ServicosPage({ searchParams }: { searchParams: Pro
   const services = await prisma.service.findMany({
     where: { workspaceId: user.workspaceId, ...(q ? { name: { contains: q, mode: "insensitive" } } : {}) },
     orderBy: { createdAt: "desc" },
+  });
+  const editableService = (service: (typeof services)[number]) => ({
+    id: service.id,
+    name: service.name,
+    price: Number(service.price),
+    description: service.description,
   });
 
   return (
@@ -54,25 +60,8 @@ export default async function ServicosPage({ searchParams }: { searchParams: Pro
                 { header: "Valor", render: (service) => brl(service.price) },
                 {
                   header: "Ações",
-                  render: (service) => (
-                    <div className="flex flex-wrap gap-2">
-                      <form action={`/api/servicos/${service.id}`} method="post" className="flex gap-2">
-                        <input name="name" defaultValue={service.name} className="h-9 rounded-lg px-2 text-xs" />
-                        <input name="price" defaultValue={String(service.price)} type="number" step="0.01" className="h-9 rounded-lg px-2 text-xs" />
-                        <button className="h-9 rounded-lg border border-racing-line px-3 text-xs font-bold">Editar</button>
-                      </form>
-                      <form action={`/api/servicos/${service.id}`} method="post">
-                        <input type="hidden" name="_method" value="delete" />
-                        <ConfirmSubmitButton
-                          message={`Excluir o serviço "${service.name}"?`}
-                          className="inline-flex h-9 items-center gap-1 rounded-lg border border-racing-line px-3 text-xs font-bold text-racing-muted"
-                        >
-                          <Trash2 size={14} />
-                          Excluir
-                        </ConfirmSubmitButton>
-                      </form>
-                    </div>
-                  ),
+                  className: "w-28",
+                  render: (service) => <ServiceActions service={editableService(service)} canDelete={user.role !== "STAFF"} />,
                 },
               ]}
               mobileRender={(service) => (
@@ -85,6 +74,9 @@ export default async function ServicosPage({ searchParams }: { searchParams: Pro
                       <p className="font-black">{service.name}</p>
                       <p className="text-sm text-racing-muted">{brl(service.price)}</p>
                     </div>
+                  </div>
+                  <div className="mt-4">
+                    <ServiceActions service={editableService(service)} canDelete={user.role !== "STAFF"} />
                   </div>
                 </Card>
               )}

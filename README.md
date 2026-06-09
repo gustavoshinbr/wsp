@@ -1,6 +1,6 @@
 # WSP Racing
 
-SaaS oficial para gerenciamento de oficina de motos com Next.js 14 App Router, Prisma ORM, Neon PostgreSQL, autenticação real, trial de 7 dias e assinatura recorrente Asaas.
+SaaS oficial para gerenciamento de oficina de motos com Next.js 16 App Router, Prisma ORM, Neon PostgreSQL, Neon Auth, trial de 7 dias e assinatura recorrente Asaas.
 
 ## Recursos principais
 
@@ -30,9 +30,12 @@ Configure no `.env`:
 
 - `DATABASE_URL` do Neon PostgreSQL
 - `SESSION_SECRET` com uma chave grande
+- `NEXT_PUBLIC_APP_URL` com a URL pública do sistema
 - `ASAAS_API_KEY`
 - `ASAAS_WEBHOOK_TOKEN`
 - `ASAAS_BASE_URL`
+- `BLOB_READ_WRITE_TOKEN` para uploads em produção
+- `NEON_AUTH_BASE_URL`, `NEON_AUTH_JWKS_URL` e `NEON_AUTH_COOKIE_SECRET`
 
 Banco:
 
@@ -48,6 +51,14 @@ npm run dev
 ```
 
 Abra `http://localhost:3000` e crie uma conta real em `/register`.
+
+## Recuperação de senha
+
+O fluxo usa o Neon Auth e envia um link de uso único com validade de 15 minutos. O SMTP compartilhado do Neon atende desenvolvimento e testes. Para produção, configure um provedor SMTP próprio em **Neon → Auth → Email provider** para melhorar entrega e limites.
+
+## Neon Auth
+
+O sistema usa `@neondatabase/auth` e `@neondatabase/auth-ui`. Contas novas são sincronizadas no cadastro. Contas antigas migram de forma progressiva no próximo login ou ao solicitar recuperação de senha, sem exigir troca antecipada da senha. O WSP mantém sua sessão de workspace para papéis e isolamento da oficina.
 
 ## Trial e assinatura
 
@@ -79,13 +90,27 @@ Eventos tratados:
 
 ## Produção
 
-Na Vercel, configure as variáveis de ambiente, use Neon em produção e troque:
+Na Vercel, configure as variáveis de ambiente para a URL pública do app, o banco Neon e o Asaas.
 
-```text
-ASAAS_BASE_URL="https://api.asaas.com/v3"
-```
+Variáveis obrigatórias:
+
+- `DATABASE_URL`
+- `SESSION_SECRET`
+- `NEXT_PUBLIC_APP_URL` com a URL pública da sua implantação Vercel
+- `ASAAS_API_KEY` com a chave de produção do Asaas
+- `ASAAS_WEBHOOK_TOKEN` com o token do webhook do Asaas
+- `ASAAS_BASE_URL="https://api.asaas.com/v3"`
+- `NEON_AUTH_BASE_URL`
+- `NEON_AUTH_JWKS_URL`
+- `NEON_AUTH_COOKIE_SECRET`
 
 Uploads de produtos usam Vercel Blob. Ao conectar o Blob ao projeto, a Vercel cria `BLOB_READ_WRITE_TOKEN` automaticamente.
+
+O webhook Asaas deve apontar para:
+
+```text
+https://SEU-DOMINIO.vercel.app/api/asaas/webhook
+```
 
 ## Emissão fiscal
 

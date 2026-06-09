@@ -13,11 +13,13 @@ export function QuoteComposer({
   motorcycles,
   products,
   services,
+  allowCustomPricing,
 }: {
   clients: Array<{ id: string; name: string; phone: string }>;
   motorcycles: Array<{ id: string; plate: string; brand: string | null; model: string | null; clientId: string }>;
   products: Array<{ id: string; name: string; barcode: string | null; sellPrice: number; quantity: number }>;
   services: Array<{ id: string; name: string; price: number }>;
+  allowCustomPricing: boolean;
 }) {
   const [selectedClientId, setSelectedClientId] = useState(clients[0]?.id || "");
   const [selectedMotorcycleId, setSelectedMotorcycleId] = useState("");
@@ -101,7 +103,15 @@ export function QuoteComposer({
 
   return (
     <Card>
-      <form action="/api/orcamentos" method="post" className="space-y-4">
+      <form
+        action="/api/orcamentos"
+        method="post"
+        onReset={() => {
+          setSelectedClientId("");
+          setSelectedMotorcycleId("");
+        }}
+        className="space-y-4"
+      >
           <div>
             <p className="text-sm font-black uppercase text-racing-red">Emissão rápida</p>
             <h2 className="mt-1 text-2xl font-black">Montar orçamento</h2>
@@ -162,7 +172,12 @@ export function QuoteComposer({
             />
           </label>
 
-          <CartBuilder products={products} services={services} onChange={setCart} />
+          <CartBuilder
+            products={products}
+            services={services}
+            onChange={setCart}
+            allowCustomPricing={allowCustomPricing}
+          />
 
           <div className="rounded-lg border border-racing-line bg-racing-panel p-3">
             <p className="text-sm font-black">Total do orçamento</p>

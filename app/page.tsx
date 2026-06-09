@@ -1,371 +1,238 @@
-"use client";
-
+import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
 import {
   ArrowRight,
-  CalendarCheck,
+  CalendarCheck2,
   CheckCircle2,
-  ClipboardList,
-  Gauge,
-  MessageCircle,
-  PackageCheck,
+  PackageSearch,
   ReceiptText,
   ShieldCheck,
+  ShoppingCart,
   Sparkles,
-  Star,
-  WalletCards,
+  Users,
   Wrench,
 } from "lucide-react";
-import { Logo } from "@/components/Logo";
 
-function AnimatedNumber({ value, suffix = "" }: { value: number; suffix?: string }) {
-  const [count, setCount] = useState(0);
+const features = [
+  {
+    icon: Wrench,
+    title: "Serviços e orçamentos",
+    description: "Crie, edite e acompanhe cada serviço, orçamento e ordem da oficina.",
+  },
+  {
+    icon: CalendarCheck2,
+    title: "Agenda organizada",
+    description: "Controle horários, clientes, motos e o andamento dos agendamentos.",
+  },
+  {
+    icon: ShoppingCart,
+    title: "PDV rápido",
+    description: "Venda produtos e serviços com leitura de código de barras no celular.",
+  },
+  {
+    icon: PackageSearch,
+    title: "Estoque monitorado",
+    description: "Encontre peças rapidamente e receba alertas antes que o estoque acabe.",
+  },
+  {
+    icon: Users,
+    title: "Histórico do cliente",
+    description: "Mantenha clientes, motos e atendimentos reunidos no mesmo lugar.",
+  },
+  {
+    icon: ReceiptText,
+    title: "Financeiro e fiscal",
+    description: "Acompanhe vendas, recebimentos e documentos fiscais com mais clareza.",
+  },
+];
 
-  useEffect(() => {
-    let frame = 0;
-    const totalFrames = 52;
-    const timer = window.setInterval(() => {
-      frame += 1;
-      const progress = 1 - Math.pow(1 - frame / totalFrames, 3);
-      setCount(Math.round(value * progress));
-      if (frame >= totalFrames) window.clearInterval(timer);
-    }, 24);
-    return () => window.clearInterval(timer);
-  }, [value]);
-
+function Brand() {
   return (
-    <span>
-      {count}
-      {suffix}
-    </span>
+    <Link href="/" className="inline-flex items-center gap-3 text-white">
+      <Image
+        src="/icons/wsp-app-icon-48.png"
+        alt="WSP Racing"
+        width={48}
+        height={48}
+        priority
+        className="h-12 w-12 rounded-2xl shadow-[0_12px_34px_rgba(220,38,38,0.3)] ring-1 ring-white/15"
+      />
+      <span className="leading-none">
+        <span className="block text-lg font-black italic">
+          WSP <span className="text-red-500">Racing</span>
+        </span>
+        <span className="mt-1 block text-[9px] font-black uppercase tracking-[0.26em] text-zinc-500">
+          Oficina Pro
+        </span>
+      </span>
+    </Link>
   );
 }
 
-function DashboardMockup() {
-  const rows = [
-    ["OS #2481", "Honda CB 500", "Revisão completa", "14:30"],
-    ["OS #2482", "Yamaha Fazer", "Freio dianteiro", "15:10"],
-    ["OS #2483", "BMW GS 850", "Troca de óleo", "16:00"],
-  ];
-
+function ProductPreview() {
   return (
-    <div className="landing-float relative mx-auto max-w-5xl" aria-label="Mockup do painel WSP Racing">
-      <div className="absolute -left-5 top-16 hidden rounded-2xl border border-white/70 bg-white/90 p-4 shadow-2xl backdrop-blur md:block">
-        <p className="text-xs font-black uppercase text-slate-400">Fila da oficina</p>
-        <div className="mt-3 flex items-center gap-3">
-          <span className="grid h-10 w-10 place-items-center rounded-xl bg-rose-50 text-rose-600">
-            <Wrench size={18} />
+    <div className="relative mx-auto w-full max-w-4xl" aria-label="Captura real do painel WSP Racing">
+      <div className="absolute -inset-8 -z-10 rounded-full bg-red-600/10 blur-3xl" />
+
+      <div className="landing-demo-frame overflow-hidden rounded-[24px] border border-white/10 bg-[#101115] shadow-[0_40px_120px_rgba(0,0,0,0.65)] ring-1 ring-white/[0.04] sm:rounded-[30px]">
+        <div className="flex h-10 items-center border-b border-white/[0.07] bg-black/30 px-4">
+          <div className="flex gap-1.5">
+            <span className="h-2.5 w-2.5 rounded-full bg-red-500/80" />
+            <span className="h-2.5 w-2.5 rounded-full bg-amber-400/80" />
+            <span className="h-2.5 w-2.5 rounded-full bg-emerald-400/80" />
+          </div>
+          <span className="mx-auto hidden rounded-md border border-white/[0.06] bg-white/[0.035] px-10 py-1 text-[8px] font-bold text-zinc-600 sm:block">
+            app.wspracing.com.br/dashboard
           </span>
-          <div>
-            <p className="text-2xl font-black text-slate-900">18</p>
-            <p className="text-xs font-bold text-slate-500">serviços hoje</p>
-          </div>
-        </div>
-      </div>
-
-      <div className="absolute -right-3 bottom-10 hidden rounded-2xl border border-white/70 bg-white/90 p-4 shadow-2xl backdrop-blur md:block">
-        <p className="text-xs font-black uppercase text-slate-400">WhatsApp</p>
-        <div className="mt-3 flex items-center gap-3">
-          <span className="grid h-10 w-10 place-items-center rounded-xl bg-emerald-50 text-emerald-600">
-            <MessageCircle size={18} />
+          <span className="flex items-center gap-1.5 text-[8px] font-black uppercase tracking-wider text-emerald-400">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.9)]" />
+            online
           </span>
-          <div>
-            <p className="text-sm font-black text-slate-900">Retorno enviado</p>
-            <p className="text-xs font-bold text-slate-500">cliente confirmado</p>
-          </div>
+        </div>
+        <div className="relative aspect-[3/2] bg-white">
+          <Image
+            src="/images/dashboard-demonstracao.png"
+            alt="Dashboard real do WSP Racing preenchido com dados fictícios de demonstração"
+            fill
+            priority
+            sizes="(max-width: 1024px) 100vw, 58vw"
+            className="object-cover object-top"
+          />
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-[28px] border border-white bg-white shadow-[0_30px_90px_rgba(31,41,55,0.16)] ring-1 ring-slate-200">
-        <div className="flex items-center justify-between border-b border-slate-100 bg-white px-5 py-4">
-          <div className="flex items-center gap-3">
-            <span className="grid h-10 w-10 place-items-center rounded-xl bg-slate-950 text-white">
-              <Gauge size={21} className="text-rose-500" />
-            </span>
-            <div>
-              <p className="text-sm font-black text-slate-900">WSP Racing</p>
-              <p className="text-xs font-bold text-slate-400">Painel operacional</p>
-            </div>
-          </div>
-          <div className="hidden items-center gap-2 sm:flex">
-            <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
-            <span className="text-xs font-black text-slate-500">online</span>
-          </div>
-        </div>
-
-        <div className="grid gap-0 lg:grid-cols-[220px_1fr]">
-          <aside className="hidden border-r border-slate-100 bg-slate-50/70 p-4 lg:block">
-            {["Início", "OS", "Agenda", "Estoque", "Financeiro"].map((item, index) => (
-              <div
-                key={item}
-                className={`mb-2 flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-black ${
-                  index === 0 ? "bg-rose-600 text-white shadow-lg shadow-rose-200" : "text-slate-500"
-                }`}
-              >
-                <span className={`h-2 w-2 rounded-full ${index === 0 ? "bg-white" : "bg-slate-300"}`} />
-                {item}
-              </div>
-            ))}
-          </aside>
-
-          <div className="bg-[#f9fafb] p-4 sm:p-6">
-            <div className="grid gap-3 sm:grid-cols-3">
-              {[
-                ["Faturamento", "R$ 18.420", "mês atual"],
-                ["OS abertas", "42", "em produção"],
-                ["Estoque baixo", "7", "peças críticas"],
-              ].map(([title, value, helper]) => (
-                <div key={title} className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
-                  <p className="text-xs font-black uppercase text-slate-400">{title}</p>
-                  <p className="mt-2 text-2xl font-black text-slate-900">{value}</p>
-                  <p className="mt-1 text-xs font-bold text-slate-400">{helper}</p>
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-4 grid gap-4 lg:grid-cols-[1fr_260px]">
-              <div className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
-                <div className="flex items-center justify-between">
-                  <p className="font-black text-slate-900">Ordens em andamento</p>
-                  <span className="rounded-full bg-rose-50 px-3 py-1 text-xs font-black text-rose-600">ao vivo</span>
-                </div>
-                <div className="mt-4 space-y-3">
-                  {rows.map(([os, bike, service, time]) => (
-                    <div key={os} className="grid grid-cols-[82px_1fr_auto] items-center gap-3 rounded-xl border border-slate-100 bg-slate-50/80 p-3">
-                      <span className="text-xs font-black text-rose-600">{os}</span>
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-black text-slate-900">{bike}</p>
-                        <p className="truncate text-xs font-bold text-slate-400">{service}</p>
-                      </div>
-                      <span className="text-xs font-black text-slate-500">{time}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
-                <p className="font-black text-slate-900">Fluxo de caixa</p>
-                <div className="mt-5 space-y-4">
-                  {[82, 58, 74, 44].map((width, index) => (
-                    <div key={width}>
-                      <div className="mb-2 flex justify-between text-xs font-bold text-slate-400">
-                        <span>{["Seg", "Ter", "Qua", "Qui"][index]}</span>
-                        <span>{width}%</span>
-                      </div>
-                      <div className="h-2 rounded-full bg-slate-100">
-                        <div className="landing-load h-2 rounded-full bg-rose-600" style={{ width: `${width}%` }} />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-5 rounded-xl bg-slate-950 p-4 text-white">
-                  <p className="text-xs font-bold text-slate-300">Recebido hoje</p>
-                  <p className="mt-1 text-2xl font-black">R$ 4.780</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <p className="mt-4 text-center text-xs font-bold text-zinc-500">
+        Captura real do sistema com dados fictícios de demonstração.
+      </p>
     </div>
   );
 }
 
 export default function LandingPage() {
-  const features = useMemo(
-    () => [
-      { icon: ClipboardList, title: "Controle de OS", copy: "Abra, acompanhe e finalize ordens de serviço com histórico claro do cliente e da moto." },
-      { icon: CalendarCheck, title: "Agendamento inteligente", copy: "Organize a fila por horário, mecânico responsável e status de produção." },
-      { icon: WalletCards, title: "Financeiro e caixa", copy: "Venda à vista, a prazo, controle recebimentos e enxergue o lucro bruto da oficina." },
-      { icon: PackageCheck, title: "Estoque de peças", copy: "Produtos com foto, código de barras, estoque baixo e leitura no PDV." },
-      { icon: ReceiptText, title: "Histórico de veículos", copy: "Veja tudo que já foi feito em cada moto para vender melhor e atender com precisão." },
-    ],
-    [],
-  );
-
-  useEffect(() => {
-    const elements = Array.from(document.querySelectorAll<HTMLElement>("[data-reveal]"));
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("is-visible");
-            observer.unobserve(entry.target);
-          }
-        });
-      },
-      { threshold: 0.16 },
-    );
-    elements.forEach((element) => observer.observe(element));
-    return () => observer.disconnect();
-  }, []);
-
   return (
-    <main className="min-h-screen bg-white text-[#1f2937]">
-      <header className="sticky top-0 z-50 border-b border-slate-100 bg-white/88 backdrop-blur-xl">
+    <main className="login-shell relative min-h-screen overflow-hidden bg-[#08090c] text-white">
+      <div className="login-grid fixed inset-0 opacity-40" />
+      <div className="login-orb login-orb-one fixed" />
+      <div className="login-orb login-orb-two fixed" />
+
+      <header className="sticky top-0 z-50 border-b border-white/[0.07] bg-[#08090c]/80 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
-          <Logo href="/" compact className="sm:hidden" />
-          <Logo href="/" className="hidden sm:inline-flex" />
-          <nav className="hidden items-center gap-8 text-sm font-bold text-slate-500 md:flex">
-            <a href="#funcionalidades" className="hover:text-rose-600">Funcionalidades</a>
-            <a href="#beneficios" className="hover:text-rose-600">Benefícios</a>
-            <a href="#depoimentos" className="hover:text-rose-600">Depoimentos</a>
+          <Brand />
+          <nav className="hidden items-center gap-7 text-sm font-bold text-zinc-400 md:flex">
+            <a href="#recursos" className="hover:text-white">Recursos</a>
+            <a href="#seguranca" className="hover:text-white">Segurança</a>
           </nav>
-          <div className="flex items-center gap-2 sm:gap-3">
-            <Link href="/login" className="inline-flex rounded-full px-3 py-2 text-sm font-black text-slate-600 hover:bg-slate-50 sm:px-4">
-              Login
+          <div className="flex items-center gap-2">
+            <Link href="/login" className="rounded-xl px-3 py-2.5 text-sm font-black text-zinc-300 hover:bg-white/[0.06]">
+              Entrar
             </Link>
-            <Link href="/register" className="rounded-full bg-rose-600 px-3 py-2.5 text-sm font-black text-white shadow-lg shadow-rose-200 hover:bg-rose-700 sm:px-5">
+            <Link
+              href="/register"
+              className="login-shine rounded-xl bg-red-600 px-4 py-2.5 text-sm font-black text-white shadow-lg shadow-red-950/40 hover:bg-red-500"
+            >
               Criar conta
-            </Link>
-            <Link href="/register" className="hidden rounded-full border border-rose-100 bg-rose-50 px-4 py-2.5 text-sm font-black text-rose-700 hover:bg-rose-100 lg:inline-flex">
-              Teste Grátis
             </Link>
           </div>
         </div>
       </header>
 
-      <section className="relative overflow-hidden bg-[linear-gradient(180deg,#ffffff_0%,#f9fafb_100%)]">
-        <div className="absolute left-1/2 top-24 h-72 w-[46rem] -translate-x-1/2 rounded-full bg-rose-100/60 blur-3xl" />
-        <div className="relative mx-auto max-w-7xl px-4 pb-16 pt-16 sm:px-6 sm:pt-20 lg:px-8">
-          <div className="mx-auto max-w-4xl text-center" data-reveal>
-            <div className="mx-auto inline-flex items-center gap-2 rounded-full border border-rose-100 bg-white px-4 py-2 text-sm font-black text-rose-700 shadow-sm">
-              <Sparkles size={16} />
-              Gestão premium para oficinas que vivem de velocidade e precisão
-            </div>
-            <h1 className="mt-7 text-balance text-5xl font-black leading-[0.96] tracking-tight text-slate-900 sm:text-6xl lg:text-7xl">
-              Acelere a gestão da sua oficina. Sem travar.
+      <section className="relative z-10 px-4 pb-20 pt-14 sm:px-6 sm:pt-20 lg:px-8 lg:pb-28">
+        <div className="mx-auto grid max-w-7xl items-center gap-14 lg:grid-cols-[0.84fr_1.16fr]">
+          <div>
+            <span className="inline-flex items-center gap-2 rounded-full border border-red-500/20 bg-red-500/10 px-3 py-1.5 text-xs font-black text-red-300">
+              <Sparkles size={14} />
+              Gestão completa para sua oficina
+            </span>
+            <h1 className="mt-6 text-5xl font-black leading-[0.98] tracking-tight sm:text-6xl lg:text-7xl">
+              Sua oficina rápida.
+              <span className="block text-red-500">Sua gestão também.</span>
             </h1>
-            <p className="mx-auto mt-6 max-w-2xl text-pretty text-lg font-medium leading-8 text-slate-600">
-              O WSP Racing centraliza OS, agenda, estoque, PDV, financeiro e relacionamento com clientes em uma operação leve para desktop e celular.
+            <p className="mt-6 max-w-xl text-base font-medium leading-7 text-zinc-400 sm:text-lg sm:leading-8">
+              Clientes, motos, agenda, estoque, vendas e serviços em um sistema bonito, estável e pronto para desktop e celular.
             </p>
-            <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <Link href="/register" className="landing-cta inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-rose-600 px-7 text-base font-black text-white shadow-xl shadow-rose-200 hover:bg-rose-700">
-                Começar teste grátis
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <Link
+                href="/register"
+                className="login-shine inline-flex min-h-13 items-center justify-center gap-2 rounded-xl bg-red-600 px-7 py-3.5 text-base font-black shadow-[0_16px_40px_rgba(220,38,38,0.28)] hover:bg-red-500"
+              >
+                Começar agora
                 <ArrowRight size={18} />
               </Link>
-              <a href="#funcionalidades" className="inline-flex min-h-12 items-center justify-center rounded-full border border-slate-200 bg-white px-7 text-base font-black text-slate-700 shadow-sm hover:border-rose-200 hover:text-rose-700">
-                Ver funcionalidades
-              </a>
+              <Link
+                href="/login"
+                className="inline-flex min-h-13 items-center justify-center rounded-xl border border-white/10 bg-white/[0.05] px-7 py-3.5 text-base font-black text-zinc-200 hover:bg-white/[0.09]"
+              >
+                Acessar o painel
+              </Link>
+            </div>
+            <div className="mt-7 flex flex-wrap gap-x-5 gap-y-2 text-xs font-bold text-zinc-500">
+              {["7 dias grátis", "Sem instalação", "Funciona no celular"].map((item) => (
+                <span key={item} className="flex items-center gap-1.5">
+                  <CheckCircle2 size={15} className="text-emerald-400" />
+                  {item}
+                </span>
+              ))}
             </div>
           </div>
 
-          <div className="mt-14" data-reveal>
-            <DashboardMockup />
-          </div>
+          <ProductPreview />
         </div>
       </section>
 
-      <section id="funcionalidades" className="bg-white px-4 py-20 sm:px-6 lg:px-8">
+      <section id="recursos" className="relative z-10 border-y border-white/[0.07] bg-black/20 px-4 py-20 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
-          <div className="max-w-2xl" data-reveal>
-            <p className="text-sm font-black uppercase text-rose-600">O sistema contém</p>
-            <h2 className="mt-3 text-4xl font-black tracking-tight text-slate-900 sm:text-5xl">Tudo que a oficina usa, sem virar bagunça.</h2>
+          <div className="max-w-2xl">
+            <p className="text-sm font-black uppercase tracking-[0.2em] text-red-400">Tudo conectado</p>
+            <h2 className="mt-4 text-4xl font-black tracking-tight sm:text-5xl">Controle sem complicar o balcão.</h2>
+            <p className="mt-4 text-base leading-7 text-zinc-400">
+              Uma experiência consistente para a equipe trabalhar com menos cliques e encontrar o que precisa rapidamente.
+            </p>
           </div>
-          <div className="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-            {features.map(({ icon: Icon, title, copy }) => (
+          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {features.map(({ icon: Icon, title, description }) => (
               <article
                 key={title}
-                className="landing-card rounded-3xl border border-slate-100 bg-white p-6 shadow-[0_10px_32px_rgba(15,23,42,0.06)]"
-                data-reveal
+                className="landing-card rounded-2xl border border-white/10 bg-white/[0.045] p-6 backdrop-blur-sm"
               >
-                <span className="grid h-12 w-12 place-items-center rounded-2xl bg-rose-50 text-rose-600">
+                <span className="grid h-12 w-12 place-items-center rounded-xl border border-red-500/20 bg-red-500/10 text-red-400">
                   <Icon size={22} />
                 </span>
-                <h3 className="mt-5 text-lg font-black text-slate-900">{title}</h3>
-                <p className="mt-3 text-sm font-medium leading-6 text-slate-500">{copy}</p>
+                <h3 className="mt-5 text-lg font-black">{title}</h3>
+                <p className="mt-2 text-sm font-medium leading-6 text-zinc-500">{description}</p>
               </article>
             ))}
           </div>
         </div>
       </section>
 
-      <section id="beneficios" className="bg-[#f9fafb] px-4 py-20 sm:px-6 lg:px-8">
-        <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
-          <div data-reveal>
-            <p className="text-sm font-black uppercase text-rose-600">Por que escolher</p>
-            <h2 className="mt-3 text-4xl font-black tracking-tight text-slate-900 sm:text-5xl">Menos papelada. Mais serviço entregue. Mais retorno.</h2>
-            <p className="mt-5 text-lg font-medium leading-8 text-slate-600">
-              A WSP Racing foi pensada para oficina real: balcão corrido, mecânico chamando, cliente no WhatsApp e peça que precisa aparecer rápido.
+      <section id="seguranca" className="relative z-10 px-4 py-20 sm:px-6 lg:px-8">
+        <div className="mx-auto grid max-w-7xl gap-10 rounded-[28px] border border-white/10 bg-white/[0.05] p-7 shadow-2xl backdrop-blur-xl sm:p-10 lg:grid-cols-[1fr_auto] lg:items-center">
+          <div>
+            <span className="inline-flex items-center gap-2 text-sm font-black uppercase tracking-[0.18em] text-emerald-400">
+              <ShieldCheck size={18} />
+              Segurança em primeiro lugar
+            </span>
+            <h2 className="mt-4 max-w-3xl text-4xl font-black tracking-tight sm:text-5xl">
+              Dados da oficina protegidos do navegador ao banco.
+            </h2>
+            <p className="mt-4 max-w-2xl text-base leading-7 text-zinc-400">
+              Permissões verificadas no servidor, sessões protegidas e validação de cada operação sensível.
             </p>
           </div>
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            {[
-              { value: 15, suffix: "h", title: "economizadas por semana", copy: "Menos retrabalho com OS, estoque e fechamento financeiro." },
-              { value: 0, suffix: "", title: "papelada espalhada", copy: "Tudo fica registrado por cliente, moto, venda e mecânico." },
-              { value: 28, suffix: "%", title: "mais retornos agendados", copy: "Lembretes por WhatsApp ajudam a recuperar revisões e serviços." },
-              { value: 3, suffix: "x", title: "mais velocidade no balcão", copy: "PDV com código de barras, estoque simples e venda a prazo." },
-            ].map((item) => (
-              <div key={item.title} className="rounded-3xl border border-white bg-white p-6 shadow-[0_12px_40px_rgba(15,23,42,0.07)]" data-reveal>
-                <p className="text-4xl font-black text-rose-600">
-                  <AnimatedNumber value={item.value} suffix={item.suffix} />
-                </p>
-                <h3 className="mt-3 text-lg font-black text-slate-900">{item.title}</h3>
-                <p className="mt-2 text-sm font-medium leading-6 text-slate-500">{item.copy}</p>
-                <div className="mt-5 h-2 rounded-full bg-slate-100">
-                  <div className="landing-load h-2 rounded-full bg-rose-600" style={{ width: item.value === 0 ? "100%" : `${Math.min(92, item.value * 4)}%` }} />
-                </div>
-              </div>
-            ))}
-          </div>
+          <Link
+            href="/register"
+            className="login-shine inline-flex min-h-13 items-center justify-center gap-2 rounded-xl bg-red-600 px-7 py-3.5 text-base font-black shadow-lg shadow-red-950/50 hover:bg-red-500"
+          >
+            Criar minha conta
+            <ArrowRight size={18} />
+          </Link>
         </div>
       </section>
 
-      <section id="depoimentos" className="bg-white px-4 py-20 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-7xl">
-          <div className="grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
-            <div data-reveal>
-              <p className="text-sm font-black uppercase text-rose-600">Depoimentos</p>
-              <h2 className="mt-3 text-4xl font-black tracking-tight text-slate-900">Feito para dono de oficina que quer controle sem complicação.</h2>
-            </div>
-            <div className="grid gap-4 md:grid-cols-2">
-              {[
-                ["A gente parou de perder orçamento no WhatsApp. Agora a equipe sabe o que está em produção e o que falta receber.", "Marcelo T.", "Oficina premium multimarcas"],
-                ["O estoque simples salvou o balcão. Bipa, acha a peça e vende. O completo fica perfeito para apresentar produto com foto.", "Renata S.", "Centro técnico de motos"],
-              ].map(([quote, name, role]) => (
-                <article key={name} className="rounded-3xl border border-slate-100 bg-white p-6 shadow-[0_12px_40px_rgba(15,23,42,0.07)]" data-reveal>
-                  <div className="flex gap-1 text-rose-500">
-                    {[0, 1, 2, 3, 4].map((star) => <Star key={star} size={16} fill="currentColor" />)}
-                  </div>
-                  <p className="mt-5 text-base font-semibold leading-7 text-slate-700">“{quote}”</p>
-                  <div className="mt-6 border-t border-slate-100 pt-4">
-                    <p className="font-black text-slate-900">{name}</p>
-                    <p className="text-sm font-medium text-slate-500">{role}</p>
-                  </div>
-                </article>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="px-4 pb-20 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-7xl overflow-hidden rounded-[32px] bg-slate-950 p-8 text-white shadow-2xl sm:p-12" data-reveal>
-          <div className="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-center">
-            <div>
-              <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm font-black text-rose-200">
-                <ShieldCheck size={16} />
-                Trial gratuito de 7 dias
-              </div>
-              <h2 className="mt-5 max-w-2xl text-4xl font-black tracking-tight sm:text-5xl">Sua oficina merece um sistema com cara de oficina grande.</h2>
-              <p className="mt-4 max-w-xl text-base font-medium leading-7 text-slate-300">
-                Comece hoje, cadastre equipe, produtos, clientes e rode seu primeiro atendimento com o WSP Racing.
-              </p>
-            </div>
-            <Link href="/register" className="landing-cta inline-flex min-h-14 items-center justify-center gap-2 rounded-full bg-rose-600 px-8 text-base font-black text-white shadow-xl shadow-rose-950/40 hover:bg-rose-500">
-              Criar conta agora
-              <ArrowRight size={18} />
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      <footer className="border-t border-slate-100 bg-white px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mx-auto flex max-w-7xl flex-col gap-4 text-sm font-semibold text-slate-500 sm:flex-row sm:items-center sm:justify-between">
-          <Logo href="/" compact />
-          <p>WSP Racing. Gestão premium para oficinas mecânicas.</p>
+      <footer className="relative z-10 border-t border-white/[0.07] px-4 py-8 sm:px-6 lg:px-8">
+        <div className="mx-auto flex max-w-7xl flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+          <Brand />
+          <p className="text-sm font-semibold text-zinc-600">WSP Racing. Gestão profissional para oficinas.</p>
         </div>
       </footer>
     </main>

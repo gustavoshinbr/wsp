@@ -14,6 +14,11 @@ export function validateCpfCnpj(value: string) {
   return digits.length === 11 || digits.length === 14;
 }
 
+export function validatePhone(value: string) {
+  const digits = onlyDigits(value);
+  return digits.length === 10 || digits.length === 11;
+}
+
 export function assertRequired(value: string, label: string) {
   if (!value.trim()) throw new Error(`${label} é obrigatório.`);
 }
@@ -42,7 +47,8 @@ export function apiError(error: unknown) {
   }
 
   if (error instanceof Error) {
-    return { message: error.message, status: 400 };
+    console.error("Erro interno de API", error);
+    return { message: "Não foi possível concluir a operação.", status: 500 };
   }
 
   return { message: "Erro inesperado.", status: 500 };

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireApiUser } from "@/lib/auth";
+import { requireApiUser, requireManager } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { apiError, ApiError } from "@/lib/validations";
 import { formString } from "@/lib/utils";
@@ -35,28 +35,63 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const method = formString(formData, "_method").toLowerCase();
 
     if (method === "delete") {
-      if (appointment.status === "FINISHED") {
-        throw new ApiError("Agendamento finalizado não pode ser excluído.");
-      }
-      await prisma.appointment.delete({ where: { id } });
+      requireManager(user.role);
+      await prisma.$transaction([
+        prisma.sale.updateMany({
+          where: { appointmentId: id, workspaceId: user.workspaceId },
+          data: { appointmentId: null },
+        }),
+        prisma.appointment.delete({ where: { id } }),
+      ]);
     } else {
+      const clientId = formString(formData, "clientId") || appointment.clientId;
+      const motorcycleId = formString(formData, "motorcycleId") || null;
+      const mechanicId = formString(formData, "mechanicId") || null;
       const status = formString(formData, "status") as "SCHEDULED" | "FINISHED" | "CANCELLED";
-      if (status === "FINISHED") {
-        throw new ApiError("Use a ação de finalizar para gerar a venda e baixar o estoque.");
+      const client = await prisma.client.findFirst({
+        where: { id: clientId, workspaceId: user.workspaceId },
+        select: { id: true },
+      });
+      if (!client) throw new ApiError("Cliente inválido.", 404);
+      if (motorcycleId) {
+        const motorcycle = await prisma.motorcycle.findFirst({
+          where: { id: motorcycleId, workspaceId: user.workspaceId, clientId },
+          select: { id: true },
+        });
+        if (!motorcycle) throw new ApiError("Moto inválida para o cliente selecionado.", 404);
       }
-      if (status && status !== "SCHEDULED" && status !== "CANCELLED") {
+      if (mechanicId) {
+        const mechanic = await prisma.user.findFirst({
+          where: { id: mechanicId, workspaceId: user.workspaceId, isActive: true, isMechanic: true },
+          select: { id: true },
+        });
+        if (!mechanic) throw new ApiError("Mecânico inválido.", 404);
+      }
+      if (appointment.status !== "FINISHED" && status && status !== "SCHEDULED" && status !== "CANCELLED") {
         throw new ApiError("Status de agendamento inválido.");
       }
       const dateValue = formString(formData, "date");
       const date = dateValue ? new Date(dateValue) : undefined;
       if (date && Number.isNaN(date.getTime())) throw new ApiError("Data de agendamento inválida.");
-      await prisma.appointment.update({
-        where: { id },
-        data: {
-          date,
-          notes: formString(formData, "notes") || null,
-          status: status || "SCHEDULED",
-        },
+      const nextStatus = appointment.status === "FINISHED" ? "FINISHED" : status || appointment.status;
+      await prisma.$transaction(async (tx) => {
+        await tx.appointment.update({
+          where: { id },
+          data: {
+            clientId,
+            motorcycleId,
+            mechanicId,
+            date,
+            notes: formString(formData, "notes") || null,
+            status: nextStatus,
+          },
+        });
+        if (appointment.status === "FINISHED") {
+          await tx.sale.updateMany({
+            where: { appointmentId: id, workspaceId: user.workspaceId },
+            data: { clientId, motorcycleId, mechanicId },
+          });
+        }
       });
     }
 
@@ -73,11 +108,15 @@ export async function DELETE(_: Request, { params }: { params: Promise<{ id: str
   try {
     const { id } = await params;
     const user = await requireApiUser();
-    const appointment = await ensureAppointment(id, user.workspaceId);
-    if (appointment.status === "FINISHED") {
-      throw new ApiError("Agendamento finalizado não pode ser excluído.");
-    }
-    await prisma.appointment.delete({ where: { id } });
+    requireManager(user.role);
+    await ensureAppointment(id, user.workspaceId);
+    await prisma.$transaction([
+      prisma.sale.updateMany({
+        where: { appointmentId: id, workspaceId: user.workspaceId },
+        data: { appointmentId: null },
+      }),
+      prisma.appointment.delete({ where: { id } }),
+    ]);
     return NextResponse.json({ ok: true });
   } catch (error) {
     const { message, status } = apiError(error);

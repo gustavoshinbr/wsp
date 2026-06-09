@@ -4,6 +4,7 @@ import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
 import { ClientActions } from "@/components/ClientActions";
 import { DataTable } from "@/components/DataTable";
+import { MotorcycleDialog } from "@/components/MotorcycleDialog";
 import { requirePageUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
@@ -12,24 +13,31 @@ export default async function ClientesPage({ searchParams }: { searchParams: Pro
   const user = await requirePageUser();
   const q = query.q?.trim();
   const documentQuery = q?.replace(/\D/g, "") || "";
-  const clients = await prisma.client.findMany({
-    where: {
-      workspaceId: user.workspaceId,
-      ...(q
-        ? {
-            OR: [
+  const [clients, motorcycleClientOptions] = await Promise.all([
+    prisma.client.findMany({
+      where: {
+        workspaceId: user.workspaceId,
+        ...(q
+          ? {
+              OR: [
                 { name: { contains: q, mode: "insensitive" } },
                 { phone: { contains: q } },
                 ...(documentQuery ? [{ document: { contains: documentQuery } }] : []),
                 { email: { contains: q, mode: "insensitive" } },
-              { motorcycles: { some: { plate: { contains: q, mode: "insensitive" } } } },
-            ],
-          }
-        : {}),
-    },
-    include: { motorcycles: true },
-    orderBy: { createdAt: "desc" },
-  });
+                { motorcycles: { some: { plate: { contains: q, mode: "insensitive" } } } },
+              ],
+            }
+          : {}),
+      },
+      include: { motorcycles: true },
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.client.findMany({
+      where: { workspaceId: user.workspaceId },
+      select: { id: true, name: true },
+      orderBy: { name: "asc" },
+    }),
+  ]);
   const editableClient = (client: (typeof clients)[number]) => ({
     id: client.id,
     name: client.name,
@@ -42,9 +50,12 @@ export default async function ClientesPage({ searchParams }: { searchParams: Pro
   return (
     <AppShell>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-black">Clientes</h1>
-          <p className="text-sm text-racing-muted">Cadastre clientes, motos e busque por nome, telefone ou placa.</p>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h1 className="text-3xl font-black">Clientes</h1>
+            <p className="text-sm text-racing-muted">Cadastre clientes, motos e busque por nome, telefone ou placa.</p>
+          </div>
+          <MotorcycleDialog clients={motorcycleClientOptions} />
         </div>
         {query.error ? <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-700">{query.error}</div> : null}
 
@@ -100,8 +111,8 @@ export default async function ClientesPage({ searchParams }: { searchParams: Pro
                 },
                 {
                   header: "Ações",
-                  className: "w-28",
-                  render: (client) => <ClientActions client={editableClient(client)} />,
+                  className: "w-56",
+                  render: (client) => <ClientActions client={editableClient(client)} canDelete={user.role !== "STAFF"} />,
                 },
               ]}
               mobileRender={(client) => (
@@ -120,25 +131,11 @@ export default async function ClientesPage({ searchParams }: { searchParams: Pro
                     </div>
                   </div>
                   <div className="mt-4">
-                    <ClientActions client={editableClient(client)} />
+                    <ClientActions client={editableClient(client)} canDelete={user.role !== "STAFF"} />
                   </div>
                 </Card>
               )}
             />
-
-            <Card>
-              <h2 className="font-black">Adicionar moto a cliente existente</h2>
-              <form action="/api/clientes" method="post" className="mt-4 grid gap-3 md:grid-cols-6">
-                <select name="clientId" required className="h-11 rounded-lg px-3 md:col-span-2">
-                  <option value="">Cliente</option>
-                  {clients.map((client) => <option key={client.id} value={client.id}>{client.name}</option>)}
-                </select>
-                <input name="plate" required className="h-11 rounded-lg px-3" placeholder="Placa" />
-                <input name="model" className="h-11 rounded-lg px-3" placeholder="Modelo" />
-                <input name="brand" className="h-11 rounded-lg px-3" placeholder="Marca" />
-                <Button type="submit">Adicionar</Button>
-              </form>
-            </Card>
           </section>
         </div>
       </div>

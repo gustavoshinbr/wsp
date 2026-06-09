@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { COOKIE_NAME } from "@/lib/session";
+import { neonAuth } from "@/lib/neon-auth-server";
 
 export async function POST(req: Request) {
+  await neonAuth.signOut().catch(() => null);
   const response = NextResponse.redirect(new URL("/login", req.url), { status: 303 });
   response.cookies.set(COOKIE_NAME, "", {
     httpOnly: true,
@@ -11,8 +13,4 @@ export async function POST(req: Request) {
     maxAge: 0,
   });
   return response;
-}
-
-export async function GET(req: Request) {
-  return POST(req);
 }

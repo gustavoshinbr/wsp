@@ -6,19 +6,39 @@ import { useMemo, useRef, useState } from "react";
 
 async function compressImage(file: File) {
   if (!file.type.startsWith("image/")) return file;
-  const bitmap = await createImageBitmap(file);
-  const maxSize = 900;
-  const scale = Math.min(1, maxSize / Math.max(bitmap.width, bitmap.height));
-  const canvas = document.createElement("canvas");
-  canvas.width = Math.round(bitmap.width * scale);
-  canvas.height = Math.round(bitmap.height * scale);
-  const context = canvas.getContext("2d");
-  if (!context) return file;
-  context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+  if (typeof createImageBitmap !== "function") return file;
 
-  const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/webp", 0.72));
-  if (!blob) return file;
-  return new File([blob], file.name.replace(/\.[^.]+$/, ".webp"), { type: "image/webp" });
+  let bitmap: ImageBitmap | null = null;
+  try {
+    bitmap = await createImageBitmap(file);
+    if (!bitmap.width || !bitmap.height) return file;
+
+    const maxSize = 900;
+    const scale = Math.min(1, maxSize / Math.max(bitmap.width, bitmap.height));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+    canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+    const context = canvas.getContext("2d");
+    if (!context) return file;
+
+    context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+    const blob = await new Promise<Blob | null>((resolve) => {
+      canvas.toBlob(resolve, "image/webp", 0.72);
+    });
+    if (!blob) return file;
+
+    const fileName = /\.[^.]+$/.test(file.name)
+      ? file.name.replace(/\.[^.]+$/, ".webp")
+      : `${file.name}.webp`;
+    return new File([blob], fileName, {
+      type: "image/webp",
+      lastModified: file.lastModified,
+    });
+  } catch {
+    return file;
+  } finally {
+    bitmap?.close();
+  }
 }
 
 export function ProductImageUploader() {

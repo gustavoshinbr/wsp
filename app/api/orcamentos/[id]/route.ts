@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireApiUser } from "@/lib/auth";
+import { requireApiUser, requireManager } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { apiError, ApiError } from "@/lib/validations";
 import { formString } from "@/lib/utils";
@@ -30,15 +30,19 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   try {
     const { id } = await params;
     const user = await requireApiUser();
-    const quote = await ensureQuote(id, user.workspaceId);
+    await ensureQuote(id, user.workspaceId);
     const formData = await req.formData();
     const method = formString(formData, "_method").toLowerCase();
 
     if (method === "delete") {
-      if (quote.status === "APPROVED" || quote.status === "PAID") {
-        throw new ApiError("Orçamento aprovado ou finalizado não pode ser excluído.");
-      }
-      await prisma.quote.delete({ where: { id } });
+      requireManager(user.role);
+      await prisma.$transaction([
+        prisma.sale.updateMany({
+          where: { quoteId: id, workspaceId: user.workspaceId },
+          data: { quoteId: null },
+        }),
+        prisma.quote.delete({ where: { id } }),
+      ]);
     } else {
       const status = formString(formData, "status") as "DRAFT" | "SENT" | "APPROVED" | "CANCELLED" | "PAID";
       if (status === "PAID") {
@@ -69,11 +73,15 @@ export async function DELETE(_: Request, { params }: { params: Promise<{ id: str
   try {
     const { id } = await params;
     const user = await requireApiUser();
-    const quote = await ensureQuote(id, user.workspaceId);
-    if (quote.status === "APPROVED" || quote.status === "PAID") {
-      throw new ApiError("Orçamento aprovado ou finalizado não pode ser excluído.");
-    }
-    await prisma.quote.delete({ where: { id } });
+    requireManager(user.role);
+    await ensureQuote(id, user.workspaceId);
+    await prisma.$transaction([
+      prisma.sale.updateMany({
+        where: { quoteId: id, workspaceId: user.workspaceId },
+        data: { quoteId: null },
+      }),
+      prisma.quote.delete({ where: { id } }),
+    ]);
     return NextResponse.json({ ok: true });
   } catch (error) {
     const { message, status } = apiError(error);

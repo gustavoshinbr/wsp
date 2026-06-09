@@ -4,6 +4,12 @@ import { Download } from "lucide-react";
 import { useState } from "react";
 import { brl, toNumber } from "@/lib/currency";
 
+function pdfText(value: unknown, maxLength = 240) {
+  return String(value || "")
+    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, "")
+    .slice(0, maxLength);
+}
+
 type QuotePdfData = {
   id: string;
   total: unknown;
@@ -44,7 +50,7 @@ export function QuotePdfButton({
       const doc = new jsPDF({ unit: "mm", format: "a4" });
       const quoteNumber = quote.id === "draft" ? "PREVIA" : quote.id.slice(-6).toUpperCase();
       const motorcycle = quote.motorcycle
-        ? `${quote.motorcycle.plate} - ${[quote.motorcycle.brand, quote.motorcycle.model].filter(Boolean).join(" ")}`
+        ? pdfText(`${quote.motorcycle.plate} - ${[quote.motorcycle.brand, quote.motorcycle.model].filter(Boolean).join(" ")}`, 120)
         : "Não informada";
 
       doc.setFillColor(15, 23, 42);
@@ -54,10 +60,10 @@ export function QuotePdfButton({
       doc.setTextColor(255, 255, 255);
       doc.setFont("helvetica", "bold");
       doc.setFontSize(19);
-      doc.text(workshopName, 14, 18);
+      doc.text(pdfText(workshopName, 100), 14, 18);
       doc.setFontSize(9);
       doc.setFont("helvetica", "normal");
-      doc.text([workshopPhone, workshopEmail].filter(Boolean).join(" | "), 14, 26);
+      doc.text(pdfText([workshopPhone, workshopEmail].filter(Boolean).join(" | "), 140), 14, 26);
       doc.setFont("helvetica", "bold");
       doc.setFontSize(11);
       doc.text(`ORÇAMENTO #${quoteNumber}`, 196, 16, { align: "right" });
@@ -71,15 +77,15 @@ export function QuotePdfButton({
       doc.text("MOTO", 110, 55);
       doc.setFont("helvetica", "normal");
       doc.setFontSize(11);
-      doc.text(quote.client.name || "Cliente não informado", 14, 62);
-      doc.text(quote.client.phone || "-", 14, 68);
+      doc.text(pdfText(quote.client.name || "Cliente não informado", 100), 14, 62);
+      doc.text(pdfText(quote.client.phone || "-", 40), 14, 68);
       doc.text(motorcycle, 110, 62, { maxWidth: 85 });
 
       autoTable(doc, {
         startY: 78,
         head: [["Descrição", "Qtd.", "Unitário", "Total"]],
         body: quote.items.map((item) => [
-          item.description,
+          pdfText(item.description, 180),
           String(item.quantity),
           brl(item.unitPrice as never),
           brl(item.total as never),
@@ -109,7 +115,7 @@ export function QuotePdfButton({
       doc.setTextColor(71, 85, 105);
       doc.setFont("helvetica", "normal");
       doc.setFontSize(9);
-      const notes = doc.splitTextToSize(quote.notes || "Sem observações adicionais.", 110);
+      const notes = doc.splitTextToSize(pdfText(quote.notes || "Sem observações adicionais.", 1_500), 110);
       doc.text("Observações:", 14, totalY + 6);
       doc.text(notes, 14, totalY + 12);
       doc.setDrawColor(203, 213, 225);

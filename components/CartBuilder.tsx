@@ -1,7 +1,8 @@
 "use client";
 
 import { Boxes, PackagePlus, Plus, Search, Trash2, Wrench } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { BarcodeScanner } from "@/components/BarcodeScanner";
 import { brl } from "@/lib/currency";
 import { cn } from "@/lib/utils";
 
@@ -66,19 +67,38 @@ export function CartBuilder({
   products,
   services,
   onChange,
+  allowCustomPricing = true,
 }: {
   products: ProductOption[];
   services: ServiceOption[];
   onChange?: (summary: CartSummary) => void;
+  allowCustomPricing?: boolean;
 }) {
   const [nextId, setNextId] = useState(1);
   const [rows, setRows] = useState<CartRow[]>([emptyRow(0)]);
   const [laborDescription, setLaborDescription] = useState("");
   const [laborValue, setLaborValue] = useState("");
+  const rootRef = useRef<HTMLDivElement>(null);
+  const availableTypes = (Object.keys(typeLabels) as RowType[]).filter(
+    (type) => allowCustomPricing || type !== "quickProduct",
+  );
 
   useEffect(() => {
     onChange?.({ rows, laborDescription, laborValue });
   }, [laborDescription, laborValue, onChange, rows]);
+
+  useEffect(() => {
+    const form = rootRef.current?.closest("form");
+    if (!form) return;
+    function resetCart() {
+      setRows([emptyRow(0)]);
+      setNextId(1);
+      setLaborDescription("");
+      setLaborValue("");
+    }
+    form.addEventListener("reset", resetCart);
+    return () => form.removeEventListener("reset", resetCart);
+  }, []);
 
   function updateRow(id: number, patch: Partial<CartRow>) {
     setRows((currentRows) =>
@@ -134,7 +154,7 @@ export function CartBuilder({
   }, [laborValue, products, rows, services]);
 
   return (
-    <div className="space-y-3">
+    <div ref={rootRef} className="space-y-3">
       <div className="rounded-lg border border-racing-line bg-racing-soft p-3">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -181,7 +201,7 @@ export function CartBuilder({
 
                 <div className="mt-3 grid gap-2">
                   <div className="grid grid-cols-3 gap-1 rounded-lg border border-racing-line bg-racing-soft p-1">
-                    {(Object.keys(typeLabels) as RowType[]).map((type) => (
+                    {availableTypes.map((type) => (
                       <button
                         key={type}
                         type="button"
@@ -198,15 +218,18 @@ export function CartBuilder({
 
                   {row.type === "product" ? (
                     <div className="grid gap-2 lg:grid-cols-[minmax(0,1fr)_minmax(220px,1fr)_86px]">
-                      <div className="relative">
-                        <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-racing-muted" size={16} />
-                        <input
-                          value={row.barcode}
-                          onChange={(event) => searchBarcode(row, event.target.value)}
-                          className="h-11 rounded-lg pl-9 pr-3"
-                          placeholder="Bipe ou digite código"
-                          inputMode="numeric"
-                        />
+                      <div className="flex gap-2">
+                        <div className="relative min-w-0 flex-1">
+                          <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-racing-muted" size={16} />
+                          <input
+                            value={row.barcode}
+                            onChange={(event) => searchBarcode(row, event.target.value)}
+                            className="h-11 rounded-lg pl-9 pr-3"
+                            placeholder="Bipe, digite ou escaneie"
+                            inputMode="numeric"
+                          />
+                        </div>
+                        <BarcodeScanner onDetected={(value) => searchBarcode(row, value)} buttonLabel="Ler" />
                       </div>
                       <select
                         name="productId"
@@ -303,31 +326,37 @@ export function CartBuilder({
         </div>
       </div>
 
-      <div className="rounded-lg border border-racing-line bg-racing-soft p-3">
-        <p className="flex items-center gap-2 text-sm font-black">
-          <Wrench size={16} className="text-racing-red" />
-          Mão de obra manual
-        </p>
-        <div className="mt-3 grid gap-2 sm:grid-cols-[1fr_130px]">
-          <input
-            name="laborDescription"
-            value={laborDescription}
-            onChange={(event) => setLaborDescription(event.target.value)}
-            className="h-11 rounded-lg px-3"
-            placeholder="Descrição da mão de obra"
-          />
-          <input
-            name="laborValue"
-            value={laborValue}
-            onChange={(event) => setLaborValue(event.target.value)}
-            type="number"
-            step="0.01"
-            min="0"
-            className="h-11 rounded-lg px-3"
-            placeholder="Valor"
-          />
+      {allowCustomPricing ? (
+        <div className="rounded-lg border border-racing-line bg-racing-soft p-3">
+          <p className="flex items-center gap-2 text-sm font-black">
+            <Wrench size={16} className="text-racing-red" />
+            Mão de obra manual
+          </p>
+          <div className="mt-3 grid gap-2 sm:grid-cols-[1fr_130px]">
+            <input
+              name="laborDescription"
+              value={laborDescription}
+              onChange={(event) => setLaborDescription(event.target.value)}
+              className="h-11 rounded-lg px-3"
+              placeholder="Descrição da mão de obra"
+            />
+            <input
+              name="laborValue"
+              value={laborValue}
+              onChange={(event) => setLaborValue(event.target.value)}
+              type="number"
+              step="0.01"
+              min="0"
+              className="h-11 rounded-lg px-3"
+              placeholder="Valor"
+            />
+          </div>
         </div>
-      </div>
+      ) : (
+        <p className="rounded-lg border border-racing-line bg-racing-soft p-3 text-xs font-semibold text-racing-muted">
+          Valores livres e produtos criados na hora exigem permissão de administrador.
+        </p>
+      )}
 
       <div className="flex items-center justify-between rounded-lg border border-racing-line bg-racing-panel px-4 py-3">
         <span className="flex items-center gap-2 text-sm font-black text-racing-muted">

@@ -1,11 +1,10 @@
 import Link from "next/link";
-import { ExternalLink, FileCheck2, FileUp, Settings2 } from "lucide-react";
+import { ChevronDown, ExternalLink, FileCheck2, FileUp, Settings2 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Badge } from "@/components/Badge";
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
 import { FiscalReceiptComposer } from "@/components/FiscalReceiptComposer";
-import { FiscalDefaultsButton } from "@/components/FiscalDefaultsButton";
 import { requirePageUser } from "@/lib/auth";
 import { brl } from "@/lib/currency";
 import { prisma } from "@/lib/prisma";
@@ -126,12 +125,17 @@ export default async function FiscalPage({ searchParams }: { searchParams: Promi
 
         {canConfigureFiscal ? (
           <Card>
-            <details open={!config}>
-            <summary className="flex cursor-pointer list-none items-center gap-2 text-lg font-black">
-              <Settings2 size={19} />
-              Configuração fiscal
+            <details open={!config} className="group">
+            <summary className="-m-2 flex min-h-11 cursor-pointer list-none items-center gap-2 rounded-xl p-2 text-lg font-black hover:bg-racing-soft [&::-webkit-details-marker]:hidden">
+              <Settings2 size={19} className="shrink-0" />
+              <span>Configuração fiscal</span>
+              <ChevronDown
+                size={20}
+                aria-hidden="true"
+                className="ml-auto shrink-0 text-racing-muted transition-transform duration-200 group-open:rotate-180"
+              />
             </summary>
-            <form id="fiscal-config-form" action="/api/notas-fiscais" method="post" className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <form action="/api/notas-fiscais" method="post" className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <label className="space-y-1.5 text-sm font-bold sm:col-span-2">
                 Nome da empresa
                 <input name="companyName" required defaultValue={config?.companyName || user.workspace.workshopName} className="h-11 rounded-lg px-3" />
@@ -167,20 +171,9 @@ export default async function FiscalPage({ searchParams }: { searchParams: Promi
                 Endereço
                 <input name="address" defaultValue={config?.address || ""} className="h-11 rounded-lg px-3" />
               </label>
-              <div className="rounded-xl border border-racing-line bg-racing-soft p-4 sm:col-span-2 lg:col-span-4">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <p className="font-black">Padrões fiscais sugeridos</p>
-                    <p className="mt-1 text-xs font-semibold text-racing-muted">
-                      Preenche CFOP 5102, CSOSN 102, UN, PIS/COFINS 49 e origem 0. O NCM depende de cada produto e deve ter 8 dígitos.
-                    </p>
-                  </div>
-                  <FiscalDefaultsButton formId="fiscal-config-form" />
-                </div>
-              </div>
               <label className="space-y-1.5 text-sm font-bold">
                 NCM padrão
-                <input name="defaultNcm" inputMode="numeric" pattern="\d{8}" maxLength={8} defaultValue={config?.defaultNcm || ""} className="h-11 rounded-lg px-3" placeholder="8 dígitos" />
+                <input name="defaultNcm" inputMode="numeric" defaultValue={config?.defaultNcm || ""} className="h-11 rounded-lg px-3" placeholder="8 dígitos" />
               </label>
               <label className="space-y-1.5 text-sm font-bold">
                 CFOP padrão

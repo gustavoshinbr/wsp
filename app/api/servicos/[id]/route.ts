@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireApiUser } from "@/lib/auth";
+import { requireApiUser, requireManager } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { apiError, ApiError } from "@/lib/validations";
 import { formNumber, formString } from "@/lib/utils";
@@ -19,7 +19,13 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const method = formString(formData, "_method").toLowerCase();
 
     if (method === "delete") {
-      await prisma.service.delete({ where: { id } });
+      requireManager(user.role);
+      await prisma.$transaction([
+        prisma.quoteItem.updateMany({ where: { serviceId: id }, data: { serviceId: null } }),
+        prisma.appointmentItem.updateMany({ where: { serviceId: id }, data: { serviceId: null } }),
+        prisma.saleItem.updateMany({ where: { serviceId: id }, data: { serviceId: null } }),
+        prisma.service.delete({ where: { id } }),
+      ]);
     } else {
       const name = formString(formData, "name");
       const price = formNumber(formData, "price");
@@ -49,8 +55,14 @@ export async function DELETE(_: Request, { params }: { params: Promise<{ id: str
   try {
     const { id } = await params;
     const user = await requireApiUser();
+    requireManager(user.role);
     await ensureService(id, user.workspaceId);
-    await prisma.service.delete({ where: { id } });
+    await prisma.$transaction([
+      prisma.quoteItem.updateMany({ where: { serviceId: id }, data: { serviceId: null } }),
+      prisma.appointmentItem.updateMany({ where: { serviceId: id }, data: { serviceId: null } }),
+      prisma.saleItem.updateMany({ where: { serviceId: id }, data: { serviceId: null } }),
+      prisma.service.delete({ where: { id } }),
+    ]);
     return NextResponse.json({ ok: true });
   } catch (error) {
     const { message, status } = apiError(error);

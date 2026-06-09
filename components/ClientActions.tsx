@@ -2,7 +2,9 @@
 
 import * as React from "react";
 import { Pencil, X } from "lucide-react";
+import { ActionModal } from "@/components/ActionModal";
 import { ConfirmSubmitButton } from "@/components/ConfirmSubmitButton";
+import { MotorcycleDialog } from "@/components/MotorcycleDialog";
 
 type EditableClient = {
   id: string;
@@ -13,12 +15,13 @@ type EditableClient = {
   address: string | null;
 };
 
-export function ClientActions({ client }: { client: EditableClient }) {
+export function ClientActions({ client, canDelete }: { client: EditableClient; canDelete: boolean }) {
   const [editing, setEditing] = React.useState(false);
 
   return (
     <>
       <div className="flex items-center gap-2">
+        <MotorcycleDialog clients={[{ id: client.id, name: client.name }]} clientId={client.id} compact />
         <button
           type="button"
           title="Editar cliente"
@@ -28,38 +31,35 @@ export function ClientActions({ client }: { client: EditableClient }) {
         >
           <Pencil size={17} />
         </button>
-        <form action={`/api/clientes/${client.id}`} method="post">
-          <input type="hidden" name="_method" value="delete" />
-          <ConfirmSubmitButton
-            message={`Excluir o cliente "${client.name}"?`}
-            title="Excluir cliente"
-            aria-label={`Excluir ${client.name}`}
-            className="grid h-10 w-10 place-items-center rounded-lg border border-red-200 bg-red-50 text-red-600 hover:bg-red-100 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200"
-          >
-            <X size={18} />
-          </ConfirmSubmitButton>
-        </form>
+        {canDelete ? (
+          <form action={`/api/clientes/${client.id}`} method="post">
+            <input type="hidden" name="_method" value="delete" />
+            <ConfirmSubmitButton
+              message={`Excluir o cliente "${client.name}"?`}
+              title="Excluir cliente"
+              aria-label={`Excluir ${client.name}`}
+              className="grid h-10 w-10 place-items-center rounded-lg border border-red-200 bg-red-50 text-red-600 hover:bg-red-100 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200"
+            >
+              <X size={18} />
+            </ConfirmSubmitButton>
+          </form>
+        ) : null}
       </div>
 
-      {editing ? (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4">
-          <div className="w-full max-w-lg rounded-lg border border-racing-line bg-racing-panel p-5 shadow-2xl">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <h2 className="text-xl font-black">Editar cliente</h2>
-                <p className="text-sm text-racing-muted">Atualize os dados de contato e faturamento.</p>
-              </div>
-              <button
-                type="button"
-                aria-label="Fechar edição"
-                onClick={() => setEditing(false)}
-                className="grid h-10 w-10 place-items-center rounded-lg border border-racing-line text-racing-muted"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            <form action={`/api/clientes/${client.id}`} method="post" className="mt-5 space-y-3">
+      <ActionModal
+        open={editing}
+        onClose={() => setEditing(false)}
+        title="Editar cliente"
+        description="Atualize os dados de contato e faturamento."
+        maxWidth="max-w-lg"
+      >
+            <form
+              action={`/api/clientes/${client.id}`}
+              method="post"
+              data-reset-on-success="true"
+              onSubmit={(event) => event.currentTarget.addEventListener("wsp:success", () => setEditing(false), { once: true })}
+              className="mt-5 space-y-3"
+            >
               <input type="hidden" name="_method" value="update" />
               <label className="block space-y-1.5 text-sm font-semibold">
                 <span>Nome</span>
@@ -100,9 +100,7 @@ export function ClientActions({ client }: { client: EditableClient }) {
                 </button>
               </div>
             </form>
-          </div>
-        </div>
-      ) : null}
+      </ActionModal>
     </>
   );
 }

@@ -1,20 +1,17 @@
-import { addDays } from "date-fns";
+import { createHash } from "crypto";
+import { addMonths } from "date-fns";
+import { Prisma, type SubscriptionStatus } from "@prisma/client";
 import { NextResponse } from "next/server";
-import { type SubscriptionStatus } from "@prisma/client";
-import { isPaidAsaasPaymentStatus, validateAsaasWebhookToken, type AsaasPaymentEvent } from "@/lib/asaas";
+import {
+  isPaidAsaasPaymentStatus,
+  validateAsaasWebhookToken,
+  type AsaasPaymentEvent,
+} from "@/lib/asaas";
 import { prisma } from "@/lib/prisma";
-import { syncWorkspaceSubscription } from "@/lib/subscription-sync";
-
-const EVENT_TO_STATUS: Record<string, SubscriptionStatus> = {
-  PAYMENT_RECEIVED: "ACTIVE",
-  PAYMENT_CONFIRMED: "ACTIVE",
-  PAYMENT_OVERDUE: "OVERDUE",
-  PAYMENT_DELETED: "INACTIVE",
-  PAYMENT_REFUNDED: "INACTIVE",
-  SUBSCRIPTION_DELETED: "CANCELED",
-};
 
 const ACCEPTED_EVENTS = new Set([
+  "PAYMENT_CREATED",
+  "PAYMENT_UPDATED",
   "PAYMENT_RECEIVED",
   "PAYMENT_CONFIRMED",
   "PAYMENT_OVERDUE",
@@ -25,30 +22,35 @@ const ACCEPTED_EVENTS = new Set([
   "SUBSCRIPTION_UPDATED",
 ]);
 
-function statusFromEvent(payload: AsaasPaymentEvent): SubscriptionStatus | undefined {
-  const event = payload.event || "";
-  const eventStatus = EVENT_TO_STATUS[event];
-  if (eventStatus) return eventStatus;
-
-  const paymentStatus = payload.payment?.status;
-  if (isPaidAsaasPaymentStatus(paymentStatus)) return "ACTIVE";
-  if (paymentStatus === "OVERDUE") return "OVERDUE";
-
-  return undefined;
+function validDate(value?: string | null, endOfDay = false) {
+  if (!value) return null;
+  const date = /^\d{4}-\d{2}-\d{2}$/.test(value)
+    ? new Date(`${value}T${endOfDay ? "23:59:59.999" : "12:00:00"}-03:00`)
+    : new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
 }
 
-function periodEndFromEvent(payload: AsaasPaymentEvent) {
-  if (payload.subscription?.nextDueDate) return new Date(payload.subscription.nextDueDate);
-
-  const date = payload.payment?.clientPaymentDate || payload.payment?.paymentDate || payload.payment?.dueDate;
-
-  if (!date) return undefined;
-  return addDays(new Date(date), 30);
+function paymentReferenceDate(payload: AsaasPaymentEvent) {
+  return (
+    validDate(payload.payment?.dueDate, true) ||
+    validDate(payload.payment?.clientPaymentDate) ||
+    validDate(payload.payment?.paymentDate)
+  );
 }
 
-function activatedAtFromEvent(payload: AsaasPaymentEvent) {
-  const date = payload.payment?.clientPaymentDate || payload.payment?.paymentDate || payload.payment?.dueDate;
-  return date ? new Date(date) : new Date();
+function paidPeriodEnd(payload: AsaasPaymentEvent) {
+  const reference = paymentReferenceDate(payload);
+  const nextDueDate = validDate(payload.subscription?.nextDueDate, true);
+
+  if (nextDueDate && (!reference || nextDueDate.getTime() > reference.getTime())) {
+    return nextDueDate;
+  }
+
+  return reference ? addMonths(reference, 1) : addMonths(new Date(), 1);
+}
+
+function laterDate(current: Date | null, candidate: Date) {
+  return current && current.getTime() > candidate.getTime() ? current : candidate;
 }
 
 export async function POST(req: Request) {
@@ -56,49 +58,144 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Webhook não autorizado." }, { status: 401 });
   }
 
-  const payload = (await req.json()) as AsaasPaymentEvent;
-  const event = payload.event || "";
+  const rawPayload = await req.text();
+  if (rawPayload.length > 1_000_000) {
+    return NextResponse.json({ error: "Payload muito grande." }, { status: 413 });
+  }
 
+  let payload: AsaasPaymentEvent;
+  try {
+    payload = JSON.parse(rawPayload) as AsaasPaymentEvent;
+  } catch {
+    return NextResponse.json({ error: "JSON inválido." }, { status: 400 });
+  }
+
+  const event = payload.event || "";
   if (!ACCEPTED_EVENTS.has(event)) {
     return NextResponse.json({ ok: true, ignored: event });
   }
 
   const subscriptionId = payload.payment?.subscription || payload.subscription?.id;
   const customerId = payload.payment?.customer || payload.subscription?.customer;
+  const externalReference =
+    payload.payment?.externalReference || payload.subscription?.externalReference;
 
-  if (!subscriptionId && !customerId) {
+  if (!subscriptionId && !customerId && !externalReference) {
     return NextResponse.json({ ok: true, ignored: "missing-reference" });
   }
-
-  const status = statusFromEvent(payload);
-  const periodEnd = periodEndFromEvent(payload);
-  const data = {
-    ...(subscriptionId ? { asaasSubscriptionId: subscriptionId } : {}),
-    ...(status ? { subscriptionStatus: status } : {}),
-    ...(periodEnd ? { subscriptionCurrentPeriodEnd: periodEnd } : {}),
-    paymentStatus: payload.payment?.status || payload.subscription?.status || event,
-    lastPaymentEvent: event,
-  };
 
   const workspace = await prisma.workspace.findFirst({
     where: {
       OR: [
         subscriptionId ? { asaasSubscriptionId: subscriptionId } : undefined,
         customerId ? { asaasCustomerId: customerId } : undefined,
-      ].filter(Boolean) as Array<{ asaasSubscriptionId?: string; asaasCustomerId?: string }>,
+        externalReference ? { id: externalReference } : undefined,
+      ].filter(Boolean) as Array<{
+        id?: string;
+        asaasSubscriptionId?: string;
+        asaasCustomerId?: string;
+      }>,
     },
-    select: { id: true, subscriptionActivatedAt: true },
+    select: {
+      id: true,
+      subscriptionStatus: true,
+      subscriptionActivatedAt: true,
+      subscriptionCurrentPeriodEnd: true,
+      paymentStatus: true,
+    },
   });
 
-  if (workspace) {
-    await prisma.workspace.update({
-      where: { id: workspace.id },
-      data: {
-        ...data,
-        ...(status === "ACTIVE" && !workspace.subscriptionActivatedAt ? { subscriptionActivatedAt: activatedAtFromEvent(payload) } : {}),
-      },
-    });
-    await syncWorkspaceSubscription(workspace.id).catch(() => null);
+  if (!workspace) {
+    return NextResponse.json({ ok: true, ignored: "workspace-not-found" });
+  }
+
+  const eventId =
+    payload.id || createHash("sha256").update(rawPayload).digest("hex");
+  const paymentStatus = String(payload.payment?.status || "").toUpperCase();
+  const paid = isPaidAsaasPaymentStatus(paymentStatus);
+  const paymentDate =
+    validDate(payload.payment?.clientPaymentDate) ||
+    validDate(payload.payment?.paymentDate) ||
+    paymentReferenceDate(payload) ||
+    new Date();
+  const eventPeriodEnd = paidPeriodEnd(payload);
+  const currentEnd = workspace.subscriptionCurrentPeriodEnd;
+  const currentlyActive =
+    workspace.subscriptionStatus === "ACTIVE" &&
+    Boolean(currentEnd && currentEnd.getTime() > Date.now());
+  const currentPaymentPaid = isPaidAsaasPaymentStatus(workspace.paymentStatus);
+  const currentPaymentEvent =
+    !currentEnd || eventPeriodEnd.getTime() >= currentEnd.getTime();
+  const supersedesPaidPeriod =
+    !currentlyActive ||
+    !currentPaymentPaid ||
+    !currentEnd ||
+    eventPeriodEnd.getTime() > currentEnd.getTime();
+  const overdueOrDeletedApplies =
+    currentPaymentEvent && supersedesPaidPeriod;
+
+  let nextStatus: SubscriptionStatus | undefined;
+  if (event === "SUBSCRIPTION_DELETED") {
+    nextStatus = "CANCELED";
+  } else if (paid) {
+    nextStatus = "ACTIVE";
+  } else if (event === "PAYMENT_OVERDUE" && overdueOrDeletedApplies) {
+    nextStatus = "OVERDUE";
+  } else if (
+    event === "PAYMENT_DELETED" &&
+    overdueOrDeletedApplies
+  ) {
+    nextStatus = "INACTIVE";
+  } else if (
+    event === "PAYMENT_REFUNDED" &&
+    currentPaymentEvent
+  ) {
+    nextStatus = "INACTIVE";
+  }
+
+  const nextPaymentStatus =
+    paid ||
+    event === "SUBSCRIPTION_DELETED" ||
+    ((event === "PAYMENT_OVERDUE" || event === "PAYMENT_DELETED") &&
+      overdueOrDeletedApplies) ||
+    (event === "PAYMENT_REFUNDED" && currentPaymentEvent) ||
+    !currentlyActive
+      ? paymentStatus || payload.subscription?.status || event
+      : workspace.paymentStatus;
+
+  const data: Prisma.WorkspaceUpdateInput = {
+    ...(subscriptionId ? { asaasSubscriptionId: subscriptionId } : {}),
+    ...(customerId ? { asaasCustomerId: customerId } : {}),
+    ...(nextStatus ? { subscriptionStatus: nextStatus } : {}),
+    ...(paid
+      ? {
+          subscriptionActivatedAt:
+            workspace.subscriptionActivatedAt || paymentDate,
+          subscriptionCurrentPeriodEnd: laterDate(currentEnd, eventPeriodEnd),
+        }
+      : {}),
+    paymentStatus: nextPaymentStatus,
+    lastPaymentEvent: event,
+  };
+
+  try {
+    await prisma.$transaction([
+      prisma.asaasWebhookEvent.create({
+        data: { id: eventId, event },
+      }),
+      prisma.workspace.update({
+        where: { id: workspace.id },
+        data,
+      }),
+    ]);
+  } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      return NextResponse.json({ ok: true, duplicate: true });
+    }
+    throw error;
   }
 
   return NextResponse.json({ ok: true });

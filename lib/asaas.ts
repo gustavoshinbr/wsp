@@ -1,5 +1,7 @@
-import { addDays, format } from "date-fns";
+import { addMonths, format } from "date-fns";
+import { timingSafeEqual } from "crypto";
 import { absoluteUrl } from "@/lib/utils";
+import { ApiError } from "@/lib/validations";
 
 type AsaasCustomerInput = {
   name: string;
@@ -46,16 +48,21 @@ export type AsaasPaymentEvent = {
     paymentDate?: string;
     clientPaymentDate?: string;
     invoiceUrl?: string;
+    externalReference?: string;
   };
   subscription?: {
     id?: string;
     customer?: string;
     status?: string;
     nextDueDate?: string;
+    externalReference?: string;
   };
 };
 
-const DEFAULT_BASE_URL = "https://sandbox.asaas.com/api/v3";
+const DEFAULT_BASE_URL =
+  process.env.NODE_ENV === "production"
+    ? "https://api.asaas.com/v3"
+    : "https://sandbox.asaas.com/api/v3";
 const PAID_PAYMENT_STATUSES = new Set(["RECEIVED", "CONFIRMED", "RECEIVED_IN_CASH"]);
 
 export function asaasBaseUrl() {
@@ -85,7 +92,7 @@ export async function asaasRequest<T>(path: string, init?: RequestInit): Promise
       data?.errors?.[0]?.description ||
       data?.message ||
       `Erro Asaas (${response.status})`;
-    throw new Error(description);
+    throw new ApiError(description, response.status >= 500 ? 502 : 400);
   }
 
   return data as T;
@@ -108,8 +115,16 @@ export async function createAsaasCustomer(input: AsaasCustomerInput) {
 export async function createAsaasSubscription(input: AsaasSubscriptionInput) {
   const value = input.value ?? Number(process.env.ASAAS_PLAN_VALUE || 50);
   const nextDueDate = input.nextDueDate ?? new Date();
-
-  const subscription = await asaasRequest<{
+  const payload = {
+    customer: input.customerId,
+    billingType: "UNDEFINED",
+    value,
+    nextDueDate: format(nextDueDate, "yyyy-MM-dd"),
+    cycle: "MONTHLY",
+    description: input.description || "Assinatura WSP Racing Pro",
+    externalReference: input.externalReference,
+  };
+  const requestSubscription = (includeCallback: boolean) => asaasRequest<{
     id: string;
     status?: string;
     invoiceUrl?: string;
@@ -117,19 +132,25 @@ export async function createAsaasSubscription(input: AsaasSubscriptionInput) {
   }>("/subscriptions", {
     method: "POST",
     body: JSON.stringify({
-      customer: input.customerId,
-      billingType: "UNDEFINED",
-      value,
-      nextDueDate: format(nextDueDate, "yyyy-MM-dd"),
-      cycle: "MONTHLY",
-      description: input.description || "Assinatura WSP Racing Pro",
-      externalReference: input.externalReference,
-      callback: {
-        successUrl: input.callbackSuccessUrl || absoluteUrl("/api/asaas/return"),
-        autoRedirect: true,
-      },
+      ...payload,
+      ...(includeCallback
+        ? {
+            callback: {
+              successUrl: input.callbackSuccessUrl || absoluteUrl("/api/asaas/return"),
+              autoRedirect: true,
+            },
+          }
+        : {}),
     }),
   });
+  let subscription;
+  try {
+    subscription = await requestSubscription(true);
+  } catch (error) {
+    const message = error instanceof Error ? error.message.toLowerCase() : "";
+    if (!message.includes("domínio configurado") && !message.includes("dominio configurado")) throw error;
+    subscription = await requestSubscription(false);
+  }
 
   const payment = await getCurrentSubscriptionPayment(subscription.id).catch(() => null);
 
@@ -139,7 +160,7 @@ export async function createAsaasSubscription(input: AsaasSubscriptionInput) {
     paymentLink: paymentUrlWithAutoRedirect(
       payment?.invoiceUrl || subscription.paymentLink || subscription.invoiceUrl || null,
     ),
-    currentPeriodEnd: addDays(nextDueDate, 30),
+    currentPeriodEnd: addMonths(nextDueDate, 1),
   };
 }
 
@@ -236,5 +257,7 @@ export function validateAsaasWebhookToken(headers: Headers) {
     headers.get("authorization")?.replace(/^Bearer\s+/i, "") ||
     "";
 
-  return received === expected;
+  const expectedBuffer = Buffer.from(expected);
+  const receivedBuffer = Buffer.from(received);
+  return expectedBuffer.length === receivedBuffer.length && timingSafeEqual(expectedBuffer, receivedBuffer);
 }

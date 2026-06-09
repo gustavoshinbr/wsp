@@ -18,7 +18,7 @@ export function Sidebar() {
       <div className="px-2">
         <Logo />
       </div>
-      <nav className="mt-7 min-h-0 flex-1 space-y-5 overflow-y-auto pr-1">
+      <nav className="wsp-scrollbar mt-7 min-h-0 flex-1 space-y-5 overflow-y-auto pr-2">
         {navGroups.map((group) => (
           <div key={group.title}>
             <p className="mb-2 px-3 text-[11px] font-black uppercase text-racing-muted">{group.title}</p>

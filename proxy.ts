@@ -13,20 +13,27 @@ const PUBLIC_ROUTES = [
   "/",
   "/login",
   "/register",
+  "/forgot-password",
+  "/reset-password",
+  "/docs/manual-wsp-racing.pdf",
   "/checkout",
   "/api/auth/login",
   "/api/auth/register",
+  "/api/auth/forgot-password",
+  "/api/auth/reset-password",
+  "/api/auth",
   "/api/asaas/webhook",
   "/api/pwa/icon",
 ];
 
 function isPublicPath(pathname: string) {
+  const isPublicAsset = /\.(?:avif|css|gif|ico|jpe?g|js|json|map|png|svg|txt|webmanifest|webp|woff2?)$/i.test(pathname);
   return (
     PUBLIC_ROUTES.some((route) => pathname === route || pathname.startsWith(`${route}/`)) ||
     pathname.startsWith("/_next") ||
     pathname.startsWith("/uploads") ||
     pathname.startsWith("/logo-wsp-racing.svg") ||
-    pathname.includes(".")
+    isPublicAsset
   );
 }
 
@@ -42,35 +49,52 @@ function base64UrlDecode(value: string) {
   return new TextDecoder().decode(base64UrlToArrayBuffer(value));
 }
 
-function toBase64Url(buffer: ArrayBuffer) {
-  let binary = "";
-  const bytes = new Uint8Array(buffer);
-  for (let i = 0; i < bytes.byteLength; i += 1) binary += String.fromCharCode(bytes[i]);
-  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-}
-
 async function verifySession(token?: string): Promise<SessionPayload | null> {
   if (!token || !process.env.SESSION_SECRET) return null;
   const [body, signature] = token.split(".");
   if (!body || !signature) return null;
 
-  const key = await crypto.subtle.importKey(
-    "raw",
-    new TextEncoder().encode(process.env.SESSION_SECRET),
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["sign"],
-  );
-  const digest = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(body));
-  if (toBase64Url(digest) !== signature) return null;
+  try {
+    const key = await crypto.subtle.importKey(
+      "raw",
+      new TextEncoder().encode(process.env.SESSION_SECRET),
+      { name: "HMAC", hash: "SHA-256" },
+      false,
+      ["verify"],
+    );
+    const valid = await crypto.subtle.verify(
+      "HMAC",
+      key,
+      base64UrlToArrayBuffer(signature),
+      new TextEncoder().encode(body),
+    );
+    if (!valid) return null;
 
-  const payload = JSON.parse(base64UrlDecode(body)) as SessionPayload;
-  if (Date.now() > payload.exp) return null;
-  return payload;
+    const payload = JSON.parse(base64UrlDecode(body)) as SessionPayload;
+    if (!payload.userId || !payload.workspaceId || Date.now() > payload.exp) return null;
+    return payload;
+  } catch {
+    return null;
+  }
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const unsafeMethod = !["GET", "HEAD", "OPTIONS"].includes(request.method);
+  if (unsafeMethod && pathname.startsWith("/api/") && pathname !== "/api/asaas/webhook") {
+    if (request.headers.get("sec-fetch-site") === "cross-site") {
+      return NextResponse.json({ error: "Requisição entre sites bloqueada." }, { status: 403 });
+    }
+    const source = request.headers.get("origin") || request.headers.get("referer");
+    if (!source) return NextResponse.json({ error: "Origem da requisição ausente." }, { status: 403 });
+    try {
+      if (new URL(source).origin !== request.nextUrl.origin) {
+        return NextResponse.json({ error: "Origem da requisição inválida." }, { status: 403 });
+      }
+    } catch {
+      return NextResponse.json({ error: "Origem da requisição inválida." }, { status: 403 });
+    }
+  }
   const session = await verifySession(request.cookies.get(COOKIE_NAME)?.value);
 
   if (isPublicPath(pathname)) {

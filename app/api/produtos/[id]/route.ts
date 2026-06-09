@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireApiUser } from "@/lib/auth";
+import { requireApiUser, requireManager } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { isValidPresetImage } from "@/lib/product-presets";
 import { saveImageUpload } from "@/lib/upload";
@@ -41,6 +41,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const method = formString(formData, "_method").toLowerCase();
 
     if (method === "delete") {
+      requireManager(user.role);
       await prisma.product.delete({ where: { id } });
     } else {
       const name = formString(formData, "name");
@@ -105,6 +106,7 @@ export async function DELETE(_: Request, { params }: { params: Promise<{ id: str
   try {
     const { id } = await params;
     const user = await requireApiUser();
+    requireManager(user.role);
     await ensureProduct(id, user.workspaceId);
     await prisma.product.delete({ where: { id } });
     return NextResponse.json({ ok: true });

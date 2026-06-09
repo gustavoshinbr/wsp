@@ -1,5 +1,6 @@
 import { CalendarDays, CheckCircle2, Plus, UserRound } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
+import { AppointmentActions } from "@/components/AppointmentActions";
 import { Badge } from "@/components/Badge";
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
@@ -23,6 +24,13 @@ export default async function AgendamentosPage({ searchParams }: { searchParams:
       orderBy: { date: "asc" },
     }),
   ]);
+  const clientOptions = clients.map((client) => ({ id: client.id, name: client.name }));
+  const motorcycleOptions = motorcycles.map((motorcycle) => ({
+    id: motorcycle.id,
+    plate: motorcycle.plate,
+    clientName: motorcycle.client.name,
+  }));
+  const mechanicOptions = mechanics.map((mechanic) => ({ id: mechanic.id, name: mechanic.name }));
 
   return (
     <AppShell>
@@ -124,6 +132,23 @@ export default async function AgendamentosPage({ searchParams }: { searchParams:
                         </button>
                       </form>
                     ) : null}
+                    <div className="mt-3">
+                      <AppointmentActions
+                        appointment={{
+                          id: appointment.id,
+                          clientId: appointment.clientId,
+                          motorcycleId: appointment.motorcycleId,
+                          mechanicId: appointment.mechanicId,
+                          date: new Date(appointment.date.getTime() - appointment.date.getTimezoneOffset() * 60_000).toISOString().slice(0, 16),
+                          notes: appointment.notes,
+                          status: appointment.status,
+                        }}
+                        clients={clientOptions}
+                        motorcycles={motorcycleOptions}
+                        mechanics={mechanicOptions}
+                        canDelete={user.role !== "STAFF"}
+                      />
+                    </div>
                   </div>
                 </div>
               </Card>

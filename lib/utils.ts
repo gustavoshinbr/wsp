@@ -13,6 +13,10 @@ export function normalizeDocument(value: string) {
   return onlyDigits(value);
 }
 
+export function normalizePhone(value: string) {
+  return onlyDigits(value);
+}
+
 export function optionalString(value: unknown) {
   const parsed = String(value ?? "").trim();
   return parsed.length ? parsed : null;
@@ -35,7 +39,7 @@ export function formInt(formData: FormData, key: string, fallback = 0) {
 
 export function positiveInteger(value: unknown) {
   const parsed = Number(value);
-  return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
+  return Number.isInteger(parsed) && parsed > 0 && parsed <= 1_000_000 ? parsed : null;
 }
 
 export function addDays(date: Date, days: number) {

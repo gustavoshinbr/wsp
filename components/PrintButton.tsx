@@ -1,6 +1,7 @@
 "use client";
 
 import { Printer } from "lucide-react";
+import { useSystemDialog } from "@/components/SystemDialogProvider";
 
 export function PrintButton({
   label = "Imprimir/PDF",
@@ -11,13 +12,18 @@ export function PrintButton({
   targetId?: string;
   format?: "document" | "receipt";
 }) {
-  function printTarget() {
+  const { alert } = useSystemDialog();
+
+  async function printTarget() {
     const target = targetId ? document.getElementById(targetId) : null;
 
     if (target) {
       const printWindow = window.open("", `wsp-print-${Date.now()}`);
       if (!printWindow) {
-        window.alert("O navegador bloqueou a janela de impressão. Permita pop-ups para imprimir somente o cupom.");
+        await alert({
+          title: "Impressão bloqueada",
+          message: "O navegador bloqueou a janela de impressão. Permita pop-ups para imprimir somente o cupom.",
+        });
         return;
       }
 

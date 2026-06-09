@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Boxes, Building2, CreditCard, ExternalLink, Image as ImageIcon, KeyRound, LogOut, Moon, ReceiptText, ShieldCheck } from "lucide-react";
+import { BookOpen, Boxes, Building2, CreditCard, ExternalLink, Image as ImageIcon, KeyRound, LogOut, Moon, ReceiptText, ShieldCheck } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
@@ -156,7 +156,16 @@ export default async function ConfiguracoesPage({ searchParams }: { searchParams
             <div className="mt-4">
               <PwaInstallButton />
             </div>
-            <Link href="/fiscal" className="mt-6 flex items-center gap-2 text-sm font-black text-racing-red">
+            <a
+              href="/docs/manual-wsp-racing.pdf"
+              target="_blank"
+              rel="noreferrer"
+              className="mt-6 flex items-center gap-2 text-sm font-black text-racing-red"
+            >
+              <BookOpen size={16} />
+              Abrir manual completo
+            </a>
+            <Link href="/fiscal" className="mt-3 flex items-center gap-2 text-sm font-black text-racing-red">
               <ReceiptText size={16} />
               Dados fiscais
             </Link>

@@ -15,6 +15,7 @@ type QuoteRecordProps = {
   workshopName: string;
   workshopPhone?: string | null;
   workshopEmail?: string | null;
+  canDelete: boolean;
   quote: {
     id: string;
     status: string;
@@ -33,13 +34,12 @@ type QuoteRecordProps = {
   };
 };
 
-export function QuoteRecord({ quote, workshopName, workshopPhone, workshopEmail }: QuoteRecordProps) {
+export function QuoteRecord({ quote, workshopName, workshopPhone, workshopEmail, canDelete }: QuoteRecordProps) {
   const quoteDate = quoteDateFormatter.format(new Date(quote.createdAt));
   const motorcycle = quote.motorcycle
     ? `${quote.motorcycle.plate} - ${[quote.motorcycle.brand, quote.motorcycle.model].filter(Boolean).join(" ")}`
     : null;
   const total = toNumber(quote.total as never);
-  const canDelete = quote.status !== "APPROVED" && quote.status !== "PAID";
   const canFinalize = quote.status !== "PAID" && quote.status !== "CANCELLED";
   const message = quoteWhatsAppMessage({
     workshopName,
@@ -101,7 +101,11 @@ export function QuoteRecord({ quote, workshopName, workshopPhone, workshopEmail 
           <form action={`/api/orcamentos/${quote.id}`} method="post">
             <input type="hidden" name="_method" value="delete" />
             <ConfirmSubmitButton
-              message={`Excluir o orçamento de ${quote.client.name}?`}
+              message={
+                quote.status === "PAID"
+                  ? `Excluir o orçamento finalizado de ${quote.client.name}? A venda será preservada.`
+                  : `Excluir o orçamento de ${quote.client.name}?`
+              }
               className="inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-lg border border-racing-line px-3 py-2 text-sm font-bold text-racing-muted hover:bg-racing-soft"
             >
               <Trash2 size={16} />

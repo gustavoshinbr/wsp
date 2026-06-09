@@ -36,7 +36,7 @@ export function MobileMenuButton() {
             className="absolute inset-0 bg-black/45"
             onClick={() => setOpen(false)}
           />
-          <aside className="relative flex h-full w-[min(84vw,22rem)] flex-col overflow-y-auto border-r border-racing-line bg-racing-panel px-4 py-5 shadow-2xl">
+          <aside className="wsp-scrollbar relative flex h-full w-[min(88vw,22rem)] flex-col overflow-y-auto border-r border-racing-line bg-racing-panel px-4 py-5 shadow-2xl">
             <div className="flex items-center justify-between gap-3">
               <Logo />
               <button

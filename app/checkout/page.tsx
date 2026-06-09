@@ -52,7 +52,7 @@ export default async function CheckoutPage({
               <ArrowRight size={17} />
             </Link>
           ) : (
-            <form action="/api/asaas/create-subscription" method="post" className="mt-6">
+            <form action="/api/asaas/create-subscription" method="post" data-native-submit="true" className="mt-6">
               <button className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-racing-red px-4 py-2 text-sm font-bold text-white">
                 {existingSubscriptionId ? "Abrir pagamento existente" : "Gerar link de pagamento"}
                 <ArrowRight size={17} />

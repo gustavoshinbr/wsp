@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { AlertTriangle, CalendarDays, Package, ShoppingCart, Wrench } from "lucide-react";
+import { AlertTriangle, BarChart3, CalendarDays, FileText, Package, ShoppingCart, Users, Wrench } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Badge } from "@/components/Badge";
 import { Card } from "@/components/Card";
@@ -7,7 +7,6 @@ import { StatCard } from "@/components/StatCard";
 import { requirePageUser } from "@/lib/auth";
 import { brl } from "@/lib/currency";
 import { prisma } from "@/lib/prisma";
-import { subscriptionMessage } from "@/lib/subscription";
 
 export default async function DashboardPage() {
   const user = await requirePageUser();
@@ -41,15 +40,36 @@ export default async function DashboardPage() {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-3xl font-black">Início</h1>
-            <p className="text-sm text-racing-muted">{subscriptionMessage(user.workspace)}</p>
           </div>
           <Link
             href="/vendas"
-            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-racing-red px-5 py-2 text-sm font-bold text-white hover:bg-red-700"
+            className="hidden min-h-11 items-center justify-center gap-2 rounded-lg bg-racing-red px-5 py-2 text-sm font-bold text-white hover:bg-red-700 lg:inline-flex"
           >
             <ShoppingCart size={18} />
             Nova venda
           </Link>
+        </div>
+
+        <div className="grid grid-cols-3 gap-2 lg:hidden">
+          {[
+            { href: "/clientes", label: "Clientes", icon: Users, tone: "text-sky-500" },
+            { href: "/vendas", label: "Vendas", icon: ShoppingCart, tone: "text-emerald-500" },
+            { href: "/estoque", label: "Estoque", icon: Package, tone: "text-amber-500" },
+            { href: "/orcamentos", label: "Orçamentos", icon: FileText, tone: "text-violet-500" },
+            { href: "/servicos", label: "Serviços", icon: Wrench, tone: "text-racing-red" },
+            { href: "/relatorios", label: "Relatórios", icon: BarChart3, tone: "text-cyan-600" },
+          ].map(({ href, label, icon: Icon, tone }) => (
+            <Link
+              key={href}
+              href={href}
+              className="group flex min-h-24 flex-col items-center justify-center gap-2 rounded-2xl border border-racing-line bg-racing-panel px-2 py-3 text-center shadow-sm active:scale-[0.98]"
+            >
+              <span className="grid h-10 w-10 place-items-center rounded-xl bg-racing-soft transition-transform group-active:scale-95">
+                <Icon size={20} className={tone} />
+              </span>
+              <span className="max-w-full truncate text-[11px] font-black">{label}</span>
+            </Link>
+          ))}
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">

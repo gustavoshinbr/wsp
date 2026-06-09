@@ -12,29 +12,16 @@ export async function POST(req: Request) {
     const companyName = formString(formData, "companyName");
     const cnpj = normalizeDocument(formString(formData, "cnpj"));
     if (!companyName || cnpj.length !== 14) throw new ApiError("Empresa e CNPJ válido são obrigatórios.");
-    const defaultNcm = normalizeDocument(formString(formData, "defaultNcm"));
-    const defaultCfop = normalizeDocument(formString(formData, "defaultCfop")) || "5102";
-    const defaultCsosn = normalizeDocument(formString(formData, "defaultCsosn")) || "102";
-    const defaultPisCst = normalizeDocument(formString(formData, "defaultPisCst")) || "49";
-    const defaultCofinsCst = normalizeDocument(formString(formData, "defaultCofinsCst")) || "49";
-    const defaultOrigin = normalizeDocument(formString(formData, "defaultOrigin")) || "0";
-    if (defaultNcm && defaultNcm.length !== 8) throw new ApiError("O NCM padrão deve possuir 8 dígitos.");
-    if (defaultCfop.length !== 4) throw new ApiError("O CFOP padrão deve possuir 4 dígitos.");
-    if (defaultCsosn.length !== 3) throw new ApiError("O CSOSN padrão deve possuir 3 dígitos.");
-    if (defaultPisCst.length !== 2 || defaultCofinsCst.length !== 2) {
-      throw new ApiError("Os códigos CST de PIS e COFINS devem possuir 2 dígitos.");
-    }
-    if (defaultOrigin.length !== 1) throw new ApiError("A origem do ICMS deve possuir 1 dígito.");
     const fiscalDefaults = {
       provider: "SEBRAE",
       environment: formString(formData, "environment") === "producao" ? "producao" : "homologacao",
-      defaultNcm: defaultNcm || null,
-      defaultCfop,
-      defaultCsosn,
-      defaultPisCst,
-      defaultCofinsCst,
+      defaultNcm: normalizeDocument(formString(formData, "defaultNcm")) || null,
+      defaultCfop: normalizeDocument(formString(formData, "defaultCfop")) || "5102",
+      defaultCsosn: normalizeDocument(formString(formData, "defaultCsosn")) || "102",
+      defaultPisCst: normalizeDocument(formString(formData, "defaultPisCst")) || "49",
+      defaultCofinsCst: normalizeDocument(formString(formData, "defaultCofinsCst")) || "49",
       defaultUnit: formString(formData, "defaultUnit").toUpperCase() || "UN",
-      defaultOrigin,
+      defaultOrigin: normalizeDocument(formString(formData, "defaultOrigin")) || "0",
     };
 
     await prisma.fiscalConfig.upsert({

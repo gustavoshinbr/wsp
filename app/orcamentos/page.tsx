@@ -76,6 +76,7 @@ export default async function OrcamentosPage({ searchParams }: { searchParams: P
             motorcycles={motorcycles}
             products={quoteProducts}
             services={quoteServices}
+            allowCustomPricing={user.role !== "STAFF"}
           />
 
           <Card className="h-fit p-4 sm:p-5 xl:sticky xl:top-6">
@@ -92,6 +93,7 @@ export default async function OrcamentosPage({ searchParams }: { searchParams: P
                     workshopName={user.workspace.workshopName}
                     workshopPhone={user.workspace.phone}
                     workshopEmail={user.workspace.email}
+                    canDelete={user.role !== "STAFF"}
                   />
                 ))}
               </div>

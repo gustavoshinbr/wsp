@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireApiUser } from "@/lib/auth";
+import { requireApiUser, requireManager } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { apiError, ApiError } from "@/lib/validations";
 import { formString, normalizeDocument } from "@/lib/utils";
@@ -35,6 +35,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const method = formString(formData, "_method").toLowerCase();
 
     if (method === "delete") {
+      requireManager(user.role);
       await prisma.client.delete({ where: { id } });
     } else {
       const name = formString(formData, "name");
@@ -66,6 +67,7 @@ export async function DELETE(_: Request, { params }: { params: Promise<{ id: str
   try {
     const { id } = await params;
     const user = await requireApiUser();
+    requireManager(user.role);
     await ensureClient(id, user.workspaceId);
     await prisma.client.delete({ where: { id } });
     return NextResponse.json({ ok: true });

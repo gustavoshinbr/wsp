@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Barcode, Boxes, Image as ImageIcon, Plus, Search } from "lucide-react";
+import { Barcode, Boxes, ChevronDown, Image as ImageIcon, Plus, Search } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { BarcodeInput } from "@/components/BarcodeInput";
 import { Button } from "@/components/Button";
@@ -92,8 +92,15 @@ export default async function EstoquePage({ searchParams }: { searchParams: Prom
               <input name="quantity" required type="number" className="h-11 rounded-lg px-3" placeholder="Quantidade" />
               <BarcodeInput name="barcode" placeholder="Código de barras: bipe, digite ou use câmera" />
               <input name="qrCode" className="h-11 rounded-lg px-3" placeholder="QR Code" />
-              <details className="rounded-lg border border-racing-line p-3">
-                <summary className="cursor-pointer text-sm font-black">Dados fiscais do produto</summary>
+              <details className="group rounded-lg border border-racing-line p-3">
+                <summary className="flex min-h-8 cursor-pointer list-none items-center gap-2 text-sm font-black [&::-webkit-details-marker]:hidden">
+                  <span>Dados fiscais do produto</span>
+                  <ChevronDown
+                    size={18}
+                    aria-hidden="true"
+                    className="ml-auto shrink-0 text-racing-muted transition-transform duration-200 group-open:rotate-180"
+                  />
+                </summary>
                 <div className="mt-3 grid gap-3 sm:grid-cols-2">
                   <input name="ncm" inputMode="numeric" className="h-11 rounded-lg px-3" placeholder="NCM (8 dígitos)" />
                   <input name="cfop" inputMode="numeric" className="h-11 rounded-lg px-3" placeholder="CFOP, ex. 5102" />
@@ -144,7 +151,7 @@ export default async function EstoquePage({ searchParams }: { searchParams: Prom
                   {
                     header: "Acoes",
                     className: "w-28",
-                    render: (product) => <ProductStockActions product={editableProduct(product)} />,
+                    render: (product) => <ProductStockActions product={editableProduct(product)} canDelete={user.role !== "STAFF"} />,
                   },
                 ]}
                 mobileRender={(product) => (
@@ -158,7 +165,7 @@ export default async function EstoquePage({ searchParams }: { searchParams: Prom
                       <strong>{product.quantity}</strong>
                     </div>
                     <div className="mt-4">
-                      <ProductStockActions product={editableProduct(product)} />
+                      <ProductStockActions product={editableProduct(product)} canDelete={user.role !== "STAFF"} />
                     </div>
                   </Card>
                 )}
@@ -168,7 +175,7 @@ export default async function EstoquePage({ searchParams }: { searchParams: Prom
                 {products.map((product) => (
                   <div key={product.id} className="space-y-2">
                     <ProductCard product={product} />
-                    <ProductStockActions product={editableProduct(product)} />
+                    <ProductStockActions product={editableProduct(product)} canDelete={user.role !== "STAFF"} />
                   </div>
                 ))}
                 {!products.length ? <Card className="sm:col-span-2 2xl:col-span-3">Nenhum produto cadastrado.</Card> : null}

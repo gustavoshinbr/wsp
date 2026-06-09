@@ -4,6 +4,7 @@ import { hashPassword, requireApiUser, requireManager } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { apiError, ApiError, isValidEmail, validatePassword } from "@/lib/validations";
 import { formNumber, formString } from "@/lib/utils";
+import { ensureNeonAuthUser } from "@/lib/neon-auth-sync";
 
 export async function GET() {
   try {
@@ -57,7 +58,7 @@ export async function POST(req: Request) {
     const existing = await prisma.user.findUnique({ where: { email }, select: { id: true } });
     if (existing) throw new ApiError("Email já cadastrado.");
 
-    await prisma.user.create({
+    const employee = await prisma.user.create({
       data: {
         workspaceId: currentUser.workspaceId,
         name,
@@ -71,6 +72,11 @@ export async function POST(req: Request) {
         commissionPercent: commissionPercent || null,
       },
     });
+    try {
+      await ensureNeonAuthUser(employee, password);
+    } catch (error) {
+      console.error("Funcionário criado, mas a sincronização com Neon Auth falhou", error);
+    }
 
     return NextResponse.redirect(new URL("/funcionarios", req.url));
   } catch (error) {

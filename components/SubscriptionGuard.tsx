@@ -7,7 +7,7 @@ export function SubscriptionGuard({
   workspace,
   children,
 }: {
-  workspace: Pick<Workspace, "trialEndsAt" | "subscriptionStatus">;
+  workspace: Pick<Workspace, "trialEndsAt" | "subscriptionStatus" | "subscriptionCurrentPeriodEnd">;
   children: React.ReactNode;
 }) {
   if (hasWorkspaceAccess(workspace)) return <>{children}</>;

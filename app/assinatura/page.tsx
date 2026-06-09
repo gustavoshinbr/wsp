@@ -1,14 +1,14 @@
-import { CalendarDays, CheckCircle2, CreditCard, RefreshCw, ShieldCheck } from "lucide-react";
+import { CalendarDays, CheckCircle2, CreditCard, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
+import { SubscriptionTimeline } from "@/components/SubscriptionTimeline";
 import { getCurrentSubscriptionPayment, paymentUrlWithAutoRedirect } from "@/lib/asaas";
 import { requirePageUser } from "@/lib/auth";
 import { brl } from "@/lib/currency";
 import { isSubscriptionActive, subscriptionMessage } from "@/lib/subscription";
-import { syncWorkspaceSubscription } from "@/lib/subscription-sync";
 
 const benefits = [
   "Clientes ilimitados",
@@ -19,23 +19,6 @@ const benefits = [
   "Modo claro/escuro",
   "Suporte para celular e PC",
 ];
-
-function formatDate(date?: Date | null) {
-  if (!date) return "-";
-  return date.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
-}
-
-function statusLabel(status: string) {
-  const labels: Record<string, string> = {
-    TRIAL: "Teste grátis",
-    ACTIVE: "Ativa",
-    OVERDUE: "Em atraso",
-    CANCELED: "Cancelada",
-    INACTIVE: "Pendente",
-  };
-
-  return labels[status] || status;
-}
 
 function paymentStatusLabel(status?: string | null) {
   const labels: Record<string, string> = {
@@ -56,9 +39,7 @@ export default async function SubscriptionPage({ searchParams }: { searchParams:
   const user = await requirePageUser({ allowExpiredSubscription: true });
   if (user.role === "STAFF") redirect("/dashboard");
   const value = Number(process.env.ASAAS_PLAN_VALUE || 50);
-  const workspace = user.workspace.asaasSubscriptionId
-    ? (await syncWorkspaceSubscription(user.workspaceId).catch(() => null)) || user.workspace
-    : user.workspace;
+  const workspace = user.workspace;
   const active = isSubscriptionActive(workspace);
 
   const existingSubscriptionId =
@@ -98,20 +79,13 @@ export default async function SubscriptionPage({ searchParams }: { searchParams:
                   : "Ative a assinatura para continuar usando todos os módulos depois do período de teste."}
               </p>
 
-              <div className="mt-6 grid gap-3 sm:grid-cols-3">
-                <div className="rounded-lg border border-racing-line bg-racing-soft p-4">
-                  <p className="text-xs font-black uppercase text-racing-muted">Status</p>
-                  <p className="mt-2 text-lg font-black">{statusLabel(workspace.subscriptionStatus)}</p>
-                </div>
-                <div className="rounded-lg border border-racing-line bg-racing-soft p-4">
-                  <p className="text-xs font-black uppercase text-racing-muted">Assinou em</p>
-                  <p className="mt-2 text-lg font-black">{formatDate(workspace.subscriptionActivatedAt)}</p>
-                </div>
-                <div className="rounded-lg border border-racing-line bg-racing-soft p-4">
-                  <p className="text-xs font-black uppercase text-racing-muted">Vence em</p>
-                  <p className="mt-2 text-lg font-black">{formatDate(workspace.subscriptionCurrentPeriodEnd)}</p>
-                </div>
-              </div>
+              <SubscriptionTimeline
+                status={workspace.subscriptionStatus}
+                trialStartAt={workspace.trialStartAt.toISOString()}
+                trialEndsAt={workspace.trialEndsAt.toISOString()}
+                subscriptionActivatedAt={workspace.subscriptionActivatedAt?.toISOString()}
+                subscriptionCurrentPeriodEnd={workspace.subscriptionCurrentPeriodEnd?.toISOString()}
+              />
 
               <div className="mt-6 flex flex-wrap items-center gap-3">
                 <div className="flex items-end gap-2">
@@ -127,12 +101,6 @@ export default async function SubscriptionPage({ searchParams }: { searchParams:
               </div>
 
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                <form action="/api/asaas/sync-subscription" method="post">
-                  <button className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-racing-line px-4 py-2 text-sm font-bold sm:w-auto">
-                    <RefreshCw size={17} />
-                    Atualizar status
-                  </button>
-                </form>
                 {active ? (
                   <Link
                     href="/dashboard"
@@ -149,7 +117,7 @@ export default async function SubscriptionPage({ searchParams }: { searchParams:
                     Abrir pagamento pendente
                   </Link>
                 ) : (
-                  <form action="/api/asaas/create-subscription" method="post">
+                  <form action="/api/asaas/create-subscription" method="post" data-native-submit="true">
                     <Button type="submit" className="w-full sm:w-auto">
                       <CreditCard size={18} />
                       {existingSubscriptionId ? "Abrir pagamento pendente" : "Ativar assinatura"}

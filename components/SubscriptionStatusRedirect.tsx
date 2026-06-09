@@ -15,7 +15,7 @@ export function SubscriptionStatusRedirect() {
         if (!response.ok) return;
 
         const data = await response.json();
-        if (!cancelled && data?.workspace?.subscriptionStatus === "ACTIVE") {
+        if (!cancelled && data?.workspace?.subscriptionActive === true) {
           router.replace("/dashboard");
           router.refresh();
         }

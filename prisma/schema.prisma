@@ -69,6 +69,8 @@ model User {
   email                String        @unique
   phone                String?
   passwordHash         String
+  authProvider         String        @default("LOCAL")
+  externalAuthId       String?
   role                 UserRole      @default(OWNER)
   isActive             Boolean       @default(true)
   isMechanic           Boolean       @default(false)
@@ -80,8 +82,42 @@ model User {
   workspace            Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   mechanicSales        Sale[]        @relation("SaleMechanic")
   mechanicAppointments Appointment[] @relation("AppointmentMechanic")
+  passwordResetTokens  PasswordResetToken[]
 
   @@index([workspaceId])
+  @@unique([authProvider, externalAuthId])
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model TrialIdentity {
+  id                  String   @id @default(cuid())
+  document            String   @unique
+  email               String   @unique
+  phone               String   @unique
+  firstTrialStartedAt DateTime
+  workspaceId         String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([workspaceId])
+}
+
+model AsaasWebhookEvent {
+  id          String   @id
+  event       String
+  processedAt DateTime @default(now())
 }
 
 model Workspace {

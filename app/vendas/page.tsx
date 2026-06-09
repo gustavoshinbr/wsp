@@ -5,6 +5,7 @@ import { Badge } from "@/components/Badge";
 import { Button } from "@/components/Button";
 import { CartBuilder } from "@/components/CartBuilder";
 import { Card } from "@/components/Card";
+import { SaleActions } from "@/components/SaleActions";
 import { requirePageUser } from "@/lib/auth";
 import { brl } from "@/lib/currency";
 import { prisma } from "@/lib/prisma";
@@ -20,7 +21,13 @@ export default async function VendasPage({ searchParams }: { searchParams: Promi
     prisma.service.findMany({ where: { workspaceId: user.workspaceId }, orderBy: { name: "asc" } }),
     prisma.sale.findMany({
       where: { workspaceId: user.workspaceId },
-      include: { client: true, motorcycle: true, mechanic: true, items: true },
+      include: {
+        client: true,
+        motorcycle: true,
+        mechanic: true,
+        items: true,
+        fiscalDocuments: { select: { status: true } },
+      },
       orderBy: { createdAt: "desc" },
       take: 30,
     }),
@@ -38,6 +45,14 @@ export default async function VendasPage({ searchParams }: { searchParams: Promi
     name: service.name,
     price: Number(service.price),
   }));
+  const clientOptions = clients.map((client) => ({ id: client.id, name: client.name }));
+  const motorcycleOptions = motorcycles.map((motorcycle) => ({
+    id: motorcycle.id,
+    plate: motorcycle.plate,
+    clientId: motorcycle.clientId,
+    clientName: motorcycle.client.name,
+  }));
+  const mechanicOptions = mechanics.map((mechanic) => ({ id: mechanic.id, name: mechanic.name }));
 
   return (
     <AppShell>
@@ -74,7 +89,11 @@ export default async function VendasPage({ searchParams }: { searchParams: Promi
                 {mechanics.map((mechanic) => <option key={mechanic.id} value={mechanic.id}>{mechanic.name}</option>)}
               </select>
 
-              <CartBuilder products={productOptions} services={serviceOptions} />
+              <CartBuilder
+                products={productOptions}
+                services={serviceOptions}
+                allowCustomPricing={user.role !== "STAFF"}
+              />
 
               <div className="grid gap-2 sm:grid-cols-2">
                 <select name="paymentMethod" className="h-11 rounded-lg px-3">
@@ -114,7 +133,32 @@ export default async function VendasPage({ searchParams }: { searchParams: Promi
                       {sale.items.map((item) => <span key={item.id}>{item.quantity}x {item.description}</span>)}
                     </div>
                   </div>
-                  <strong className="text-xl">{brl(sale.total)}</strong>
+                  <div className="space-y-3 sm:text-right">
+                    <strong className="block text-xl">{brl(sale.total)}</strong>
+                    <SaleActions
+                      sale={{
+                        id: sale.id,
+                        clientId: sale.clientId,
+                        motorcycleId: sale.motorcycleId,
+                        mechanicId: sale.mechanicId,
+                        paymentMethod: sale.paymentMethod,
+                        paymentStatus: sale.paymentStatus,
+                        dueDate: sale.dueDate ? sale.dueDate.toISOString().slice(0, 10) : null,
+                        lockedByFiscal: sale.fiscalDocuments.some((document) => document.status === "AUTHORIZED" || document.status === "PROCESSING"),
+                        items: sale.items.map((item) => ({
+                          id: item.id,
+                          description: item.description,
+                          quantity: item.quantity,
+                          unitPrice: Number(item.unitPrice),
+                          catalogItem: Boolean(item.productId || item.serviceId),
+                        })),
+                      }}
+                      clients={clientOptions}
+                      motorcycles={motorcycleOptions}
+                      mechanics={mechanicOptions}
+                      canManage={user.role !== "STAFF"}
+                    />
+                  </div>
                 </div>
               </Card>
             ))}

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireApiUser } from "@/lib/auth";
+import { requireApiUser, requireManager } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { apiError, ApiError } from "@/lib/validations";
 import { formNumber, formString, positiveInteger } from "@/lib/utils";
@@ -152,6 +152,9 @@ export async function POST(req: Request) {
       });
     }
 
+    if (quickProductItems.length || laborDescriptions.some(Boolean) || manualDescription || manualValue > 0) {
+      requireManager(user.role);
+    }
     if (!items.length && !quickProductItems.length) throw new ApiError("Adicione ao menos um item.");
     const total = [...items, ...quickProductItems].reduce((sum, item) => sum + item.total, 0);
 

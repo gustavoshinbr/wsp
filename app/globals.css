@@ -3,10 +3,10 @@
 @tailwind utilities;
 
 :root {
-  --bg: 255 249 249;
+  --bg: 245 247 251;
   --panel: 255 255 255;
-  --panel-soft: 255 244 244;
-  --line: 252 190 190;
+  --panel-soft: 248 250 252;
+  --line: 203 213 225;
   --text: 17 24 39;
   --muted: 100 116 139;
 }
@@ -36,12 +36,6 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-html:not(.dark) body {
-  background-image:
-    radial-gradient(circle at top right, rgba(220, 38, 38, 0.055), transparent 30rem),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.35), transparent 24rem);
-}
-
 input,
 select,
 textarea {
@@ -50,12 +44,6 @@ textarea {
   background: rgb(var(--panel));
   color: rgb(var(--text));
   outline: none;
-}
-
-html:not(.dark) input,
-html:not(.dark) select,
-html:not(.dark) textarea {
-  box-shadow: inset 0 0 0 1px rgba(220, 38, 38, 0.025);
 }
 
 input:focus,
@@ -87,6 +75,64 @@ summary:focus-visible {
   background: rgba(220, 38, 38, 0.2);
 }
 
+html:not(.dark) .bg-racing-panel.border-racing-line,
+html:not(.dark) header.bg-racing-panel,
+html:not(.dark) aside.bg-racing-panel,
+html:not(.dark) .overflow-x-auto.bg-racing-panel {
+  border-color: rgb(203 213 225);
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.06),
+    0 10px 28px rgba(15, 23, 42, 0.07);
+}
+
+html:not(.dark) .bg-racing-soft.border-racing-line,
+html:not(.dark) details.border-racing-line,
+html:not(.dark) .border-racing-line:not(.bg-racing-panel) {
+  border-color: rgb(203 213 225);
+}
+
+html:not(.dark) input,
+html:not(.dark) select,
+html:not(.dark) textarea {
+  border-color: rgb(203 213 225);
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.04),
+    inset 0 1px 2px rgba(15, 23, 42, 0.025);
+}
+
+html:not(.dark) .bg-racing-soft {
+  box-shadow: inset 0 0 0 1px rgba(203, 213, 225, 0.28);
+}
+
+.wsp-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(220, 38, 38, 0.55) transparent;
+}
+
+.wsp-scrollbar::-webkit-scrollbar {
+  width: 7px;
+}
+
+.wsp-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.wsp-scrollbar::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: rgba(220, 38, 38, 0.55);
+  background-clip: padding-box;
+}
+
+.wsp-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(220, 38, 38, 0.8);
+  background-clip: padding-box;
+}
+
+.mobile-nav-safe {
+  padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+}
+
 [data-reveal] {
   opacity: 0;
   transform: translateY(22px);
@@ -104,8 +150,9 @@ summary:focus-visible {
 
 .landing-card:hover {
   transform: translateY(-4px);
-  border-color: rgba(225, 29, 72, 0.18);
-  box-shadow: 0 22px 55px rgba(15, 23, 42, 0.12);
+  border-color: rgba(239, 68, 68, 0.3);
+  background: rgba(255, 255, 255, 0.07);
+  box-shadow: 0 22px 55px rgba(0, 0, 0, 0.24);
 }
 
 .landing-cta {
@@ -124,6 +171,23 @@ summary:focus-visible {
 .landing-load {
   transform-origin: left center;
   animation: landingLoad 1.4s ease both;
+}
+
+.landing-demo-frame {
+  animation: landingDemoEnter 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.landing-demo-notification {
+  animation: landingDemoFloat 5s ease-in-out infinite;
+}
+
+.landing-demo-badge {
+  animation: landingDemoFloat 5.8s ease-in-out -1.4s infinite;
+}
+
+.landing-demo-bar {
+  transform-origin: bottom;
+  animation: landingDemoBar 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 @keyframes landingPulse {
@@ -152,6 +216,131 @@ summary:focus-visible {
   }
   to {
     transform: scaleX(1);
+  }
+}
+
+@keyframes landingDemoEnter {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.975);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes landingDemoFloat {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-7px);
+  }
+}
+
+@keyframes landingDemoBar {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+.login-grid {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: linear-gradient(to bottom, black, transparent 88%);
+}
+
+.login-orb {
+  position: absolute;
+  width: 34rem;
+  height: 34rem;
+  border-radius: 999px;
+  filter: blur(110px);
+  opacity: 0.18;
+  pointer-events: none;
+  animation: loginDrift 11s ease-in-out infinite alternate;
+}
+
+.login-orb-one {
+  left: -12rem;
+  top: -12rem;
+  background: #dc2626;
+}
+
+.login-orb-two {
+  right: -12rem;
+  bottom: -16rem;
+  background: #7f1d1d;
+  animation-delay: -4s;
+}
+
+.login-card {
+  box-shadow:
+    0 28px 80px rgba(0, 0, 0, 0.38),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.login-shine {
+  position: relative;
+  overflow: hidden;
+}
+
+.login-shine::after {
+  content: "";
+  position: absolute;
+  inset: -100% auto -100% -35%;
+  width: 28%;
+  transform: rotate(18deg);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.38), transparent);
+  animation: loginShine 3.8s ease-in-out infinite;
+}
+
+.login-float {
+  animation: loginFloat 6s ease-in-out infinite;
+}
+
+@keyframes loginDrift {
+  to {
+    transform: translate3d(4rem, 2rem, 0) scale(1.08);
+  }
+}
+
+@keyframes loginShine {
+  0%,
+  60% {
+    left: -35%;
+  }
+  100% {
+    left: 125%;
+  }
+}
+
+@keyframes loginFloat {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-orb,
+  .login-shine::after,
+  .login-float,
+  .landing-demo-frame,
+  .landing-demo-notification,
+  .landing-demo-badge,
+  .landing-demo-bar {
+    animation: none;
   }
 }
 

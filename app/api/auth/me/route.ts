@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireApiUser } from "@/lib/auth";
 import { apiError } from "@/lib/validations";
+import { isSubscriptionActive } from "@/lib/subscription";
 import { daysUntil } from "@/lib/utils";
 
 export async function GET() {
@@ -17,9 +18,12 @@ export async function GET() {
         id: user.workspace.id,
         workshopName: user.workspace.workshopName,
         subscriptionStatus: user.workspace.subscriptionStatus,
+        trialStartAt: user.workspace.trialStartAt,
+        trialEndsAt: user.workspace.trialEndsAt,
         subscriptionActivatedAt: user.workspace.subscriptionActivatedAt,
         subscriptionCurrentPeriodEnd: user.workspace.subscriptionCurrentPeriodEnd,
         paymentStatus: user.workspace.paymentStatus,
+        subscriptionActive: isSubscriptionActive(user.workspace),
         trialDaysRemaining: daysUntil(user.workspace.trialEndsAt),
       },
     });

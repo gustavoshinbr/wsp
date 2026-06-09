@@ -1,0 +1,10 @@
+# Segredos locais nunca devem fazer parte do pacote de deploy.
+.env
+.env.*
+!.env.example
+
+# Artefatos locais
+.next
+node_modules
+build.log
+.manual-work

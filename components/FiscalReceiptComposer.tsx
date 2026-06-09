@@ -1,6 +1,7 @@
 "use client";
 
 import { AlertTriangle, CheckCircle2, ExternalLink, FileCheck2, Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useId, useMemo, useState } from "react";
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
@@ -54,6 +55,7 @@ export function FiscalReceiptComposer({
   workshopEmail?: string | null;
   workshopAddress?: string | null;
 }) {
+  const router = useRouter();
   const initialMode = sales.length ? "sale" : quotes.length ? "quote" : "manual";
   const [mode, setMode] = useState<"manual" | "quote" | "sale">(initialMode);
   const [selectedSourceId, setSelectedSourceId] = useState(sales[0]?.id || quotes[0]?.id || "");
@@ -182,10 +184,15 @@ export function FiscalReceiptComposer({
         tone: "success",
         message: `Ficha da NF-e preparada.${excluded ? ` ${excluded} item(ns) de serviço devem ser emitidos por NFS-e.` : ""}`,
       });
+      const guideUrl = new URL(String(body.guideUrl || ""), window.location.origin);
+      if (guideUrl.origin !== window.location.origin || !guideUrl.pathname.startsWith("/fiscal/sebrae/")) {
+        throw new Error("O endereço retornado para a ficha fiscal é inválido.");
+      }
+      const internalGuidePath = `${guideUrl.pathname}${guideUrl.search}${guideUrl.hash}`;
       if (guideWindow) {
-        guideWindow.location.href = body.guideUrl;
+        guideWindow.location.href = internalGuidePath;
       } else {
-        window.location.href = body.guideUrl;
+        router.push(internalGuidePath);
       }
     } catch (error) {
       guideWindow?.close();

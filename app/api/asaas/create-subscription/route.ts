@@ -3,19 +3,14 @@ import {
   createAsaasCustomer,
   createAsaasSubscription,
   getCurrentSubscriptionPayment,
-  isPaidAsaasPaymentStatus,
   paymentUrlWithAutoRedirect,
   updateAsaasSubscriptionCallback,
 } from "@/lib/asaas";
 import { requireApiUser, requireManager } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { setSessionCookie } from "@/lib/session";
-import { syncWorkspaceSubscription } from "@/lib/subscription-sync";
+import { isSubscriptionActive, isTrialActive } from "@/lib/subscription";
 import { apiError } from "@/lib/validations";
-
-function hasTrialAccess(trialEndsAt: Date) {
-  return trialEndsAt.getTime() >= Date.now();
-}
 
 function redirectToPayment(req: Request, subscriptionId: string, paymentLink?: string | null) {
   if (paymentLink) return NextResponse.redirect(paymentLink);
@@ -32,7 +27,7 @@ export async function POST(req: Request) {
     const acceptsJson = req.headers.get("accept")?.includes("application/json");
     const callbackSuccessUrl = new URL("/api/asaas/return", req.url).toString();
 
-    if (user.workspace.subscriptionStatus === "ACTIVE") {
+    if (isSubscriptionActive(user.workspace)) {
       if (acceptsJson) return NextResponse.json({ active: true });
       return NextResponse.redirect(new URL("/dashboard", req.url));
     }
@@ -40,22 +35,6 @@ export async function POST(req: Request) {
     if (user.workspace.asaasSubscriptionId && user.workspace.subscriptionStatus !== "CANCELED") {
       await updateAsaasSubscriptionCallback(user.workspace.asaasSubscriptionId, callbackSuccessUrl).catch(() => null);
       const payment = await getCurrentSubscriptionPayment(user.workspace.asaasSubscriptionId).catch(() => null);
-      const workspace = (await syncWorkspaceSubscription(user.workspaceId)) || user.workspace;
-      const isActive = workspace.subscriptionStatus === "ACTIVE" || isPaidAsaasPaymentStatus(workspace.paymentStatus);
-
-      await setSessionCookie({
-        userId: user.id,
-        workspaceId: workspace.id,
-        email: user.email,
-        remember: true,
-        subscriptionStatus: workspace.subscriptionStatus,
-        trialEndsAt: workspace.trialEndsAt,
-      });
-
-      if (isActive) {
-        if (acceptsJson) return NextResponse.json({ active: true });
-        return NextResponse.redirect(new URL("/dashboard", req.url));
-      }
 
       if (acceptsJson) {
         return NextResponse.json({
@@ -83,6 +62,10 @@ export async function POST(req: Request) {
         externalReference: user.workspace.id,
       });
       customerId = customer.id;
+      await prisma.workspace.update({
+        where: { id: user.workspaceId },
+        data: { asaasCustomerId: customerId },
+      });
     }
 
     const result = await createAsaasSubscription({
@@ -98,14 +81,8 @@ export async function POST(req: Request) {
       data: {
         asaasCustomerId: customerId,
         asaasSubscriptionId: result.subscription.id,
-        subscriptionStatus: isPaidAsaasPaymentStatus(result.payment?.status)
-          ? "ACTIVE"
-          : hasTrialAccess(user.workspace.trialEndsAt)
-            ? "TRIAL"
-            : "INACTIVE",
+        subscriptionStatus: isTrialActive(user.workspace) ? "TRIAL" : "INACTIVE",
         paymentStatus: result.payment?.status || "AWAITING_PAYMENT",
-        subscriptionCurrentPeriodEnd: result.currentPeriodEnd,
-        ...(isPaidAsaasPaymentStatus(result.payment?.status) ? { subscriptionActivatedAt: new Date() } : {}),
         lastPaymentEvent: "SUBSCRIPTION_CREATED",
       },
     });
