@@ -84,6 +84,19 @@ export async function POST(req: Request) {
       }
     }
 
+    const laborDescription = formString(formData, "laborDescription");
+    const laborValue = formNumber(formData, "laborValue");
+
+    if (laborDescription && laborValue > 0) {
+      items.push({
+        type: "MANUAL",
+        description: laborDescription,
+        quantity: 1,
+        unitPrice: laborValue,
+        total: laborValue,
+      });
+    }
+
     const total = items.reduce((sum, item) => sum + item.total, 0);
 
     await prisma.appointment.create({

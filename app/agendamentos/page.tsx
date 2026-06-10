@@ -77,6 +77,27 @@ export default async function AgendamentosPage({ searchParams }: { searchParams:
               </select>
               <input name="date" required type="datetime-local" className="h-11 rounded-lg px-3" />
               <AppointmentItemsPicker products={products} services={services} />
+              <div className="grid gap-2 sm:grid-cols-[1fr_1fr]">
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-racing-text">Mão de obra</label>
+                  <input
+                    name="laborDescription"
+                    className="h-11 w-full rounded-lg px-3"
+                    placeholder="Descreva a mão de obra"
+                  />
+                </div>
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-racing-text">Valor</label>
+                  <input
+                    name="laborValue"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    className="h-11 w-full rounded-lg px-3"
+                    placeholder="Valor da mão de obra"
+                  />
+                </div>
+              </div>
               <textarea name="notes" rows={3} className="rounded-lg px-3 py-2" placeholder="Observações" />
               <Button type="submit" className="w-full">
                 <Plus size={17} />
