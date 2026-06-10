@@ -93,11 +93,14 @@ export function AppointmentItemsPicker({ products, services }: AppointmentItemsP
                 <option value="">
                   {row.type === "PRODUCT" ? "Selecione produto" : "Selecione serviço"}
                 </option>
-                {options.map((option) => (
-                  <option key={option.id} value={option.id}>
-                    {option.name} · {row.type === "PRODUCT" ? brl(option.sellPrice) : brl(option.price)}
-                  </option>
-                ))}
+                {options.map((option) => {
+                  const value = row.type === "PRODUCT" ? brl((option as Product).sellPrice) : brl((option as Service).price);
+                  return (
+                    <option key={option.id} value={option.id}>
+                      {option.name} · {value}
+                    </option>
+                  );
+                })}
               </select>
 
               <input
