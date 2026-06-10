@@ -13,7 +13,7 @@ import { prisma } from "@/lib/prisma";
 export default async function AgendamentosPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
   const query = await searchParams;
   const user = await requirePageUser();
-  const [clients, motorcycles, mechanics, products, services, appointments] = await Promise.all([
+  const [clients, motorcycles, mechanics, rawProducts, rawServices, appointments] = await Promise.all([
     prisma.client.findMany({ where: { workspaceId: user.workspaceId }, orderBy: { name: "asc" } }),
     prisma.motorcycle.findMany({ where: { workspaceId: user.workspaceId }, include: { client: true }, orderBy: { plate: "asc" } }),
     prisma.user.findMany({ where: { workspaceId: user.workspaceId, isActive: true, isMechanic: true }, orderBy: { name: "asc" } }),
@@ -25,6 +25,16 @@ export default async function AgendamentosPage({ searchParams }: { searchParams:
       orderBy: { date: "asc" },
     }),
   ]);
+  const products = rawProducts.map((product) => ({
+    id: product.id,
+    name: product.name,
+    sellPrice: Number(product.sellPrice),
+  }));
+  const services = rawServices.map((service) => ({
+    id: service.id,
+    name: service.name,
+    price: Number(service.price),
+  }));
   const clientOptions = clients.map((client) => ({ id: client.id, name: client.name }));
   const motorcycleOptions = motorcycles.map((motorcycle) => ({
     id: motorcycle.id,
