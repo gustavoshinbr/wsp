@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { requireApiUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { apiError, ApiError } from "@/lib/validations";
-import { formString, positiveInteger } from "@/lib/utils";
+import { formNumber, formString, positiveInteger } from "@/lib/utils";
 
 function values(formData: FormData, key: string) {
   return formData.getAll(key).map((value) => String(value || "").trim());
