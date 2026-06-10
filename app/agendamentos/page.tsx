@@ -1,6 +1,7 @@
 import { CalendarDays, CheckCircle2, Plus, UserRound } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { AppointmentActions } from "@/components/AppointmentActions";
+import { AppointmentItemsPicker } from "@/components/AppointmentItemsPicker";
 import { Badge } from "@/components/Badge";
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
@@ -65,24 +66,7 @@ export default async function AgendamentosPage({ searchParams }: { searchParams:
                 {mechanics.map((mechanic) => <option key={mechanic.id} value={mechanic.id}>{mechanic.name}</option>)}
               </select>
               <input name="date" required type="datetime-local" className="h-11 rounded-lg px-3" />
-              {[0, 1].map((index) => (
-                <div key={`p-${index}`} className="grid grid-cols-[1fr_74px] gap-2">
-                  <select name="productId" className="h-11 rounded-lg px-3">
-                    <option value="">Produto previsto</option>
-                    {products.map((product) => <option key={product.id} value={product.id}>{product.name} · {brl(product.sellPrice)}</option>)}
-                  </select>
-                  <input name="productQuantity" type="number" min={1} defaultValue={1} className="h-11 rounded-lg px-3" />
-                </div>
-              ))}
-              {[0, 1].map((index) => (
-                <div key={`s-${index}`} className="grid grid-cols-[1fr_74px] gap-2">
-                  <select name="serviceId" className="h-11 rounded-lg px-3">
-                    <option value="">Serviço previsto</option>
-                    {services.map((service) => <option key={service.id} value={service.id}>{service.name} · {brl(service.price)}</option>)}
-                  </select>
-                  <input name="serviceQuantity" type="number" min={1} defaultValue={1} className="h-11 rounded-lg px-3" />
-                </div>
-              ))}
+              <AppointmentItemsPicker products={products} services={services} />
               <textarea name="notes" rows={3} className="rounded-lg px-3 py-2" placeholder="Observações" />
               <Button type="submit" className="w-full">
                 <Plus size={17} />

@@ -35,10 +35,10 @@ export default async function ServicosPage({ searchParams }: { searchParams: Pro
         <div className="grid gap-6 xl:grid-cols-[380px_1fr]">
           <Card>
             <h2 className="text-lg font-black">Novo serviço</h2>
-            <form action="/api/servicos" method="post" className="mt-4 space-y-3">
-              <input name="name" required className="h-11 rounded-lg px-3" placeholder="Nome do serviço" />
-              <input name="price" required type="number" step="0.01" className="h-11 rounded-lg px-3" placeholder="Valor fixo" />
-              <textarea name="description" rows={4} className="rounded-lg px-3 py-2" placeholder="Descrição" />
+            <form action="/api/servicos" method="post" className="mt-4 space-y-3" autoComplete="off">
+              <input name="name" required autoComplete="off" className="h-11 rounded-lg px-3" placeholder="Nome do serviço" />
+              <input name="price" required type="number" step="0.01" autoComplete="off" className="h-11 rounded-lg px-3" placeholder="Valor fixo" />
+              <textarea name="description" rows={4} autoComplete="off" className="rounded-lg px-3 py-2" placeholder="Descrição" />
               <Button type="submit" className="w-full">
                 <Plus size={17} />
                 Salvar serviço

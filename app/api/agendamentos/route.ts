@@ -60,30 +60,28 @@ export async function POST(req: Request) {
       total: number;
     }> = [];
 
-    const productIds = values(formData, "productId");
-    const productQuantities = values(formData, "productQuantity");
-    for (let index = 0; index < productIds.length; index += 1) {
-      const productId = productIds[index];
-      if (!productId) continue;
-      const product = await prisma.product.findFirst({ where: { id: productId, workspaceId: user.workspaceId } });
-      if (!product) throw new ApiError("Produto inválido.", 404);
-      const quantity = positiveInteger(productQuantities[index]);
-      if (!quantity) throw new ApiError(`Quantidade inválida para ${product.name}.`);
-      const unitPrice = Number(product.sellPrice);
-      items.push({ productId, type: "PRODUCT", description: product.name, quantity, unitPrice, total: quantity * unitPrice });
-    }
+    const itemTypes = values(formData, "itemType");
+    const itemIds = values(formData, "itemId");
+    const itemQuantities = values(formData, "itemQuantity");
 
-    const serviceIds = values(formData, "serviceId");
-    const serviceQuantities = values(formData, "serviceQuantity");
-    for (let index = 0; index < serviceIds.length; index += 1) {
-      const serviceId = serviceIds[index];
-      if (!serviceId) continue;
-      const service = await prisma.service.findFirst({ where: { id: serviceId, workspaceId: user.workspaceId } });
-      if (!service) throw new ApiError("Serviço inválido.", 404);
-      const quantity = positiveInteger(serviceQuantities[index]);
-      if (!quantity) throw new ApiError(`Quantidade inválida para ${service.name}.`);
-      const unitPrice = Number(service.price);
-      items.push({ serviceId, type: "SERVICE", description: service.name, quantity, unitPrice, total: quantity * unitPrice });
+    for (let index = 0; index < itemTypes.length; index += 1) {
+      const itemType = itemTypes[index] as "PRODUCT" | "SERVICE" | "MANUAL";
+      const itemId = itemIds[index];
+      if (!itemId) continue;
+      const quantity = positiveInteger(itemQuantities[index]);
+      if (!quantity) throw new ApiError("Quantidade inválida para item previsto.");
+
+      if (itemType === "PRODUCT") {
+        const product = await prisma.product.findFirst({ where: { id: itemId, workspaceId: user.workspaceId } });
+        if (!product) throw new ApiError("Produto inválido.", 404);
+        const unitPrice = Number(product.sellPrice);
+        items.push({ productId: itemId, type: "PRODUCT", description: product.name, quantity, unitPrice, total: quantity * unitPrice });
+      } else if (itemType === "SERVICE") {
+        const service = await prisma.service.findFirst({ where: { id: itemId, workspaceId: user.workspaceId } });
+        if (!service) throw new ApiError("Serviço inválido.", 404);
+        const unitPrice = Number(service.price);
+        items.push({ serviceId: itemId, type: "SERVICE", description: service.name, quantity, unitPrice, total: quantity * unitPrice });
+      }
     }
 
     const total = items.reduce((sum, item) => sum + item.total, 0);
