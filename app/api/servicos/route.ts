@@ -41,11 +41,11 @@ export async function POST(req: Request) {
       },
     });
 
-    return NextResponse.redirect(new URL("/servicos", req.url));
+    return NextResponse.redirect(new URL("/servicos", req.url), 303);
   } catch (error) {
     const { message } = apiError(error);
     const url = new URL("/servicos", req.url);
     url.searchParams.set("error", message);
-    return NextResponse.redirect(url);
+    return NextResponse.redirect(url, 303);
   }
 }

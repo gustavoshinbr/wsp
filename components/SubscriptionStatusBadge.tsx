@@ -8,10 +8,12 @@ export function SubscriptionStatusBadge({
   status,
   trialEndsAt,
   subscriptionCurrentPeriodEnd,
+  className,
 }: {
   status: string;
   trialEndsAt: string;
   subscriptionCurrentPeriodEnd?: string | null;
+  className?: string;
 }) {
   const [now, setNow] = useState<number | null>(null);
 
@@ -31,12 +33,18 @@ export function SubscriptionStatusBadge({
   const trialHours = Math.floor(((trialRemaining || 0) % 86_400_000) / 3_600_000);
 
   let message = "Assinatura necessária.";
+  let mobileMessage = "Assinatura inativa";
+  let tone: "green" | "amber" | "red" = "red";
   if (subscriptionActive) {
     message = `Assinatura ativa até ${new Date(subscriptionCurrentPeriodEnd!).toLocaleDateString("pt-BR")}.`;
+    mobileMessage = "Assinatura ativa";
+    tone = "green";
   } else if (trialActive) {
     message = trialRemaining === null
       ? "Teste grátis em andamento."
       : `Teste grátis: ${trialDays}d ${trialHours}h restantes.`;
+    mobileMessage = "Período de teste";
+    tone = "amber";
   } else if (status === "OVERDUE") {
     message = "Pagamento em atraso.";
   } else if (status === "CANCELED") {
@@ -44,9 +52,10 @@ export function SubscriptionStatusBadge({
   }
 
   return (
-    <Badge tone={subscriptionActive ? "green" : "amber"}>
+    <Badge tone={tone} className={className}>
       <ShieldCheck size={14} className="mr-1" />
-      {message}
+      <span className="sm:hidden">{mobileMessage}</span>
+      <span className="hidden sm:inline">{message}</span>
     </Badge>
   );
 }

@@ -25,22 +25,23 @@ export function Header({
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="grid w-full grid-cols-3 items-center gap-2 sm:flex sm:w-auto sm:flex-wrap sm:justify-end">
         <SubscriptionStatusBadge
           status={workspace.subscriptionStatus}
           trialEndsAt={workspace.trialEndsAt.toISOString()}
           subscriptionCurrentPeriodEnd={workspace.subscriptionCurrentPeriodEnd?.toISOString()}
+          className="col-span-3 min-h-9 justify-center sm:col-auto"
         />
-        <ThemeToggle />
+        <ThemeToggle className="w-full px-2 sm:w-auto sm:px-3" showLabelOnMobile />
         <a
           href="/docs/manual-wsp-racing.pdf"
           target="_blank"
           rel="noreferrer"
           title="Abrir manual do sistema"
-          className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-racing-line bg-racing-panel px-3 py-2 text-sm font-bold text-racing-muted hover:bg-racing-soft hover:text-racing-text"
+          className="inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-lg border border-racing-line bg-racing-panel px-2 py-2 text-sm font-bold text-racing-muted hover:bg-racing-soft hover:text-racing-text sm:w-auto sm:px-3"
         >
           <BookOpen size={17} />
-          <span className="hidden xl:inline">Manual</span>
+          <span className="sm:hidden xl:inline">Manual</span>
         </a>
         <Link
           href="/vendas"
@@ -49,10 +50,10 @@ export function Header({
           <Plus size={17} />
           Nova venda
         </Link>
-        <form action="/api/auth/logout" method="post">
-          <Button variant="outline" type="submit" title="Sair" className="h-10 min-h-10 px-3">
+        <form action="/api/auth/logout" method="post" className="w-full sm:w-auto">
+          <Button variant="outline" type="submit" title="Sair" className="h-10 min-h-10 w-full px-2 sm:w-auto sm:px-3">
             <LogOut size={17} />
-            <span className="hidden sm:inline">Sair</span>
+            <span>Sair</span>
           </Button>
         </form>
       </div>
